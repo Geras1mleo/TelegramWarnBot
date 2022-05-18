@@ -31,7 +31,7 @@ public static class IOHandler
         return JsonSerializer.Deserialize<Warnings>(bytes) ?? throw new Exception("U fucker changed Warnings file...");
     }
 
-    public static Task SaveWarningsAsync()
+    private static Task SaveWarningsAsync()
     {
         return Task.Run(() =>
         {
@@ -49,29 +49,45 @@ public static class IOHandler
         return JsonSerializer.Deserialize<List<UserDTO>>(bytes) ?? throw new Exception("U fucker changed Users file...");
     }
 
-    public static Task SaveUsersAsync()
+    private static Task SaveUsersAsync()
     {
         var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(Users, new JsonSerializerOptions() { WriteIndented = true, });
         return System.IO.File.WriteAllBytesAsync("Data\\Users.json", jsonBytes);
     }
 
-    public static Task RegisterClientAsync(long id, string username, string name)
+    public static void RegisterClient(long id, string username, string name)
     {
         // Adding client to list if not exist
-        return Task.Run(() =>
+        
+        var user = Users.FirstOrDefault(u => u.Id == id);
+        if (user is null)
         {
-            var user = Users.FirstOrDefault(u => u.Id == id);
-            if (user is null)
+            user = new()
             {
-                user = new()
-                {
-                    Id = id,
-                    Username = username?.ToLower(),
-                    Name = name,
-                };
-                Users.Add(user);
+                Id = id,
+                Username = username?.ToLower(),
+                Name = name,
+            };
+            Users.Add(user);
+        }
+    }
+
+    public static void BeginUpdateAsync(int delaySeconds, CancellationToken cancellationToken)
+    {
+        Task.Run( async ()=>
+        {
+            while(true)
+            {
+                await Task.Delay(delaySeconds * 1000, cancellationToken);
+                SaveDataAsync();
             }
         });
+    }
+
+    public static void SaveDataAsync()
+    {
+        await IOHandler.SaveUsersAsync();
+        await IOHandler.SaveWarningsAsync();
     }
 }
 

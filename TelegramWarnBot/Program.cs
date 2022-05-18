@@ -20,7 +20,12 @@ client.StartReceiving(BotHandlers.HandleUpdateAsync, BotHandlers.HandlePollingEr
 
 BotHandlers.MeUser = await client.GetMeAsync(cts.Token);
 
-Console.WriteLine($"Bot {BotHandlers.MeUser.FirstName} running...");
+Console.WriteLine($"Bot {BotHandlers.MeUser.FirstName} running..."
+                + "\nTo exit press CTRL + C ...");
+
+IOHandler.BeginUpdateAsync(60, cts.Token);
+
+SetConsoleCtrlHandler();
 
 while (true)
 {
@@ -41,7 +46,16 @@ while (true)
 
 ExitLabel:
 
-await IOHandler.SaveUsersAsync();
-await IOHandler.SaveWarningsAsync();
-
+IOHandler.SaveDataAsync();
 cts.Cancel();
+
+void ShowInfo()
+{
+    Console.WriteLine("Available commands:\n"
+                        + "\tsend => Send message to:"
+                            + "\t\t-c => Chat with according chat ID"
+                            + "\t\t-u => User with according user ID (private message)"
+                            + "\t\t-m => Mention user in message: caption/userid"
+                        + "\texit - Save data and close application..."
+    );    
+}

@@ -16,7 +16,7 @@ public static class BotHandlers
             if (update.Message?.From is null)
                 return Task.CompletedTask;
 
-            IOHandler.RegisterClientAsync(update.Message.From.Id, update.Message.From.Username, update.Message.From.FirstName);
+            IOHandler.RegisterClient(update.Message.From.Id, update.Message.From.Username, update.Message.From.FirstName);
 
             if (!IsValidCommand(update))
                 return Task.CompletedTask;
