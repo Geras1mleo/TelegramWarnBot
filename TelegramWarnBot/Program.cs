@@ -1,5 +1,6 @@
 ﻿
 //TelegramBotClient ca = new("5149219899:AAEBeAGygk97tRrHxr3MpTZwo-bo9BgYHkM"); // testing bot
+
 var cts = new CancellationTokenSource();
 Configuration config = null;
 
@@ -20,42 +21,42 @@ client.StartReceiving(BotHandlers.HandleUpdateAsync, BotHandlers.HandlePollingEr
 
 BotHandlers.MeUser = await client.GetMeAsync(cts.Token);
 
-Console.WriteLine($"Bot {BotHandlers.MeUser.FirstName} running..."
-                + "\nTo exit press CTRL + C ...");
+Console.WriteLine($"Bot {BotHandlers.MeUser.FirstName} running...");
 
-IOHandler.BeginUpdateAsync(60, cts.Token);
+ShowInfo();
 
-SetConsoleCtrlHandler();
+IOHandler.BeginUpdateAsync(60, cts.Token); // todo from config
+
+CloseHandler.Configure();
 
 while (true)
 {
     var command = Console.ReadLine();
+    var params = command.Split(' ');
 
     switch (command)
     {
         case "send":
-            // todo
+            if(!CommandHandler.Send(client, params[1..])) // Returned false => not succeed => show commands 
+                goto default: 
             break;
         case "exit":
-            goto ExitLabel;
+            CommandHandler.Exit(cts);
+            break;
         default:
-            Console.WriteLine("Not Recognized...");
+            Console.WriteLine("Not recognized...");
+            ShowInfo();
             break;
     }
 }
 
-ExitLabel:
-
-IOHandler.SaveDataAsync();
-cts.Cancel();
-
 void ShowInfo()
 {
-    Console.WriteLine("Available commands:\n"
-                        + "\tsend => Send message to:"
-                            + "\t\t-c => Chat with according chat ID"
-                            + "\t\t-u => User with according user ID (private message)"
-                            + "\t\t-m => Mention user in message: caption/userid"
-                        + "\texit - Save data and close application..."
+    Console.WriteLine("Available commands:"
+                + "\n\tsend => Send message to:"
+                    + "\n\t\t-c => Chat with according chat ID"
+                    + "\n\t\t-u => User with according user ID (private message)"
+                    + "\n\t\t-m => Mention user in message: caption/userid"
+                + "\n\texit - Save data and close application... (CTRL + C)"
     );    
 }

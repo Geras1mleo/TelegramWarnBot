@@ -1,5 +1,4 @@
 ﻿
-
 namespace TelegramWarnBot;
 
 public static class BotHandlers
@@ -10,7 +9,7 @@ public static class BotHandlers
 
     public static Task HandleUpdateAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        // todo generate info /start in private start up
+        // todo generate info /start in chats
         try
         {
             if (update.Message?.From is null)
@@ -31,7 +30,7 @@ public static class BotHandlers
 
                 switch (response.Type)
                 {
-                    // In Succes deletes message and than send the response to chat
+                    // Succes => delete message and than send the response to chat
                     case ResponseType.Succes:
                         client.DeleteMessageAsync(new ChatId(update.Message.Chat.Id), update.Message.MessageId, cancellationToken);
                         goto case ResponseType.Error;

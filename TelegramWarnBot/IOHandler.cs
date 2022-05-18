@@ -72,9 +72,9 @@ public static class IOHandler
         }
     }
 
-    public static void BeginUpdateAsync(int delaySeconds, CancellationToken cancellationToken)
+    public static Task BeginUpdateAsync(int delaySeconds, CancellationToken cancellationToken)
     {
-        Task.Run( async ()=>
+        return Task.Run( async ()=>
         {
             while(true)
             {
@@ -84,7 +84,7 @@ public static class IOHandler
         });
     }
 
-    public static void SaveDataAsync()
+    public static async Task SaveDataAsync()
     {
         await IOHandler.SaveUsersAsync();
         await IOHandler.SaveWarningsAsync();
