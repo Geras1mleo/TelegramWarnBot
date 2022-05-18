@@ -1,15 +1,14 @@
+namespace TelegramWarnBot;
+
 public static class CommandHandler
 {
-    public static bool Send(TelegramBotClient client, string[] params)
+    public static bool Send(TelegramBotClient client, string[] parameters)
     {
-        // todo
-        return false;
-    }
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            // todo
+        }
 
-    public static void Exit(CancellationToken cancellationToken)
-    {
-        IOHandler.SaveDataAsync().GetAwaiter().GetResult();
-        cancellationToken.Cancel();
-        Environment.Exit(1);
+        return false;
     }
 }

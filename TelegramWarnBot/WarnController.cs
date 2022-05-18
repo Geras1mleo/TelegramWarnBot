@@ -15,11 +15,11 @@ public class WarnController
 
         warnedUser.WarnedCount++;
 
-        if (warnedUser.WarnedCount <= 2) // todo value from config
-            return new(ResponseType.Succes, FormatUsers(Responses.WarnedSuccessfully, warnedUser));
+        if (warnedUser.WarnedCount <= IOHandler.GetConfiguration().MaxWarnings)
+            return new(ResponseType.Succes, FormatUsers(IOHandler.GetConfiguration().Captions.WarnedSuccessfully, warnedUser));
 
         client.BanChatMemberAsync(new ChatId(update.Message.Chat.Id), warnedUser.Id, cancellationToken: cancellationToken);
-        return new(ResponseType.Succes, FormatUsers(Responses.BannedSuccessfully, warnedUser));
+        return new(ResponseType.Succes, FormatUsers(IOHandler.GetConfiguration().Captions.BannedSuccessfully, warnedUser));
     }
 
     public BotResponse Unwarn(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
@@ -35,7 +35,7 @@ public class WarnController
 
         if (warnedUser.WarnedCount == 0)
         {
-            return new(ResponseType.Error, Responses.UserHasNoWarnings);
+            return new(ResponseType.Error, IOHandler.GetConfiguration().Captions.UserHasNoWarnings);
         }
 
         warnedUser.WarnedCount--;
@@ -44,26 +44,21 @@ public class WarnController
 
         client.UnbanChatMemberAsync(new ChatId(update.Message.Chat.Id), warnedUser.Id, onlyIfBanned: true, cancellationToken: cancellationToken);
 
-        return new(ResponseType.Succes, FormatUsers(Responses.UnwarnedSuccessfully, warnedUser));
+        return new(ResponseType.Succes, FormatUsers(IOHandler.GetConfiguration().Captions.UnwarnedSuccessfully, warnedUser));
     }
 
     private static string FormatUsers(string value, WarnedUserDTO user)
     {
-        return value.Replace("{warnedUser.WarnedCount}", user.WarnedCount.ToString()).Replace("{warnedUser}", MentionUserString(user));
-    }
-
-    private static string MentionUserString(WarnedUserDTO user)
-    {
-        return $"[{user.Name}](tg://user?id={user.Id})";
+        return value.Replace("{warnedUser.WarnedCount}", user.WarnedCount.ToString()).Replace("{warnedUser}", Tools.GetMentionString(user.Name, user.Id));
     }
 
     private static OneOf<WarnedUserDTO, string> ResolveWarnedRoot(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         if (!CheckPermissions(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
-            return Responses.NoPermissions;
+            return IOHandler.GetConfiguration().Captions.NoPermissions;
 
-        if (!CheckPermissions(client, update.Message.Chat.Id, BotHandlers.MeUser.Id, cancellationToken))
-            return Responses.BotHasNoPermissions;
+        if (!CheckPermissions(client, update.Message.Chat.Id, BotHandler.MeUser.Id, cancellationToken))
+            return IOHandler.GetConfiguration().Captions.BotHasNoPermissions;
 
         UserDTO user = null;
         var resolve = ResolveMentionedUser(update);
@@ -100,7 +95,7 @@ public class WarnController
 
     private static ChatDTO ResolveChat(Update update, Warnings warnings)
     {
-        var chat = warnings.ChatDTOs.FirstOrDefault(c => c.Id == update.Message.Chat.Id);
+        var chat = warnings.Chats.FirstOrDefault(c => c.Id == update.Message.Chat.Id);
 
         if (chat is null)
         {
@@ -110,7 +105,7 @@ public class WarnController
                 Name = update.Message.Chat.Title,
                 WarnedUsers = new List<WarnedUserDTO>()
             };
-            warnings.ChatDTOs.Add(chat);
+            warnings.Chats.Add(chat);
         }
         return chat;
     }
@@ -128,13 +123,13 @@ public class WarnController
             {
                 var mentionedUser = update.Message.EntityValues.ElementAt(1)[1..].ToLower();
 
-                if (mentionedUser == BotHandlers.MeUser.Username?.ToLower())
-                    return Responses.Angry;
+                if (mentionedUser == BotHandler.MeUser.Username?.ToLower())
+                    return IOHandler.GetConfiguration().Captions.Angry;
 
                 user = allUsers.FirstOrDefault(u => u.Username == mentionedUser);
 
                 if (user is null)
-                    return Responses.UserNotFound;
+                    return IOHandler.GetConfiguration().Captions.UserNotFound;
             }
             else if (update.Message.Entities[1].Type == MessageEntityType.TextMention
                   && update.Message.Entities[1].User is not null)
@@ -152,13 +147,13 @@ public class WarnController
         if (user is null)
         {
             if (update.Message.ReplyToMessage?.From is null)
-                return Responses.UserNotSpecified;
+                return IOHandler.GetConfiguration().Captions.UserNotSpecified;
 
-            if (update.Message.ReplyToMessage.From.Id == BotHandlers.MeUser.Id)
-                return Responses.Angry;
+            if (update.Message.ReplyToMessage.From.Id == BotHandler.MeUser.Id)
+                return IOHandler.GetConfiguration().Captions.Angry;
 
             if (update.Message.ReplyToMessage.From.IsBot)
-                return Responses.BotWarnAttempt;
+                return IOHandler.GetConfiguration().Captions.BotWarnAttempt;
 
             user = new()
             {
@@ -168,7 +163,7 @@ public class WarnController
             };
 
             if (user is null)
-                return Responses.UserNotFound;
+                return IOHandler.GetConfiguration().Captions.UserNotFound;
         }
         return user;
     }

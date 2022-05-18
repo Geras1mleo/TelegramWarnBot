@@ -1,45 +1,24 @@
-namespace TelegramWarnBot; 
+namespace TelegramWarnBot;
 
 public static class CloseHandler
 {
-    // https://docs.microsoft.com/en-us/windows/console/setconsolectrlhandler?WT.mc_id=DT-MVP-5003978
-    [DllImport("Kernel32")]
-    private static extern bool SetConsoleCtrlHandler(SetConsoleCtrlEventHandler handler, bool add);
+    private static CancellationTokenSource cancellationTokenSource;
 
-    // https://docs.microsoft.com/en-us/windows/console/handlerroutine?WT.mc_id=DT-MVP-5003978
-    private delegate bool SetConsoleCtrlEventHandler(CtrlType sig);
-
-    private static bool Handler(CtrlType signal)
+    public static void Configure(CancellationTokenSource cancellationTokenS)
     {
-        switch (signal)
+        Console.CancelKeyPress += delegate
         {
-            case CtrlType.CTRL_BREAK_EVENT:
-            case CtrlType.CTRL_C_EVENT:
-            case CtrlType.CTRL_LOGOFF_EVENT:
-            case CtrlType.CTRL_SHUTDOWN_EVENT:
-            case CtrlType.CTRL_CLOSE_EVENT:
-                Console.WriteLine("Saving...");
-                // todo test
-                IOHandler.SaveDataAsync().GetAwaiter().GetResult();
-                Environment.Exit(0);
-                return false;
+            Environment.Exit(1);
+        };
 
-            default:
-                return false;
-        }
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+        cancellationTokenSource = cancellationTokenS;
     }
 
-    public static void Configure()
+    private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
     {
-        SetConsoleCtrlHandler(Handler); // to test
+        cancellationTokenSource.Cancel();
+        Console.WriteLine("Saving data...");
+        IOHandler.SaveData();
     }
-}
-
-private enum CtrlType
-{
-    CTRL_C_EVENT = 0,
-    CTRL_BREAK_EVENT = 1,
-    CTRL_CLOSE_EVENT = 2,
-    CTRL_LOGOFF_EVENT = 5,
-    CTRL_SHUTDOWN_EVENT = 6
 }

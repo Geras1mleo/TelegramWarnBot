@@ -2,6 +2,7 @@
 
 public static class IOHandler
 {
+    // todo reset
     private static Warnings Warnings;
     private static List<UserDTO> Users;
     private static Configuration Configuration;
@@ -15,50 +16,39 @@ public static class IOHandler
 
     public static Configuration GetConfiguration()
     {
-        if (Configuration is not null)
-            return Configuration;
+        if (Configuration is not null) return Configuration;
 
-        var bytes = System.IO.File.ReadAllBytes("Data\\Configuration.json");
-        return JsonSerializer.Deserialize<Configuration>(bytes);
+        return Deserialize<Configuration>("Data\\Configuration.json");
     }
 
     public static Warnings GetWarnings()
     {
-        if (Warnings is not null)
-            return Warnings;
+        if (Warnings is not null) return Warnings;
 
-        var bytes = System.IO.File.ReadAllBytes("Data\\Warnings.json");
-        return JsonSerializer.Deserialize<Warnings>(bytes) ?? throw new Exception("U fucker changed Warnings file...");
+        return Deserialize<Warnings>("Data\\Warnings.json");
     }
 
     private static Task SaveWarningsAsync()
     {
-        return Task.Run(() =>
-        {
-            var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(Warnings, new JsonSerializerOptions() { WriteIndented = true, });
-            System.IO.File.WriteAllBytes("Data\\Warnings.json", jsonBytes);
-        });
+        return Serialize(Warnings, "Data\\Warnings.json");
     }
 
     public static List<UserDTO> GetUsers()
     {
-        if (Users is not null)
-            return Users;
+        if (Users is not null) return Users;
 
-        var bytes = System.IO.File.ReadAllBytes("Data\\Users.json");
-        return JsonSerializer.Deserialize<List<UserDTO>>(bytes) ?? throw new Exception("U fucker changed Users file...");
+        return Deserialize<List<UserDTO>>("Data\\Users.json");
     }
 
     private static Task SaveUsersAsync()
     {
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(Users, new JsonSerializerOptions() { WriteIndented = true, });
-        return System.IO.File.WriteAllBytesAsync("Data\\Users.json", jsonBytes);
+        return Serialize(Users, "Data\\Users.json");
     }
 
     public static void RegisterClient(long id, string username, string name)
     {
         // Adding client to list if not exist
-        
+
         var user = Users.FirstOrDefault(u => u.Id == id);
         if (user is null)
         {
@@ -72,16 +62,16 @@ public static class IOHandler
         }
     }
 
-    public static Task BeginUpdateAsync(int delaySeconds, CancellationToken cancellationToken)
+    public static void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
     {
-        return Task.Run( async ()=>
+        Task.Run(async () =>
         {
-            while(true)
+            while (true)
             {
                 await Task.Delay(delaySeconds * 1000, cancellationToken);
-                SaveDataAsync();
+                await SaveDataAsync();
             }
-        });
+        }, cancellationToken);
     }
 
     public static async Task SaveDataAsync()
@@ -89,36 +79,21 @@ public static class IOHandler
         await IOHandler.SaveUsersAsync();
         await IOHandler.SaveWarningsAsync();
     }
-}
 
-public class Configuration
-{
-    public string Token { get; set; }
-}
+    public static void SaveData()
+    {
+        Task.WaitAll(IOHandler.SaveUsersAsync(), IOHandler.SaveWarningsAsync());
+    }
 
-public class Warnings
-{
-    public List<ChatDTO> ChatDTOs { get; set; }
-}
+    public static T Deserialize<T>(string path)
+    {
+        var text = System.IO.File.ReadAllText(path);
+        return JsonConvert.DeserializeObject<T>(text) ?? throw new Exception($"U fucker changed {path} file...");
+    }
 
-public class ChatDTO
-{
-    public long Id { get; set; }
-    public string Name { get; set; }
-    public List<WarnedUserDTO> WarnedUsers { get; set; }
-}
-
-public class WarnedUserDTO
-{
-    public string Username { get; set; }
-    public string Name { get; set; }
-    public long Id { get; set; }
-    public int WarnedCount { get; set; }
-}
-
-public class UserDTO
-{
-    public string Username { get; set; }
-    public string Name { get; set; }
-    public long Id { get; set; }
+    private static Task Serialize(object value, string path)
+    {
+        var text = JsonConvert.SerializeObject(value, Formatting.Indented);
+        return System.IO.File.WriteAllTextAsync(path, text, Encoding.UTF8);
+    }
 }
