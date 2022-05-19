@@ -35,13 +35,19 @@ while (true)
 
     if (command is null) continue;
 
-    var parameters = command.Split(' ');
+    var parts = Regex.Matches(command, @"[\""].+?[\""]|[^ ]+")
+                    .Cast<Match>()
+                    .Select(m => m.Value)
+                    .ToArray();
 
-    switch (command)
+    if (parts.Length == 0)
+        continue;
+
+    switch (parts[0])
     {
         case "send":
-            if (!CommandHandler.Send(client, parameters[1..])) // Returned false => not succeed => show commands 
-                goto default;
+            if (!CommandHandler.Send(client, parts.Skip(1).ToList(), cts.Token)) 
+                goto default; // if not succeed => show available commands 
             break;
         case "exit":
             Environment.Exit(1);
@@ -57,12 +63,12 @@ static void ShowInfo()
 {
     Console.WriteLine(
     "\nAvailable commands:\n"
+    
     + "\nsend => Send message to:"
-        + "\n\t-c => Chat with according chat ID"
-        + "\n\t-u => User with according user ID (private message)"
-        + "\n\t-m => Mention user in message: user_name/user_id"
-    + "\nexit => Save data and close the application (CTRL + C)"
+        + "\n\t-c => Chat with according chat ID. Use . to send to all chats"
+        + "\n\t-m => Message to send. Please use \"\" to indicate message. Markdown formating allowed\n"
+    
+    + "\nexit => Save data and close the application (CTRL + C)\n"
 
-    + "\n"
     );
 }
