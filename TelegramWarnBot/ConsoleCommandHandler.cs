@@ -2,7 +2,7 @@ namespace TelegramWarnBot;
 
 public static class CommandHandler
 {
-    public static bool Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken)
+    public static async Task<bool> Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken)
     {
         int chatIndex = parameters.FindIndex(p => p.ToLower() == "-c");
 
@@ -13,7 +13,9 @@ public static class CommandHandler
 
         bool broadcast = chatParameter == ".";
 
-        if (!broadcast && !long.TryParse(chatParameter, out long chatId))
+        long chatId = 0;
+
+        if (!broadcast && !long.TryParse(chatParameter, out chatId))
             return false;
 
         int messageIndex = parameters.FindIndex(p => p.ToLower() == "-m");
@@ -30,23 +32,35 @@ public static class CommandHandler
 
         var chats = new List<ChatDTO>();
 
-        if(broadcast)
+        if (broadcast)
             chats = IOHandler.GetWarnings().Chats;
         else
         {
             var chat = IOHandler.GetWarnings().Chats.FirstOrDefault(c => c.Id == chatId);
-            
-            if(chat is not null) 
+
+            if (chat is not null)
                 chats.Add(chat);
-        }
-            
-        // todo test
-        
-        for(int i = 0; i < chats.count; i++)
-        {
-            client.SendTextMessageAsync(chats[i].Id, message, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown);   
+
+            Console.WriteLine("Chat not found...");
+            return true;
         }
 
-        return false;
+        int sentCount = 0;
+        for (int i = 0; i < chats.Count; i++)
+        {
+            try
+            {
+                if (chats[i].Id != 0)
+                {
+                    await client.SendTextMessageAsync(chats[i].Id, message, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown);
+                    sentCount++;
+                }
+            }
+            catch (Exception) { }
+        }
+
+        Console.WriteLine("Messages sent: " + sentCount);
+
+        return true;
     }
 }

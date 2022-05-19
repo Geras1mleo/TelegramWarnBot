@@ -1,6 +1,8 @@
 ﻿
 //TelegramBotClient ca = new("5149219899:AAEBeAGygk97tRrHxr3MpTZwo-bo9BgYHkM"); // testing bot
 
+Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
+
 var cts = new CancellationTokenSource();
 Configuration config = null;
 
@@ -46,7 +48,7 @@ while (true)
     switch (parts[0])
     {
         case "send":
-            if (!CommandHandler.Send(client, parts.Skip(1).ToList(), cts.Token)) 
+            if (!CommandHandler.Send(client, parts.Skip(1).ToList(), cts.Token).GetAwaiter().GetResult())
                 goto default; // if not succeed => show available commands 
             break;
         case "exit":
@@ -63,12 +65,12 @@ static void ShowInfo()
 {
     Console.WriteLine(
     "\nAvailable commands:\n"
-    
+
     + "\nsend => Send message to:"
         + "\n\t-c => Chat with according chat ID. Use . to send to all chats"
         + "\n\t-m => Message to send. Please use \"\" to indicate message. Markdown formating allowed\n"
-    
-    + "\nexit => Save data and close the application (CTRL + C)\n"
+    + "\nExample: send -c 123456 -m \"Example message\"\n"
 
+    + "\nexit => Save data and close the application (CTRL + C)\n"
     );
 }
