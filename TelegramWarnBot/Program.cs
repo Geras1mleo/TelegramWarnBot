@@ -1,5 +1,4 @@
-﻿//TelegramBotClient ca = new("5149219899:AAEBeAGygk97tRrHxr3MpTZwo-bo9BgYHkM"); // testing bot
-var cts = new CancellationTokenSource();
+﻿var cts = new CancellationTokenSource();
 
 Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
 CloseHandler.Configure(cts);
