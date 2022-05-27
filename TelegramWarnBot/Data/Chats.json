@@ -1,0 +1,16 @@
+﻿{
+  "Chats": [
+    {
+      "Id": 0,
+      "Name": null,
+      "WarnedUsers": [
+        {
+          "Username": null,
+          "Name": null,
+          "Id": 0,
+          "WarnedCount": 0
+        }
+      ]
+    }
+  ]
+}

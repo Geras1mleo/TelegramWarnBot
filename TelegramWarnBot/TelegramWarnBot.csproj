@@ -16,6 +16,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Data\Chats.json" />
+    <None Remove="Data\Configuration.json" />
+    <None Remove="Data\Users.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\Chats.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\Configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\Users.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+
+  <ItemGroup>
     <PackageReference Include="OneOf" Version="3.0.216" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0-alpha.3" />
   </ItemGroup>
