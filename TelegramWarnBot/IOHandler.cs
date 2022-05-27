@@ -2,42 +2,46 @@
 
 public static class IOHandler
 {
-    // todo reset
     private static Warnings Warnings;
     private static List<UserDTO> Users;
     private static Configuration Configuration;
 
     static IOHandler()
     {
-        Warnings = GetWarnings();
-        Users = GetUsers();
-        Configuration = GetConfiguration();
+        GetConfiguration();
+        GetWarnings();
+        GetUsers();
     }
 
     public static Configuration GetConfiguration()
     {
-        if (Configuration is not null) return Configuration;
+        if (Configuration is null)
+            Configuration = Deserialize<Configuration>("Data\\Configuration.json");
 
-        return Deserialize<Configuration>("Data\\Configuration.json");
+        return Configuration;
     }
+
+    public static Configuration ReloadConfiguration() => Configuration = Deserialize<Configuration>("Data\\Configuration.json");
 
     public static Warnings GetWarnings()
     {
-        if (Warnings is not null) return Warnings;
+        if (Warnings is null)
+            Warnings = Deserialize<Warnings>("Data\\Chats.json");
 
-        return Deserialize<Warnings>("Data\\Warnings.json");
+        return Warnings;
     }
 
     private static Task SaveWarningsAsync()
     {
-        return Serialize(Warnings, "Data\\Warnings.json");
+        return Serialize(Warnings, "Data\\Chats.json");
     }
 
     public static List<UserDTO> GetUsers()
     {
-        if (Users is not null) return Users;
+        if (Users is null)
+            Users = Deserialize<List<UserDTO>>("Data\\Users.json");
 
-        return Deserialize<List<UserDTO>>("Data\\Users.json");
+        return Users;
     }
 
     private static Task SaveUsersAsync()
@@ -48,7 +52,6 @@ public static class IOHandler
     public static void RegisterClient(long id, string username, string name)
     {
         // Adding client to list if not exist
-
         var user = Users.FirstOrDefault(u => u.Id == id);
         if (user is null)
         {
@@ -87,13 +90,13 @@ public static class IOHandler
 
     public static T Deserialize<T>(string path)
     {
-        var text = System.IO.File.ReadAllText(path);
+        var text = System.IO.File.ReadAllText(Environment.CurrentDirectory + "\\" + path);
         return JsonConvert.DeserializeObject<T>(text) ?? throw new Exception($"U fucker changed {path} file...");
     }
 
     private static Task Serialize(object value, string path)
     {
         var text = JsonConvert.SerializeObject(value, Formatting.Indented);
-        return System.IO.File.WriteAllTextAsync(path, text, Encoding.UTF8);
+        return System.IO.File.WriteAllTextAsync(Environment.CurrentDirectory + "\\" + path, text, Encoding.UTF8);
     }
 }

@@ -28,7 +28,7 @@ public static class CommandHandler
         if (message is null || !message.StartsWith("\"") || !message.EndsWith("\"") || message.Length == 1)
             return false;
 
-        message = message.Substring(1, message.Length - 2);
+        message = message[1..^1];
 
         var chats = new List<ChatDTO>();
 
@@ -38,11 +38,13 @@ public static class CommandHandler
         {
             var chat = IOHandler.GetWarnings().Chats.FirstOrDefault(c => c.Id == chatId);
 
-            if (chat is not null)
-                chats.Add(chat);
+            if (chat is null)
+            {
+                Console.WriteLine("Chat not found...");
+                return true;
+            }
 
-            Console.WriteLine("Chat not found...");
-            return true;
+            chats.Add(chat);
         }
 
         int sentCount = 0;

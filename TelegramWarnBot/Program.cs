@@ -1,10 +1,10 @@
 ﻿
 //TelegramBotClient ca = new("5149219899:AAEBeAGygk97tRrHxr3MpTZwo-bo9BgYHkM"); // testing bot
-
-Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
-
 var cts = new CancellationTokenSource();
 Configuration config = null;
+
+Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
+CloseHandler.Configure(cts);
 
 try
 {
@@ -29,8 +29,6 @@ ShowInfo();
 
 IOHandler.BeginUpdate(config.UpdateDelay, cts.Token);
 
-CloseHandler.Configure(cts);
-
 while (true)
 {
     var command = Console.ReadLine();
@@ -51,6 +49,10 @@ while (true)
             if (!CommandHandler.Send(client, parts.Skip(1).ToList(), cts.Token).GetAwaiter().GetResult())
                 goto default; // if not succeed => show available commands 
             break;
+        case "reload":
+            IOHandler.ReloadConfiguration();
+            Console.WriteLine("Configuration reloaded...");
+            break;
         case "exit":
             Environment.Exit(1);
             break;
@@ -63,14 +65,16 @@ while (true)
 
 static void ShowInfo()
 {
-    Console.WriteLine(
-    "\nAvailable commands:\n"
+    Tools.WriteColor(
+     "\nAvailable commands:\n"
 
-    + "\nsend => Send message to:"
-        + "\n\t-c => Chat with according chat ID. Use . to send to all chats"
-        + "\n\t-m => Message to send. Please use \"\" to indicate message. Markdown formating allowed\n"
-    + "\nExample: send -c 123456 -m \"Example message\"\n"
+     + "\n[send] \t=> Send message:"
+         + "\n\t[-c] => Chat with according chat ID. Use . to send to all chats"
+         + "\n\t[-m] => Message to send. Please use \"\" to indicate message. Markdown formating allowed"
+     + "\nExample: send -c 123456 -m \"Example message\"\n"
 
-    + "\nexit => Save data and close the application (CTRL + C)\n"
-    );
+     + "\n[reload] \t=> Reload configurations\n"
+
+     + "\n[exit] \t=> Save data and close the application (CTRL + C)\n"
+     , ConsoleColor.Red);
 }

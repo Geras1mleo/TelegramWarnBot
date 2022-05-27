@@ -15,11 +15,19 @@ public class WarnController
 
         warnedUser.WarnedCount++;
 
+        // If not reached max warnings 
         if (warnedUser.WarnedCount <= IOHandler.GetConfiguration().MaxWarnings)
-            return new(ResponseType.Succes, FormatUsers(IOHandler.GetConfiguration().Captions.WarnedSuccessfully, warnedUser));
+            return new(ResponseType.Succes, 
+                       FormatResponse(IOHandler.GetConfiguration().Captions.WarnedSuccessfully,
+                       warnedUser));
 
-        client.BanChatMemberAsync(new ChatId(update.Message.Chat.Id), warnedUser.Id, cancellationToken: cancellationToken);
-        return new(ResponseType.Succes, FormatUsers(IOHandler.GetConfiguration().Captions.BannedSuccessfully, warnedUser));
+        client.BanChatMemberAsync(update.Message.Chat.Id,
+                                  warnedUser.Id,
+                                  cancellationToken: cancellationToken);
+
+        return new(ResponseType.Succes, 
+                   FormatResponse(IOHandler.GetConfiguration().Captions.BannedSuccessfully,
+                   warnedUser));
     }
 
     public BotResponse Unwarn(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
@@ -40,18 +48,22 @@ public class WarnController
 
         warnedUser.WarnedCount--;
 
-        client.DeleteMessageAsync(new ChatId(update.Message.Chat.Id), update.Message.MessageId, cancellationToken);
+        if (IOHandler.GetConfiguration().DeleteWarnMessage)
+            client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
 
-        client.UnbanChatMemberAsync(new ChatId(update.Message.Chat.Id), warnedUser.Id, onlyIfBanned: true, cancellationToken: cancellationToken);
+        client.UnbanChatMemberAsync(update.Message.Chat.Id, warnedUser.Id, onlyIfBanned: true, cancellationToken: cancellationToken);
 
-        return new(ResponseType.Succes, FormatUsers(IOHandler.GetConfiguration().Captions.UnwarnedSuccessfully, warnedUser));
+        return new(ResponseType.Succes, FormatResponse(IOHandler.GetConfiguration().Captions.UnwarnedSuccessfully, warnedUser));
     }
 
-    private static string FormatUsers(string value, WarnedUserDTO user)
+    private static string FormatResponse(string value, WarnedUserDTO user)
     {
-        return value.Replace("{warnedUser.WarnedCount}", user.WarnedCount.ToString()).Replace("{warnedUser}", Tools.GetMentionString(user.Name, user.Id));
+        return value.Replace("{warnedUser.WarnedCount}", user.WarnedCount.ToString())
+                    .Replace("{warnedUser}", Tools.GetMentionString(user.Name, user.Id))
+                    .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
     }
 
+    // return user or error message that has to be returned
     private static OneOf<WarnedUserDTO, string> ResolveWarnedRoot(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         if (!CheckPermissions(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
@@ -110,6 +122,7 @@ public class WarnController
         return chat;
     }
 
+    // return user or error message that has to be returned
     private static OneOf<UserDTO, string> ResolveMentionedUser(Update update)
     {
         var allUsers = IOHandler.GetUsers();
@@ -170,7 +183,7 @@ public class WarnController
 
     private static bool CheckPermissions(ITelegramBotClient client, long chatId, long userId, CancellationToken cancellationToken)
     {
-        var status = client.GetChatMemberAsync(new ChatId(chatId), userId, cancellationToken: cancellationToken)
+        var status = client.GetChatMemberAsync(chatId, userId, cancellationToken: cancellationToken)
                            .GetAwaiter()
                            .GetResult()
                            .Status;
