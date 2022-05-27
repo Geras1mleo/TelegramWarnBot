@@ -16,12 +16,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Bot.json" />
     <None Remove="Data\Chats.json" />
     <None Remove="Data\Configuration.json" />
     <None Remove="Data\Users.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Bot.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Data\Chats.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

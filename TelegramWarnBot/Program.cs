@@ -1,14 +1,12 @@
-﻿
-//TelegramBotClient ca = new("5149219899:AAEBeAGygk97tRrHxr3MpTZwo-bo9BgYHkM"); // testing bot
+﻿//TelegramBotClient ca = new("5149219899:AAEBeAGygk97tRrHxr3MpTZwo-bo9BgYHkM"); // testing bot
 var cts = new CancellationTokenSource();
-Configuration config = null;
 
 Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
 CloseHandler.Configure(cts);
 
 try
 {
-    config = IOHandler.GetConfiguration();
+    Bot.Configuration = IOHandler.GetBotConfiguration();
 }
 catch (Exception e)
 {
@@ -16,18 +14,18 @@ catch (Exception e)
     Environment.Exit(0);
 }
 
-TelegramBotClient client = new(config.Token);
+Bot.Client = new(Bot.Configuration.Token);
 
-client.StartReceiving(BotHandler.HandleUpdateAsync, BotHandler.HandlePollingErrorAsync,
+Bot.Client.StartReceiving(BotHandler.HandleUpdateAsync, BotHandler.HandlePollingErrorAsync,
     receiverOptions: new ReceiverOptions() { AllowedUpdates = new[] { UpdateType.Message }, }, cancellationToken: cts.Token);
 
-BotHandler.MeUser = await client.GetMeAsync(cts.Token);
+Bot.User = await Bot.Client.GetMeAsync(cts.Token);
 
-Console.WriteLine($"Bot {BotHandler.MeUser.FirstName} running...");
+Tools.WriteColor($"Bot: [{Bot.User.FirstName}] running...", ConsoleColor.Green);
+
+IOHandler.BeginUpdate(IOHandler.GetConfiguration().UpdateDelay, cts.Token);
 
 ShowInfo();
-
-IOHandler.BeginUpdate(config.UpdateDelay, cts.Token);
 
 while (true)
 {
@@ -46,7 +44,7 @@ while (true)
     switch (parts[0])
     {
         case "send":
-            if (!CommandHandler.Send(client, parts.Skip(1).ToList(), cts.Token).GetAwaiter().GetResult())
+            if (!CommandHandler.Send(Bot.Client, parts.Skip(1).ToList(), cts.Token).GetAwaiter().GetResult())
                 goto default; // if not succeed => show available commands 
             break;
         case "reload":

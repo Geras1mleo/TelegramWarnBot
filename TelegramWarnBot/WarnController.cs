@@ -69,7 +69,7 @@ public class WarnController
         if (!CheckPermissions(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
             return IOHandler.GetConfiguration().Captions.NoPermissions;
 
-        if (!CheckPermissions(client, update.Message.Chat.Id, BotHandler.MeUser.Id, cancellationToken))
+        if (!CheckPermissions(client, update.Message.Chat.Id, Bot.User.Id, cancellationToken))
             return IOHandler.GetConfiguration().Captions.BotHasNoPermissions;
 
         UserDTO user = null;
@@ -136,7 +136,7 @@ public class WarnController
             {
                 var mentionedUser = update.Message.EntityValues.ElementAt(1)[1..].ToLower();
 
-                if (mentionedUser == BotHandler.MeUser.Username?.ToLower())
+                if (mentionedUser == Bot.User.Username?.ToLower())
                     return IOHandler.GetConfiguration().Captions.Angry;
 
                 user = allUsers.FirstOrDefault(u => u.Username == mentionedUser);
@@ -162,7 +162,7 @@ public class WarnController
             if (update.Message.ReplyToMessage?.From is null)
                 return IOHandler.GetConfiguration().Captions.UserNotSpecified;
 
-            if (update.Message.ReplyToMessage.From.Id == BotHandler.MeUser.Id)
+            if (update.Message.ReplyToMessage.From.Id == Bot.User.Id)
                 return IOHandler.GetConfiguration().Captions.Angry;
 
             if (update.Message.ReplyToMessage.From.IsBot)

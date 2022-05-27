@@ -13,6 +13,11 @@ public static class IOHandler
         GetUsers();
     }
 
+    public static BotConfiguration GetBotConfiguration()
+    {
+        return Deserialize<BotConfiguration>("Bot.json");
+    }
+
     public static Configuration GetConfiguration()
     {
         if (Configuration is null)
@@ -77,7 +82,7 @@ public static class IOHandler
         }, cancellationToken);
     }
 
-    public static async Task SaveDataAsync()
+    private static async Task SaveDataAsync()
     {
         await IOHandler.SaveUsersAsync();
         await IOHandler.SaveWarningsAsync();
@@ -88,7 +93,7 @@ public static class IOHandler
         Task.WaitAll(IOHandler.SaveUsersAsync(), IOHandler.SaveWarningsAsync());
     }
 
-    public static T Deserialize<T>(string path)
+    private static T Deserialize<T>(string path)
     {
         var text = System.IO.File.ReadAllText(Environment.CurrentDirectory + "\\" + path);
         return JsonConvert.DeserializeObject<T>(text) ?? throw new Exception($"U fucker changed {path} file...");
