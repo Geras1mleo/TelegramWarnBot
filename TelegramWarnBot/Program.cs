@@ -33,9 +33,9 @@ while (true)
     if (command is null) continue;
 
     var parts = Regex.Matches(command, @"[\""].+?[\""]|[^ ]+")
-                    .Cast<Match>()
-                    .Select(m => m.Value)
-                    .ToArray();
+                     .Cast<Match>()
+                     .Select(m => m.Value)
+                     .ToArray();
 
     if (parts.Length == 0)
         continue;

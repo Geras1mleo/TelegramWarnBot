@@ -2,7 +2,6 @@
 
 public static class BotHandler
 {
-
     public static Task HandlePollingErrorAsync(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken) => Task.CompletedTask;
 
     public static Task HandleUpdateAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
@@ -60,14 +59,14 @@ public static class BotHandler
         return Task.CompletedTask;
     }
 
-    public static Task HandleBotJoinedOrLeft(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    private static Task HandleBotJoinedOrLeft(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         // If bot has been added to new chat
         if (update.Message.Type == MessageType.ChatMembersAdded
          && update.Message.NewChatMembers.Any(m => m.Id == Bot.User.Id))
         {
             return client.SendTextMessageAsync(update.Message.Chat.Id,
-                   IOHandler.GetConfiguration().OnBotJoinedChatMessage,
+                   IOHandler.GetConfiguration().Captions.OnBotJoinedChatMessage,
                    cancellationToken: cancellationToken, parseMode: ParseMode.Markdown);
         }
         // If bot left chat / kicked from chat => clear chats
