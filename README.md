@@ -1,9 +1,9 @@
-<p style="text-align: center;">
+<p align="center">
   <img width="128" src="https://user-images.githubusercontent.com/67554762/170731917-7c85d87e-7ae2-47bf-be2c-9c1a04a32821.png">
 </p>
 
-<h1 style="text-align: center;">Telegram Warn Bot</h1>
-<p style="text-align: center;">
+<h1 align="center">Telegram Warn Bot</h1>
+<p align="center">
   Telegram Warn Bot made with C# and &hearts; by Geras1mleo
 </p>
 
@@ -56,9 +56,9 @@ You can change them at runtime and then use `reload` in console to reload new co
   - [MatchWholeMessage](TelegramWarnBot/Data/Configuration.json#L23): Whether message must match whole message to trigger.
 
 
-### Features
-##### Console command:
-**send** => Send message:
-**-c** => Chat with according chat ID. Use **.** to send to all chats.
-**-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.
+### Console Features
+
+**send** => Send message:<br/>
+**-c** => Chat with according chat ID. Use **.** to send to all chats.<br/>
+**-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.<br/>
 Example: **send -c 123456 -m "Example message"**.
