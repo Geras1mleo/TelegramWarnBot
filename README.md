@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="128" src="https://user-images.githubusercontent.com/67554762/170886586-6696647a-e07d-47fa-b4f6-42142f170861.png">
+  <img width="128" src="https://user-images.githubusercontent.com/67554762/170891447-47721a4f-7e09-4e77-b37f-026f83d91c28.png">
 </p>
 
 <h1 align="center">Telegram Warn Bot</h1>
@@ -61,4 +61,4 @@ You can change them at runtime and then use `reload` in console to reload new co
 **send** => Send message:<br/>
 **-c** => Chat with according chat ID. Use **.** to send to all chats.<br/>
 **-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.<br/>
-Example: **send -c 123456 -m "Example message"**.
+Example: **send -c 123456 -m "Example message"**
