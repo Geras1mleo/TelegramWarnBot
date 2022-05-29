@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="128" src="https://user-images.githubusercontent.com/67554762/170731917-7c85d87e-7ae2-47bf-be2c-9c1a04a32821.png">
+  <img width="128" src="https://user-images.githubusercontent.com/67554762/170886586-6696647a-e07d-47fa-b4f6-42142f170861.png">
 </p>
 
 <h1 align="center">Telegram Warn Bot</h1>
