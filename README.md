@@ -1,7 +1,6 @@
 <p align="center">
-  <img width="128" src="https://user-images.githubusercontent.com/67554762/170891447-47721a4f-7e09-4e77-b37f-026f83d91c28.png">
+  <img width="180" src="https://user-images.githubusercontent.com/67554762/171271199-bde4b277-b109-4aa4-ae6c-00546d844847.png">
 </p>
-
 <h1 align="center">Telegram Warn Bot</h1>
 <p align="center">
   Telegram Warn Bot made with C# and &hearts; by Geras1mleo
