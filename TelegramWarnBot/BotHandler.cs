@@ -14,7 +14,7 @@ public static class BotHandler
             if (update.Message?.Text is null)
                 return Task.CompletedTask;
 
-            ResolveTriggers(client, update.Message.Text, update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
+            ResolveTriggersAsync(client, update.Message.Text, update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
 
             if (update.Message?.From is null)
                 return Task.CompletedTask;
@@ -80,13 +80,13 @@ public static class BotHandler
         return Task.CompletedTask;
     }
 
-    private static void ResolveTriggers(ITelegramBotClient client, string message, long chatId, int messageId, CancellationToken cancellationToken)
+    private static Task ResolveTriggersAsync(ITelegramBotClient client, string message, long chatId, int messageId, CancellationToken cancellationToken)
     {
-        foreach (var trigger in IOHandler.GetConfiguration().Triggers)
+        return Task.Run(() =>
         {
-            if (trigger.MatchWholeMessage)
+            foreach (var trigger in IOHandler.GetConfiguration().Triggers)
             {
-                if (MatchMessage(trigger.MatchCase, trigger.Message, message))
+                if (MatchMessage(trigger, message))
                 {
                     client.SendTextMessageAsync(chatId,
                                                 trigger.Response,
@@ -95,24 +95,16 @@ public static class BotHandler
                                                 parseMode: ParseMode.Markdown);
                     return;
                 }
-                continue;
             }
-
-            if (message.Contains(trigger.Message, trigger.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase))
-            {
-                client.SendTextMessageAsync(chatId,
-                                            trigger.Response,
-                                            replyToMessageId: messageId,
-                                            cancellationToken: cancellationToken,
-                                            parseMode: ParseMode.Markdown);
-                return;
-            }
-        }
+        }, cancellationToken);
     }
 
-    private static bool MatchMessage(bool matchCase, string trigger, string message)
+    private static bool MatchMessage(Trigger trigger, string message)
     {
-        return matchCase ? trigger == message : trigger.ToLower() == message.ToLower();
+        if (trigger.MatchWholeMessage)
+            return trigger.Messages.Any(m => trigger.MatchCase ? m == message : m.ToLower() == message.ToLower());
+
+        return trigger.Messages.Any(m => message.Contains(m, trigger.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase));
     }
 
     private static bool IsValidCommand(Update update)
