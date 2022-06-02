@@ -48,9 +48,9 @@ You can change them at runtime and then use `reload` in console to reload new co
   - [WarnedSuccessfully](TelegramWarnBot/Data/Configuration.json#L14): Post */warn* message that will mention warned user and his current amount of warnings.
   - [UnwarnedSuccessfully](TelegramWarnBot/Data/Configuration.json#L15): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
   - [BannedSuccessfully](TelegramWarnBot/Data/Configuration.json#L16): Post */warn* message that will mention banned user.
-- [Triggers](TelegramWarnBot/Data/Configuration.json#L18): Messages that will trigger the bot to send a response:
-  - [Message](TelegramWarnBot/Data/Configuration.json#L20): Message that will trigger the bot.
-  - [Response](TelegramWarnBot/Data/Configuration.json#L21): Reaction of bot to member who triggered the bot.
+- [Triggers](TelegramWarnBot/Data/Configuration.json#L18): Messages that will trigger the bot and send a response to corresponding chat with a triggered message attached in **reply** of response message:
+  - [Messages](TelegramWarnBot/Data/Configuration.json#L20): Messages array that will trigger the bot.
+  - [Response](TelegramWarnBot/Data/Configuration.json#L21): Reaction of the bot to the member who triggered it.
   - [MatchCase](TelegramWarnBot/Data/Configuration.json#L22): Whether message must match upper/lower case to trigger.
   - [MatchWholeMessage](TelegramWarnBot/Data/Configuration.json#L23): Whether message must match whole message to trigger.
 
