@@ -61,3 +61,14 @@ You can change them at runtime and then use `reload` in console to reload new co
 **-c** => Chat with according chat ID. Use **.** to send to all chats.<br/>
 **-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.<br/>
 Example: **send -c 123456 -m "Example message"**
+
+## Like the project?
+
+Give it a :star: Star!
+
+## Found a bug?
+
+Drop to <a href="https://github.com/Geras1mleo/TelegramWarnBot/issues">Issues</a><br/>
+Or: sviatoslav.harasymchuk@gmail.com<br/>
+<br/>
+Thanks in advance!
