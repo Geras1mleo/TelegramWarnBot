@@ -14,7 +14,11 @@ public static class BotHandler
             if (update.Message?.Text is null)
                 return Task.CompletedTask;
 
-            ResolveTriggersAsync(client, update.Message.Text, update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
+            if (update.Message.Chat.Type == ChatType.Group || update.Message.Chat.Type == ChatType.Supergroup)
+            {
+                ResolveTriggersAsync(client, update.Message.Text, update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
+                ResolveIllegalNotificationsAsync(client, update, cancellationToken);
+            }
 
             if (update.Message?.From is null)
                 return Task.CompletedTask;
@@ -86,7 +90,7 @@ public static class BotHandler
         {
             foreach (var trigger in IOHandler.GetConfiguration().Triggers)
             {
-                if (MatchMessage(trigger, message))
+                if (MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, message))
                 {
                     client.SendTextMessageAsync(chatId,
                                                 trigger.Response,
@@ -99,12 +103,37 @@ public static class BotHandler
         }, cancellationToken);
     }
 
-    private static bool MatchMessage(Trigger trigger, string message)
+    private static Task ResolveIllegalNotificationsAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        if (trigger.MatchWholeMessage)
-            return trigger.Messages.Any(m => trigger.MatchCase ? m == message : m.ToLower() == message.ToLower());
+        return Task.Run(async () =>
+        {
+            foreach (var notification in IOHandler.GetConfiguration().IllegalNotifications)
+            {
+                if (notification.Chat is not null && notification.Chat != update.Message.Chat.Id)
+                    continue;
 
-        return trigger.Messages.Any(m => message.Contains(m, trigger.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase));
+                if (MatchMessage(notification.IllegalWords, false, false, update.Message.Text))
+                {
+                    foreach (var adminId in notification.NotifiedAdmins)
+                    {
+                        await client.SendTextMessageAsync(adminId,
+                                                        $"*Illegal message detected!*\nChat: *{update.Message.Chat.Title}*\nFrom: *{update.Message.From?.FirstName}*\nSent: {update.Message.Date}\nContent:",
+                                                        cancellationToken: cancellationToken,
+                                                        parseMode: ParseMode.Markdown);
+
+                        await client.ForwardMessageAsync(adminId, update.Message.Chat.Id, update.Message.MessageId, cancellationToken: cancellationToken);
+                    }
+                }
+            }
+        }, cancellationToken);
+    }
+
+    private static bool MatchMessage(string[] matchFromMessages, bool matchWholeMessage, bool matchCase, string message)
+    {
+        if (matchWholeMessage)
+            return matchFromMessages.Any(m => matchCase ? m == message : m.ToLower() == message.ToLower());
+
+        return matchFromMessages.Any(m => message.Contains(m, matchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase));
     }
 
     private static bool IsValidCommand(Update update)
