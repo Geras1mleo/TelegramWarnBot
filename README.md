@@ -65,9 +65,10 @@ You can change them at runtime and then use `reload` in console to reload new co
 
 ### Console Features
 
-- **send** => Send message:<br/>
-  - **-c** => Chat with according chat ID. Use **.** to send to all chats.<br/>
-  - **-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.<br/>
+- **send** => Send message:
+  - **-c** => Chat with according chat ID. Use **.** to send to all chats.
+  - **-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.
+
 Example: **send -c 123456 -m "Example message"**
 
 ## Like the project?
