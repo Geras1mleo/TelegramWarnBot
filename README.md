@@ -20,7 +20,10 @@ If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a
 **The commands /warn and /unwarn are only available to _administrators_ and the _owner_ of the group.**
 
 #### Triggers
-I will look at the **messages** in the chat and **respond/trigger** to the most offensive/provocative ones.
+I will look at the **messages** in one specific chat (or any chat) and **respond/trigger** to the most offensive/provocative/funny ones.
+
+#### Illegal message notifications
+I will look at the **messages** in the chat and **notify the admin** (in private messages) if something illegal has been sent in one specific chat (or any chat).
 
 ## Usage
 
@@ -49,17 +52,22 @@ You can change them at runtime and then use `reload` in console to reload new co
   - [UnwarnedSuccessfully](TelegramWarnBot/Data/Configuration.json#L15): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
   - [BannedSuccessfully](TelegramWarnBot/Data/Configuration.json#L16): Post */warn* message that will mention banned user.
 - [Triggers](TelegramWarnBot/Data/Configuration.json#L18): Messages that will trigger the bot and send a response to corresponding chat with a triggered message attached in **reply** of response message:
-  - [Messages](TelegramWarnBot/Data/Configuration.json#L20): Messages array that will trigger the bot.
-  - [Response](TelegramWarnBot/Data/Configuration.json#L21): Reaction of the bot to the member who triggered it.
-  - [MatchCase](TelegramWarnBot/Data/Configuration.json#L22): Whether message must match upper/lower case to trigger.
-  - [MatchWholeMessage](TelegramWarnBot/Data/Configuration.json#L23): Whether message must match whole message to trigger.
+  - [Chat](TelegramWarnBot/Data/Configuration.json#L20): Chat to which the trigger is applicable or *null* (any chat).
+  - [Messages](TelegramWarnBot/Data/Configuration.json#L21): Messages array that will trigger the bot.
+  - [Response](TelegramWarnBot/Data/Configuration.json#L22): Reaction of the bot to the member who triggered it.
+  - [MatchCase](TelegramWarnBot/Data/Configuration.json#L23): Whether message must match upper/lower case to trigger.
+  - [MatchWholeMessage](TelegramWarnBot/Data/Configuration.json#L24): Whether message must match whole message to trigger.
+- [IllegalNotifications](TelegramWarnBot/Data/Configuration.json#L48): Notifications to admins when an *illegal word* is sent in a specific chat (or any chat).
+  - [Chat](TelegramWarnBot/Data/Configuration.json#L50): Chat to which the notification is applicable or *null* (any chat).
+  - [IllegalWords](TelegramWarnBot/Data/Configuration.json#L51): Words array that will trigger the notification.
+  - [NotifiedAdmins](TelegramWarnBot/Data/Configuration.json#L52): Array of IDs of *administrators* that will receive the notification.
 
 
 ### Console Features
 
-**send** => Send message:<br/>
-**-c** => Chat with according chat ID. Use **.** to send to all chats.<br/>
-**-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.<br/>
+- **send** => Send message:<br/>
+  - **-c** => Chat with according chat ID. Use **.** to send to all chats.<br/>
+  - **-m** => Message to send. Please use **""** to indicate message. Markdown formating allowed.<br/>
 Example: **send -c 123456 -m "Example message"**
 
 ## Like the project?
