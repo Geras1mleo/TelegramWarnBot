@@ -90,6 +90,9 @@ public static class BotHandler
         {
             foreach (var trigger in IOHandler.GetConfiguration().Triggers)
             {
+                if (trigger.Chat is not null && trigger.Chat != chatId)
+                    continue;
+
                 if (MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, message))
                 {
                     client.SendTextMessageAsync(chatId,

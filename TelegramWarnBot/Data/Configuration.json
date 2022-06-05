@@ -17,24 +17,28 @@
   },
   "Triggers": [
     {
+      "Chat": null, // This will cover all chats
       "Messages": [ "Росія" ],
       "Response": "ₚосія пишеться з дуже мальнької 😉",
       "MatchCase": true,
       "MatchWholeMessage": true
     },
     {
+      "Chat": null,
       "Messages": [ "росіянин", "росиянин", "росіянка", "росиянка" ],
       "Response": "У нас прийнято говорити москаль 😉",
       "MatchCase": false,
       "MatchWholeMessage": false
     },
     {
+      "Chat": null,
       "Messages": [ "наша русофобія", "західна русофобія" ],
       "Response": "Недостатня!",
       "MatchCase": false,
       "MatchWholeMessage": true
     },
     {
+      "Chat": -1001505758084,
       "Messages": [ "хороших росіян", "добрих росіян" ],
       "Response": "Не існує!",
       "MatchCase": false,
@@ -43,7 +47,7 @@
   ],
   "IllegalNotifications": [
     {
-      "Chat": null, // This will cover all chats
+      "Chat": null,
       "IllegalWords": [
         "путин",
         "спецоперация"

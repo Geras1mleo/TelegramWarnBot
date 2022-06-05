@@ -2,6 +2,7 @@
 
 public class Trigger
 {
+    public long? Chat { get; set; }
     public string[] Messages { get; set; }
     public string Response { get; set; }
     public bool MatchCase { get; set; }
