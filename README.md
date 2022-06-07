@@ -60,7 +60,7 @@ You can change them at runtime and then use `reload` in console to reload new co
 - [IllegalNotifications](TelegramWarnBot/Data/Configuration.json#L48): Notifications to admins when an *illegal word* is sent in a specific chat (or any chat).
   - [Chat](TelegramWarnBot/Data/Configuration.json#L50): Chat to which the notification is applicable or *null* (any chat).
   - [IllegalWords](TelegramWarnBot/Data/Configuration.json#L51): Words array that will trigger the notification.
-  - [NotifiedAdmins](TelegramWarnBot/Data/Configuration.json#L52): Array of IDs of *administrators* that will receive the notification.
+  - [NotifiedAdmins](TelegramWarnBot/Data/Configuration.json#L55): Array of IDs of *administrators* that will receive the notification.
 
 
 ### Console Features
