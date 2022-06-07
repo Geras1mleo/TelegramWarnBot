@@ -2,6 +2,45 @@ namespace TelegramWarnBot;
 
 public static class CommandHandler
 {
+    public static void StartListening(CancellationToken cancellationToken)
+    {
+        Tools.PrintAvailableCommands();
+
+        while (true)
+        {
+            var command = Console.ReadLine();
+
+            if (command is null) continue;
+
+            var parts = Regex.Matches(command, @"[\""].+?[\""]|[^ ]+")
+                             .Cast<Match>()
+                             .Select(m => m.Value)
+                             .ToArray();
+
+            if (parts.Length == 0)
+                continue;
+
+            switch (parts[0])
+            {
+                case "send":
+                    if (!Send(Bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
+                        goto default; // if not succeed => show available commands 
+                    break;
+                case "reload":
+                    IOHandler.ReloadConfiguration();
+                    Console.WriteLine("Configuration reloaded...");
+                    break;
+                case "exit":
+                    Environment.Exit(1);
+                    break;
+                default:
+                    Console.WriteLine("Not recognized...");
+                    Tools.PrintAvailableCommands();
+                    break;
+            }
+        }
+    }
+
     public static async Task<bool> Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken)
     {
         int chatIndex = parameters.FindIndex(p => p.ToLower() == "-c");

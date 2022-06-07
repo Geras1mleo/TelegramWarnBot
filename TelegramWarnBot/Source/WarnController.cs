@@ -13,19 +13,21 @@ public class WarnController
         if (warnedUser is null)
             return new(ResponseType.Error, resolve.AsT1);
 
-        warnedUser.WarnedCount++;
+        warnedUser.Warnings++;
 
         // If not reached max warnings 
-        if (warnedUser.WarnedCount <= IOHandler.GetConfiguration().MaxWarnings)
-            return new(ResponseType.Succes, 
+        if (warnedUser.Warnings <= IOHandler.GetConfiguration().MaxWarnings)
+            return new(ResponseType.Succes,
                        FormatResponse(IOHandler.GetConfiguration().Captions.WarnedSuccessfully,
                        warnedUser));
 
+        // Max warnings reached
         client.BanChatMemberAsync(update.Message.Chat.Id,
                                   warnedUser.Id,
                                   cancellationToken: cancellationToken);
 
-        return new(ResponseType.Succes, 
+        // Notify in chat that user has been banned
+        return new(ResponseType.Succes,
                    FormatResponse(IOHandler.GetConfiguration().Captions.BannedSuccessfully,
                    warnedUser));
     }
@@ -41,12 +43,12 @@ public class WarnController
         if (warnedUser is null)
             return new(ResponseType.Error, resolve.AsT1);
 
-        if (warnedUser.WarnedCount == 0)
+        if (warnedUser.Warnings == 0)
         {
             return new(ResponseType.Error, IOHandler.GetConfiguration().Captions.UserHasNoWarnings);
         }
 
-        warnedUser.WarnedCount--;
+        warnedUser.Warnings--;
 
         if (IOHandler.GetConfiguration().DeleteWarnMessage)
             client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
@@ -56,11 +58,11 @@ public class WarnController
         return new(ResponseType.Succes, FormatResponse(IOHandler.GetConfiguration().Captions.UnwarnedSuccessfully, warnedUser));
     }
 
-    private static string FormatResponse(string value, WarnedUserDTO user)
+    private static string FormatResponse(string response, WarnedUserDTO user)
     {
-        return value.Replace("{warnedUser.WarnedCount}", user.WarnedCount.ToString())
-                    .Replace("{warnedUser}", Tools.GetMentionString(user.Name, user.Id))
-                    .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
+        return response.Replace("{warnedUser.WarnedCount}", user.Warnings.ToString())
+                       .Replace("{warnedUser}", Tools.GetMentionString(IOHandler.GetUsers().Find(u => u.Id == user.Id)?.Name ?? "Not Found", user.Id))
+                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
     }
 
     // return user or error message that has to be returned
@@ -96,9 +98,7 @@ public class WarnController
             warnedUser = new()
             {
                 Id = user.Id,
-                Username = user.Username,
-                Name = user.Name,
-                WarnedCount = 0
+                Warnings = 0
             };
             chat.WarnedUsers.Add(warnedUser);
         }

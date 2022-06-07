@@ -34,4 +34,20 @@ public static class Tools
 
         Console.WriteLine();
     }
+
+    public static void PrintAvailableCommands()
+    {
+        WriteColor(
+         "\nAvailable commands:\n"
+
+         + "\n[send] \t=> Send message:"
+             + "\n\t[-c] => Chat with according chat ID. Use . to send to all chats"
+             + "\n\t[-m] => Message to send. Please use \"\" to indicate message. Markdown formating allowed"
+         + "\nExample: send -c 123456 -m \"Example message\"\n"
+
+         + "\n[reload] \t=> Reload configurations\n"
+
+         + "\n[exit] \t=> Save data and close the application (CTRL + C)\n"
+         , ConsoleColor.Red);
+    }
 }

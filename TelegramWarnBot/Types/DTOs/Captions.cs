@@ -1,6 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
-public class Responses
+public class Captions
 {
     public string OnBotJoinedChatMessage { get; set; }
     public string NoPermissions { get; set; }

@@ -2,9 +2,9 @@ namespace TelegramWarnBot;
 
 public static class CloseHandler
 {
-    private static CancellationTokenSource cancellationTokenSource;
+    public static CancellationTokenSource CancellationTokenSource;
 
-    public static void Configure(CancellationTokenSource cancellationTokenS)
+    public static void Configure(CancellationTokenSource cancellationTokenSource)
     {
         Console.CancelKeyPress += delegate
         {
@@ -12,12 +12,12 @@ public static class CloseHandler
         };
 
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-        cancellationTokenSource = cancellationTokenS;
+        CancellationTokenSource = cancellationTokenSource;
     }
 
     private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
     {
-        cancellationTokenSource.Cancel();
+        CancellationTokenSource.Cancel();
         Console.WriteLine("Saving data...");
         IOHandler.SaveData();
     }

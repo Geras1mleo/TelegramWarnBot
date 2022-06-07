@@ -2,62 +2,57 @@
 
 public static class BotHandler
 {
-    public static Task HandlePollingErrorAsync(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken) => Task.CompletedTask;
+    public static Task HandlePollingErrorAsync(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
+    {
+        Tools.WriteColor($"[HandlePollingErrorAsync]: {exception.Message}\n[StackTrace]: {exception.StackTrace}", ConsoleColor.Red);
+
+        return Task.CompletedTask;
+    }
 
     public static Task HandleUpdateAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        try
+        HandleBotJoinedOrLeft(client, update, cancellationToken).GetAwaiter().GetResult();
+
+        // Update must be a valid message with a From-user
+        if (!IsValidMessage(update))
+            return Task.CompletedTask;
+
+        IOHandler.RegisterClient(update.Message.From.Id, update.Message.From.Username, update.Message.From.FirstName);
+
+        if (update.Message.Text is null)
+            return Task.CompletedTask;
+
+        ResolveTriggersAsync(client, update.Message.Text, update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
+        ResolveIllegalTriggersAsync(client, update, cancellationToken);
+
+        // Check if message is a command
+        if (!IsValidCommand(update))
+            return Task.CompletedTask;
+
+        var type = typeof(WarnController);
+        var method = Tools.ResolveMethod(type, update.Message.EntityValues.First()[1..]);
+
+        if (method is null)
+            return Task.CompletedTask;
+
+        var response = (BotResponse)(method.Invoke(Activator.CreateInstance(type, null),
+                       new object[] { client, update, cancellationToken }) ?? "Executed!");
+
+        switch (response.Type)
         {
-            HandleBotJoinedOrLeft(client, update, cancellationToken).GetAwaiter().GetResult();
+            // Succes => delete message and than send the response to chat
+            case ResponseType.Succes:
+                if (IOHandler.GetConfiguration().DeleteWarnMessage)
+                    client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
+                goto case ResponseType.Error;
 
-            // Update must be a valid message
-            if (update.Message?.Text is null)
-                return Task.CompletedTask;
+            case ResponseType.Error:
+                client.SendTextMessageAsync(update.Message.Chat.Id, response.Data, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown);
+                break;
 
-            if (update.Message.Chat.Type == ChatType.Group || update.Message.Chat.Type == ChatType.Supergroup)
-            {
-                ResolveTriggersAsync(client, update.Message.Text, update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
-                ResolveIllegalNotificationsAsync(client, update, cancellationToken);
-            }
-
-            if (update.Message?.From is null)
-                return Task.CompletedTask;
-
-            IOHandler.RegisterClient(update.Message.From.Id, update.Message.From.Username, update.Message.From.FirstName);
-
-            // Check if message is a command
-            if (!IsValidCommand(update))
-                return Task.CompletedTask;
-
-            var type = typeof(WarnController);
-            var method = Tools.ResolveMethod(type, update.Message.EntityValues.First()[1..]);
-
-            if (method is null)
-                return Task.CompletedTask;
-
-            var response = (BotResponse)(method.Invoke(Activator.CreateInstance(type, null),
-                           new object[] { client, update, cancellationToken }) ?? "Executed!");
-
-            switch (response.Type)
-            {
-                // Succes => delete message and than send the response to chat
-                case ResponseType.Succes:
-                    if (IOHandler.GetConfiguration().DeleteWarnMessage)
-                        client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
-                    goto case ResponseType.Error;
-
-                case ResponseType.Error:
-                    client.SendTextMessageAsync(update.Message.Chat.Id, response.Data, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown);
-                    break;
-
-                case ResponseType.Unhandled:
-                    Console.WriteLine("ResponseType.Unhandled: " + response.Data);
-                    break;
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("HandleUpdateAsync: " + e.Message);
+            case ResponseType.Unhandled:
+                Console.WriteLine("ResponseType.Unhandled: " + response.Data);
+                break;
         }
 
         return Task.CompletedTask;
@@ -88,7 +83,7 @@ public static class BotHandler
     {
         return Task.Run(() =>
         {
-            foreach (var trigger in IOHandler.GetConfiguration().Triggers)
+            foreach (var trigger in IOHandler.GetTriggers())
             {
                 if (trigger.Chat is not null && trigger.Chat != chatId)
                     continue;
@@ -106,18 +101,18 @@ public static class BotHandler
         }, cancellationToken);
     }
 
-    private static Task ResolveIllegalNotificationsAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    private static Task ResolveIllegalTriggersAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         return Task.Run(async () =>
         {
-            foreach (var notification in IOHandler.GetConfiguration().IllegalNotifications)
+            foreach (var trigger in IOHandler.GetIllegalTriggers())
             {
-                if (notification.Chat is not null && notification.Chat != update.Message.Chat.Id)
+                if (trigger.Chat is not null && trigger.Chat != update.Message.Chat.Id)
                     continue;
 
-                if (MatchMessage(notification.IllegalWords, false, false, update.Message.Text))
+                if (MatchMessage(trigger.IllegalWords, false, false, update.Message.Text))
                 {
-                    foreach (var adminId in notification.NotifiedAdmins)
+                    foreach (var adminId in trigger.NotifiedAdmins)
                     {
                         await client.SendTextMessageAsync(adminId,
                                                         $"*Illegal message detected!*\nChat: *{update.Message.Chat.Title}*\nFrom: *{update.Message.From?.FirstName}*\nSent: {update.Message.Date}\nContent:",
@@ -125,6 +120,10 @@ public static class BotHandler
                                                         parseMode: ParseMode.Markdown);
 
                         await client.ForwardMessageAsync(adminId, update.Message.Chat.Id, update.Message.MessageId, cancellationToken: cancellationToken);
+                    }
+                    if (trigger.WarnMember)
+                    {
+                        
                     }
                 }
             }
@@ -139,13 +138,16 @@ public static class BotHandler
         return matchFromMessages.Any(m => message.Contains(m, matchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase));
     }
 
-    private static bool IsValidCommand(Update update)
+    private static bool IsValidMessage(Update update)
     {
         return update.Message is not null
-            && update.Message.Text is not null
             && update.Message.From is not null
-            && (update.Message.Chat.Type == ChatType.Group || update.Message.Chat.Type == ChatType.Supergroup)
-            && update.Message.Entities is not null
+            && (update.Message.Chat.Type == ChatType.Group || update.Message.Chat.Type == ChatType.Supergroup);
+    }
+
+    private static bool IsValidCommand(Update update)
+    {
+        return update.Message.Entities is not null
             && update.Message.EntityValues is not null
             && update.Message.Entities.Length > 0
             && update.Message.Entities[0].Type == MessageEntityType.BotCommand;

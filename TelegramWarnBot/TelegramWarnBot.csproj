@@ -9,15 +9,17 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>portable</DebugType>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Bot.json" />
+    <None Remove="Configuration\IllegalTriggers.json" />
+    <None Remove="Configuration\Triggers.json" />
     <None Remove="Data\Chats.json" />
     <None Remove="Data\Configuration.json" />
     <None Remove="Data\Users.json" />
@@ -27,10 +29,16 @@
     <EmbeddedResource Include="Bot.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Configuration\IllegalTriggers.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Configuration\Triggers.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Data\Chats.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Data\Configuration.json">
+    <EmbeddedResource Include="Configuration\Configuration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Data\Users.json">
