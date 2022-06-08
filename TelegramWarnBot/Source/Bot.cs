@@ -21,6 +21,8 @@ public static class Bot
 
         Tools.WriteColor($"Bot: [{User.FirstName}] running...", ConsoleColor.Green);
 
+        Tools.WriteColor($"\n[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow);
+
         Console.Title = User.FirstName;
     }
 }

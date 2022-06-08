@@ -28,7 +28,10 @@ public static class CommandHandler
                     break;
                 case "reload":
                     IOHandler.ReloadConfiguration();
-                    Console.WriteLine("Configuration reloaded...");
+                    Tools.WriteColor("[Reloaded successfully]", ConsoleColor.Green);
+                    break;
+                case "save":
+                    IOHandler.SaveData();
                     break;
                 case "exit":
                     Environment.Exit(1);
@@ -72,18 +75,15 @@ public static class CommandHandler
         var chats = new List<ChatDTO>();
 
         if (broadcast)
+        {
             chats = IOHandler.GetWarnings().Chats;
+        }
         else
         {
-            var chat = IOHandler.GetWarnings().Chats.FirstOrDefault(c => c.Id == chatId);
-
-            if (chat is null)
+            chats.Add(new()
             {
-                Console.WriteLine("Chat not found...");
-                return true;
-            }
-
-            chats.Add(chat);
+                Id = chatId
+            });
         }
 
         int sentCount = 0;
@@ -100,7 +100,7 @@ public static class CommandHandler
             catch (Exception) { }
         }
 
-        Console.WriteLine("Messages sent: " + sentCount);
+        Tools.WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow);
 
         return true;
     }

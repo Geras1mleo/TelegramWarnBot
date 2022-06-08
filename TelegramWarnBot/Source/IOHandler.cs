@@ -13,10 +13,10 @@ public static class IOHandler
     static IOHandler()
     {
         GetConfiguration();
-        GetWarnings();
-        GetUsers();
         GetTriggers();
         GetIllegalTriggers();
+        GetWarnings();
+        GetUsers();
     }
 
     public static BotConfiguration GetBotConfiguration()
@@ -48,9 +48,14 @@ public static class IOHandler
         return illegalTriggers;
     }
 
-    public static Configuration ReloadConfiguration()
+    public static void ReloadConfiguration()
     {
-        return configuration = Deserialize<Configuration>(Path.Combine("Data", "Configuration.json"));
+        configuration = null;
+        triggers = null;
+        illegalTriggers = null;
+        GetConfiguration();
+        GetTriggers();
+        GetIllegalTriggers();
     }
 
     public static Warnings GetWarnings()
@@ -116,6 +121,7 @@ public static class IOHandler
     public static void SaveData()
     {
         Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync());
+        Tools.WriteColor("[Saved successfully]", ConsoleColor.Green);
     }
 
     private static T Deserialize<T>(string path)

@@ -4,7 +4,7 @@ public static class BotHandler
 {
     public static Task HandlePollingErrorAsync(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
     {
-        Tools.WriteColor($"[HandlePollingErrorAsync]: {exception.Message}\n[StackTrace]: {exception.StackTrace}", ConsoleColor.Red);
+        Tools.WriteColor($"[HandlePollingErrorAsync]\n[Message]: {exception.Message}\n[StackTrace]: {exception.StackTrace}", ConsoleColor.Red);
 
         return Task.CompletedTask;
     }
@@ -14,10 +14,12 @@ public static class BotHandler
         HandleBotJoinedOrLeft(client, update, cancellationToken).GetAwaiter().GetResult();
 
         // Update must be a valid message with a From-user
-        if (!IsValidMessage(update))
+        if (!IsValidSender(update))
             return Task.CompletedTask;
 
-        IOHandler.RegisterClient(update.Message.From.Id, update.Message.From.Username, update.Message.From.FirstName);
+        IOHandler.RegisterClient(update.Message.From.Id,
+                                 update.Message.From.Username,
+                                 update.Message.From.FirstName + " " + update.Message.From.LastName);
 
         if (update.Message.Text is null)
             return Task.CompletedTask;
@@ -26,34 +28,21 @@ public static class BotHandler
         ResolveIllegalTriggersAsync(client, update, cancellationToken);
 
         // Check if message is a command
-        if (!IsValidCommand(update))
+        if (!IsValidCommand(update.Message.Text))
             return Task.CompletedTask;
 
-        var type = typeof(WarnController);
-        var method = Tools.ResolveMethod(type, update.Message.EntityValues.First()[1..]);
+        var method = Tools.ResolveMethod(typeof(WarnController), update.Message.Text.Split(' ')[0][1..]);
 
         if (method is null)
             return Task.CompletedTask;
 
-        var response = (BotResponse)(method.Invoke(Activator.CreateInstance(type, null),
+        var response = (BotResponse)(method.Invoke(Activator.CreateInstance(typeof(WarnController), new UserService()),
                        new object[] { client, update, cancellationToken }) ?? "Executed!");
 
-        switch (response.Type)
-        {
-            // Succes => delete message and than send the response to chat
-            case ResponseType.Succes:
-                if (IOHandler.GetConfiguration().DeleteWarnMessage)
-                    client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
-                goto case ResponseType.Error;
-
-            case ResponseType.Error:
-                client.SendTextMessageAsync(update.Message.Chat.Id, response.Data, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown);
-                break;
-
-            case ResponseType.Unhandled:
-                Console.WriteLine("ResponseType.Unhandled: " + response.Data);
-                break;
-        }
+        client.SendTextMessageAsync(update.Message.Chat.Id,
+                                    response.Data,
+                                    cancellationToken: cancellationToken,
+                                    parseMode: ParseMode.Markdown);
 
         return Task.CompletedTask;
     }
@@ -123,7 +112,7 @@ public static class BotHandler
                     }
                     if (trigger.WarnMember)
                     {
-                        
+                        // todo
                     }
                 }
             }
@@ -138,18 +127,17 @@ public static class BotHandler
         return matchFromMessages.Any(m => message.Contains(m, matchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase));
     }
 
-    private static bool IsValidMessage(Update update)
+    private static bool IsValidSender(Update update)
     {
         return update.Message is not null
             && update.Message.From is not null
             && (update.Message.Chat.Type == ChatType.Group || update.Message.Chat.Type == ChatType.Supergroup);
     }
 
-    private static bool IsValidCommand(Update update)
+    private static bool IsValidCommand(string message)
     {
-        return update.Message.Entities is not null
-            && update.Message.EntityValues is not null
-            && update.Message.Entities.Length > 0
-            && update.Message.Entities[0].Type == MessageEntityType.BotCommand;
+        var parts = message.Split(' ');
+        return parts.Length > 0
+            && parts[0].StartsWith('/');
     }
 }

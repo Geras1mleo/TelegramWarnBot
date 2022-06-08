@@ -1,6 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
-public class WarnedUserDTO
+public class WarnedUser
 {
     public long Id { get; set; }
     public int Warnings { get; set; }

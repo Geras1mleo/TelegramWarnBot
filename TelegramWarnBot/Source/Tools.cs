@@ -12,6 +12,13 @@ public static class Tools
         return type.GetMethods().FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
     }
 
+    public static string ResolveResponseVariables(string response, WarnedUser user)
+    {
+        return response.Replace("{warnedUser.WarnedCount}", user.Warnings.ToString())
+                       .Replace("{warnedUser}", Tools.GetMentionString(IOHandler.GetUsers().Find(u => u.Id == user.Id)?.Name ?? "Not Found", user.Id))
+                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
+    }
+
     // https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
     // usage: WriteColor("This is my [message] with inline [color] changes.", ConsoleColor.Yellow);
     public static void WriteColor(string message, ConsoleColor color)
@@ -46,6 +53,8 @@ public static class Tools
          + "\nExample: send -c 123456 -m \"Example message\"\n"
 
          + "\n[reload] \t=> Reload configurations\n"
+
+         + "\n[save] \t=> Save last data\n"
 
          + "\n[exit] \t=> Save data and close the application (CTRL + C)\n"
          , ConsoleColor.Red);
