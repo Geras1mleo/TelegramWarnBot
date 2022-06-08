@@ -22,46 +22,55 @@ If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a
 #### Triggers
 I will look at the **messages** in one specific chat (or any chat) and **respond/trigger** to the most offensive/provocative/funny ones.
 
-#### Illegal message notifications
+#### Illegal Triggers
 I will look at the **messages** in the chat and **notify the admin** (in private messages) if something illegal has been sent in one specific chat (or any chat).
 
 ## Usage
+
+**Modify json configuration files according to your needs:**
 
 ### [Bot](TelegramWarnBot/Bot.json)
 
 Replace *\<Telegram Bot Token\>* by your own token.
 
-### [Configuration](TelegramWarnBot/Data/Configuration.json)
+### [Configuration](TelegramWarnBot/Configuration/Configuration.json)
 
 Here are some significant settings for the bot.
 You can change them at runtime and then use `reload` in console to reload new configurations.
 
-- [UpdateDelay](TelegramWarnBot/Data/Configuration.json#L2): Every given amount of seconds app will save all data of [Users](TelegramWarnBot/Data/Users.json) and [Chats](TelegramWarnBot/Data/Chats.json).
-- [MaxWarnings](TelegramWarnBot/Data/Configuration.json#L3): Maximum number of warnings a member can receive before being banned.
-- [DeleteWarnMessage](TelegramWarnBot/Data/Configuration.json#L4): Whether command message (`/warn @Geras1mleo` from administrator) needs to be deleted.
-- [Captions](TelegramWarnBot/Data/Configuration.json#L5): The following parameters indicate the reactions of bot on certain events:
-  - [OnBotJoinedChatMessage](TelegramWarnBot/Data/Configuration.json#L6): Greeting message that will be sent when bot is added to chat.
-  - [NoPermissions](TelegramWarnBot/Data/Configuration.json#L7): Non-admin user attempts to warn group member.
-  - [BotHasNoPermissions](TelegramWarnBot/Data/Configuration.json#L8): Bot require admin rights to warn and ban members (further).
-  - [UserNotSpecified](TelegramWarnBot/Data/Configuration.json#L9): Use of command without mentioning the user.
-  - [UserNotFound](TelegramWarnBot/Data/Configuration.json#L10): Mentioned user has been not found in this chat.
-  - [Angry](TelegramWarnBot/Data/Configuration.json#L11): Attempt to use a command on the *bot itself*.
-  - [BotWarnAttempt](TelegramWarnBot/Data/Configuration.json#L12): Attempt to use a command on *another bot*.
-  - [UserHasNoWarnings](TelegramWarnBot/Data/Configuration.json#L13): Attempt to use */unwarn* on a user without warning.
-  - [WarnedSuccessfully](TelegramWarnBot/Data/Configuration.json#L14): Post */warn* message that will mention warned user and his current amount of warnings.
-  - [UnwarnedSuccessfully](TelegramWarnBot/Data/Configuration.json#L15): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
-  - [BannedSuccessfully](TelegramWarnBot/Data/Configuration.json#L16): Post */warn* message that will mention banned user.
-- [Triggers](TelegramWarnBot/Data/Configuration.json#L18): Messages that will trigger the bot and send a response to corresponding chat with a triggered message attached in **reply** of response message:
-  - [Chat](TelegramWarnBot/Data/Configuration.json#L20): Chat to which the trigger is applicable or *null* (any chat).
-  - [Messages](TelegramWarnBot/Data/Configuration.json#L21): Messages array that will trigger the bot.
-  - [Response](TelegramWarnBot/Data/Configuration.json#L22): Reaction of the bot to the member who triggered it.
-  - [MatchCase](TelegramWarnBot/Data/Configuration.json#L23): Whether message must match upper/lower case to trigger.
-  - [MatchWholeMessage](TelegramWarnBot/Data/Configuration.json#L24): Whether message must match whole message to trigger.
-- [IllegalNotifications](TelegramWarnBot/Data/Configuration.json#L48): Notifications to admins when an *illegal word* is sent in a specific chat (or any chat).
-  - [Chat](TelegramWarnBot/Data/Configuration.json#L50): Chat to which the notification is applicable or *null* (any chat).
-  - [IllegalWords](TelegramWarnBot/Data/Configuration.json#L51): Words array that will trigger the notification.
-  - [NotifiedAdmins](TelegramWarnBot/Data/Configuration.json#L55): Array of IDs of *administrators* that will receive the notification.
+- [UpdateDelay](TelegramWarnBot/Configuration/Configuration.json#L2): Every given amount of seconds app will save all data of [Users](TelegramWarnBot/Data/Users.json) and [Chats](TelegramWarnBot/Data/Chats.json).
+- [MaxWarnings](TelegramWarnBot/Configuration/Configuration.json#L3): Maximum number of warnings a member can receive before being banned.
+- [DeleteWarnMessage](TelegramWarnBot/Configuration/Configuration.json#L4): Whether command message (`/warn @Geras1mleo` from administrator) needs to be deleted.
+- [Captions](TelegramWarnBot/Configuration/Configuration.json#L5): The following parameters indicate the reactions of bot on certain events:
+  - [OnBotJoinedChatMessage](TelegramWarnBot/Configuration/Configuration.json#L6): Greeting message that will be sent when bot is added to chat.
+  - [NoPermissions](TelegramWarnBot/Configuration/Configuration.json#L7): Non-admin user attempts to warn group member.
+  - [BotHasNoPermissions](TelegramWarnBot/Configuration/Configuration.json#L8): Bot require admin rights to warn and ban members (further).
+  - [UserNotSpecified](TelegramWarnBot/Configuration/Configuration.json#L9): Use of command without mentioning the user.
+  - [UserNotFound](TelegramWarnBot/Configuration/Configuration.json#L10): Mentioned user has been not found in this chat.
+  - [Angry](TelegramWarnBot/Configuration/Configuration.json#L11): Attempt to use a command on the *bot itself*.
+  - [BotWarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L12): Attempt to use a command on *another bot*.
+  - [UserHasNoWarnings](TelegramWarnBot/Configuration/Configuration.json#L13): Attempt to use */unwarn* on a user without warning.
+  - [WarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L14): Post */warn* message that will mention warned user and his current amount of warnings.
+  - [UnwarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L15): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
+  - [BannedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L16): Post */warn* message that will mention banned user.
 
+### [Triggers](TelegramWarnBot/Configuration/Triggers.json)
+
+Messages that will trigger the bot and send a response to corresponding chat with a triggered message attached in **reply** of response message.
+
+- [Chat](TelegramWarnBot/Configuration/Triggers.json#L3): Chat to which the trigger is applicable or *null* (any chat).
+- [Messages](TelegramWarnBot/Configuration/Triggers.json#L4): Messages array that will trigger the bot.
+- [Response](TelegramWarnBot/Configuration/Triggers.json#L5): Reaction of the bot to the member who triggered it.
+- [MatchCase](TelegramWarnBot/Configuration/Triggers.json#L6): Whether message must match upper/lower case to trigger.
+- [MatchWholeMessage](TelegramWarnBot/Configuration/Triggers.json#L7): Whether message must match whole message to trigger.
+
+### [IllegalTriggers](TelegramWarnBot/Configuration/IllegalTriggers.json#L48)
+
+Notification is sent to given admins when an **illegal word** is sent in a specific chat (or any chat).
+
+- [Chat](TelegramWarnBot/Configuration/IllegalTriggers.json#L3): Chat to which the notification is applicable or *null* (any chat).
+- [IllegalWords](TelegramWarnBot/Configuration/IllegalTriggers.json#L4): Words array that will trigger the notification.
+- [NotifiedAdmins](TelegramWarnBot/Configuration/IllegalTriggers.json#L8): Array of IDs of *administrators* that will receive the notification.
 
 ### Console Features
 
