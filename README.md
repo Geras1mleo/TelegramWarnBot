@@ -17,7 +17,7 @@ The default value of [MaxWarnings](/TelegramWarnBot/Data/Configuration.json#L3) 
 
 If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a member has already been banned, I will **unban** him so he can get back into the group.
 
-**The commands /warn and /unwarn are only available to _administrators_ and the _owner_ of the group.**
+**The commands _/warn_ and _/unwarn_ are only available to _administrators_ and the _owner_ of the group.**
 
 #### Triggers
 I will look at the **messages** in one specific chat (or any chat) and **respond/trigger** to the most offensive/provocative/funny ones.
