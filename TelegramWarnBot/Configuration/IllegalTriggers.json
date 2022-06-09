@@ -3,11 +3,7 @@
     "Chat": null,
     "WarnMember": false,
     "DeleteMessage": true,
-    "IllegalWords": [
-      "fuck admin"
-    ],
-    "NotifiedAdmins": [
-      2005661324
-    ]
+    "IllegalWords": [ "fuck admin" ],
+    "NotifiedAdmins": [ 2005661324 ]
   }
 ]
