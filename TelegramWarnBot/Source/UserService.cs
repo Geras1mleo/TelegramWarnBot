@@ -2,6 +2,27 @@
 
 public class UserService
 {
+    ///<summary></summary>
+    /// <returns>Whether user has been bannen from chat</returns>
+    public bool Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, ITelegramBotClient client, CancellationToken cancellationToken)
+    {
+        warnedUser.Warnings++;
+
+        if (deleteMessageId is not null)
+            client.DeleteMessageAsync(chatId, deleteMessageId.Value, cancellationToken);
+
+        // If not reached max warnings 
+        if (warnedUser.Warnings <= IOHandler.GetConfiguration().MaxWarnings)
+        {
+            return false;
+        }
+
+        // Max warnings reached
+        client.BanChatMemberAsync(chatId, warnedUser.Id, cancellationToken: cancellationToken);
+
+        return true;
+    }
+
     /// <summary>
     /// return user or error message that has to be returned
     /// </summary>
@@ -11,56 +32,52 @@ public class UserService
     /// <returns></returns>
     public OneOf<WarnedUser, string> ResolveWarnedRoot(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        if (!CheckPermissions(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
+        if (!IsAdmin(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
             return IOHandler.GetConfiguration().Captions.NoPermissions;
 
-        if (!CheckPermissions(client, update.Message.Chat.Id, Bot.User.Id, cancellationToken))
+        if (!IsAdmin(client, update.Message.Chat.Id, Bot.User.Id, cancellationToken))
             return IOHandler.GetConfiguration().Captions.BotHasNoPermissions;
 
-        UserDTO user = null;
         var resolve = ResolveMentionedUser(update);
 
-        user = resolve.Match(user => user, error => null);
-
-        if (user is null)
+        if (!resolve.TryPickT0(out UserDTO user, out _))
             return resolve.AsT1;
 
         var warnings = IOHandler.GetWarnings();
 
         var chat = ResolveChat(update, warnings);
 
-        return ResolveWarnedUser(user, chat);
+        return ResolveWarnedUser(user.Id, chat);
     }
 
-    public WarnedUser ResolveWarnedUser(UserDTO user, ChatDTO chat)
+    public WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning)
     {
-        var warnedUser = chat.WarnedUsers.FirstOrDefault(u => u.Id == user.Id);
+        var warnedUser = chatWarning.WarnedUsers.FirstOrDefault(u => u.Id == userId);
 
         if (warnedUser is null)
         {
             warnedUser = new()
             {
-                Id = user.Id,
+                Id = userId,
                 Warnings = 0
             };
-            chat.WarnedUsers.Add(warnedUser);
+            chatWarning.WarnedUsers.Add(warnedUser);
         }
         return warnedUser;
     }
 
-    public ChatDTO ResolveChat(Update update, Warnings warnings)
+    public ChatWarnings ResolveChat(Update update, List<ChatWarnings> warnings)
     {
-        var chat = warnings.Chats.FirstOrDefault(c => c.Id == update.Message.Chat.Id);
+        var chat = warnings.FirstOrDefault(c => c.ChatId == update.Message.Chat.Id);
 
         if (chat is null)
         {
             chat = new()
             {
-                Id = update.Message.Chat.Id,
-                Name = update.Message.Chat.Title,
+                ChatId = update.Message.Chat.Id,
                 WarnedUsers = new List<WarnedUser>()
             };
-            warnings.Chats.Add(chat);
+            warnings.Add(chat);
         }
         return chat;
     }
@@ -98,7 +115,7 @@ public class UserService
                 {
                     Id = update.Message.Entities[1].User.Id,
                     Username = update.Message.Entities[1].User.Username,
-                    Name = update.Message.Entities[1].User.FirstName,
+                    Name = update.Message.Entities[1].User.GetFullName()
                 };
             }
         }
@@ -119,7 +136,7 @@ public class UserService
             {
                 Id = update.Message.ReplyToMessage.From.Id,
                 Username = update.Message.ReplyToMessage.From.Username,
-                Name = update.Message.ReplyToMessage.From.FirstName,
+                Name = update.Message.ReplyToMessage.From.GetFullName(),
             };
 
             if (user is null)
@@ -128,7 +145,7 @@ public class UserService
         return user;
     }
 
-    public bool CheckPermissions(ITelegramBotClient client, long chatId, long userId, CancellationToken cancellationToken)
+    public bool IsAdmin(ITelegramBotClient client, long chatId, long userId, CancellationToken cancellationToken)
     {
         var status = client.GetChatMemberAsync(chatId, userId, cancellationToken: cancellationToken)
                            .GetAwaiter()

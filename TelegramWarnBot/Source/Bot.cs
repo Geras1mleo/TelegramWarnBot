@@ -19,10 +19,10 @@ public static class Bot
 
         IOHandler.BeginUpdate(IOHandler.GetConfiguration().UpdateDelay, cancellationToken);
 
-        Tools.WriteColor($"Bot: [{User.FirstName}] running...", ConsoleColor.Green);
+        Tools.WriteColor($"Bot: [{User.GetFullName()}] running...", ConsoleColor.Green);
 
         Tools.WriteColor($"\n[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow);
 
-        Console.Title = User.FirstName;
+        Console.Title = User.GetFullName();
     }
 }

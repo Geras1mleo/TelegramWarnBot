@@ -36,6 +36,11 @@ public static class CommandHandler
                 case "exit":
                     Environment.Exit(1);
                     break;
+
+                case "s": goto case "save";
+                case "e": goto case "exit";
+                case "r": goto case "reload";
+
                 default:
                     Console.WriteLine("Not recognized...");
                     Tools.PrintAvailableCommands();
@@ -76,7 +81,7 @@ public static class CommandHandler
 
         if (broadcast)
         {
-            chats = IOHandler.GetWarnings().Chats;
+            chats = IOHandler.GetChats();
         }
         else
         {

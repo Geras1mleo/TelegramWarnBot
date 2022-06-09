@@ -12,10 +12,10 @@ public static class Tools
         return type.GetMethods().FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
     }
 
-    public static string ResolveResponseVariables(string response, WarnedUser user)
+    public static string ResolveResponseVariables(string response, WarnedUser user, string defaultName = "Not Found")
     {
         return response.Replace("{warnedUser.WarnedCount}", user.Warnings.ToString())
-                       .Replace("{warnedUser}", Tools.GetMentionString(IOHandler.GetUsers().Find(u => u.Id == user.Id)?.Name ?? "Not Found", user.Id))
+                       .Replace("{warnedUser}", Tools.GetMentionString(IOHandler.GetUsers().Find(u => u.Id == user.Id)?.Name ?? defaultName, user.Id))
                        .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
     }
 
@@ -52,11 +52,16 @@ public static class Tools
              + "\n\t[-m] => Message to send. Please use \"\" to indicate message. Markdown formating allowed"
          + "\nExample: send -c 123456 -m \"Example message\"\n"
 
-         + "\n[reload] \t=> Reload configurations\n"
-
-         + "\n[save] \t=> Save last data\n"
-
-         + "\n[exit] \t=> Save data and close the application (CTRL + C)\n"
+         + "\n[reload]/[r] \t=> Reload configurations\n"
+         + "\n[save]/[s] \t=> Save last data\n"
+         + "\n[exit]/[e] \t=> Save data and close the application (CTRL + C)\n"
          , ConsoleColor.Red);
+    }
+
+    // Extensions
+
+    public static string GetFullName(this User user)
+    {
+        return user.FirstName + " " + user.LastName;
     }
 }

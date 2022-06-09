@@ -1,25 +1,13 @@
 [
   {
-    "Chat": -123456789,
-    "IllegalWords": [
-      "путин",
-      "спецоперация"
-    ],
-    "NotifiedAdmins": [
-      2005661324,
-      1236547895
-    ],
-    "WarnMember": false
-  },
-  {
     "Chat": null,
+    "WarnMember": false,
+    "DeleteMessage": true,
     "IllegalWords": [
-      "Test",
-      "MATCH"
+      "fuck admin"
     ],
     "NotifiedAdmins": [
       2005661324
-    ],
-    "WarnMember": true
+    ]
   }
 ]

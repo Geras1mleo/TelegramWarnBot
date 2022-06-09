@@ -22,6 +22,7 @@
     <None Remove="Configuration\IllegalTriggers.json" />
     <None Remove="Configuration\Triggers.json" />
     <None Remove="Data\Chats.json" />
+    <None Remove="Data\ChatWarnings.json" />
     <None Remove="Data\Configuration.json" />
     <None Remove="Data\Users.json" />
   </ItemGroup>
@@ -36,10 +37,13 @@
     <EmbeddedResource Include="Configuration\Triggers.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Data\Chats.json">
+    <EmbeddedResource Include="Data\ChatWarnings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Configuration\Configuration.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\Chats.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Data\Users.json">

@@ -17,9 +17,11 @@ public static class BotHandler
         if (!IsValidSender(update))
             return Task.CompletedTask;
 
-        IOHandler.RegisterClient(update.Message.From.Id,
+        IOHandler.RegisterUser(update.Message.From.Id,
                                  update.Message.From.Username,
-                                 update.Message.From.FirstName + " " + update.Message.From.LastName);
+                                 update.Message.From.GetFullName());
+
+        IOHandler.RegisterChat(update.Message.Chat.Id, update.Message.Chat.Title);
 
         if (update.Message.Text is null)
             return Task.CompletedTask;
@@ -39,12 +41,10 @@ public static class BotHandler
         var response = (BotResponse)(method.Invoke(Activator.CreateInstance(typeof(WarnController), new UserService()),
                        new object[] { client, update, cancellationToken }) ?? "Executed!");
 
-        client.SendTextMessageAsync(update.Message.Chat.Id,
-                                    response.Data,
-                                    cancellationToken: cancellationToken,
-                                    parseMode: ParseMode.Markdown);
-
-        return Task.CompletedTask;
+        return client.SendTextMessageAsync(update.Message.Chat.Id,
+                                     response.Data,
+                                     cancellationToken: cancellationToken,
+                                     parseMode: ParseMode.Markdown);
     }
 
     private static Task HandleBotJoinedOrLeft(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
@@ -61,8 +61,7 @@ public static class BotHandler
         else if (update.Message.Type == MessageType.ChatMemberLeft
               && update.Message.LeftChatMember.Id == Bot.User.Id)
         {
-            var chats = IOHandler.GetWarnings().Chats;
-            chats.RemoveAll(c => c.Id == update.Message.Chat.Id);
+            IOHandler.GetWarnings().RemoveAll(c => c.ChatId == update.Message.Chat.Id);
         }
 
         return Task.CompletedTask;
@@ -94,6 +93,10 @@ public static class BotHandler
     {
         return Task.Run(async () =>
         {
+            // Illegal triggers are disabled for admins
+            if (new UserService().IsAdmin(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
+                return;
+
             foreach (var trigger in IOHandler.GetIllegalTriggers())
             {
                 if (trigger.Chat is not null && trigger.Chat != update.Message.Chat.Id)
@@ -104,7 +107,10 @@ public static class BotHandler
                     foreach (var adminId in trigger.NotifiedAdmins)
                     {
                         await client.SendTextMessageAsync(adminId,
-                                                        $"*Illegal message detected!*\nChat: *{update.Message.Chat.Title}*\nFrom: *{update.Message.From?.FirstName}*\nSent: {update.Message.Date}\nContent:",
+                                                        $"*Illegal message detected!*\nChat: *{update.Message.Chat.Title}*" +
+                                                        $"\nFrom: *{update.Message.From?.GetFullName()}*" +
+                                                        $"\nSent: {update.Message.Date}" +
+                                                        $"\nContent:",
                                                         cancellationToken: cancellationToken,
                                                         parseMode: ParseMode.Markdown);
 
@@ -112,8 +118,30 @@ public static class BotHandler
                     }
                     if (trigger.WarnMember)
                     {
-                        // todo
+                        var service = new UserService();
+
+                        var chat = service.ResolveChat(update, IOHandler.GetWarnings());
+                        var user = service.ResolveWarnedUser(update.Message.From.Id, chat);
+
+                        var banned = service.Warn(user, chat.ChatId,
+                                                  trigger.DeleteMessage ? update.Message.MessageId : null,
+                                                  client, cancellationToken);
+
+
+                        await client.SendTextMessageAsync(update.Message.Chat.Id,
+                                                          Tools.ResolveResponseVariables(
+                                                              banned ? IOHandler.GetConfiguration().Captions.IllegalTriggerBanned
+                                                                     : IOHandler.GetConfiguration().Captions.IllegalTriggerWarned, user, update.Message.From.GetFullName()),
+                                                          cancellationToken: cancellationToken,
+                                                          parseMode: ParseMode.Markdown);
                     }
+                    else if (trigger.DeleteMessage)
+                    {
+                        await client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
+                    }
+
+                    // Match only 1 trigger
+                    return;
                 }
             }
         }, cancellationToken);

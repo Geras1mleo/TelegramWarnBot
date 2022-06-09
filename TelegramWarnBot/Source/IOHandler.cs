@@ -4,11 +4,13 @@ public static class IOHandler
 {
     public static string ExecutablePath = AppDomain.CurrentDomain.BaseDirectory;
 
-    private static Warnings warnings;
-    private static List<UserDTO> users;
     private static Configuration configuration;
     private static Trigger[] triggers;
     private static IllegalTrigger[] illegalTriggers;
+
+    private static List<ChatWarnings> warnings;
+    private static List<UserDTO> users;
+    private static List<ChatDTO> chats;
 
     static IOHandler()
     {
@@ -17,6 +19,7 @@ public static class IOHandler
         GetIllegalTriggers();
         GetWarnings();
         GetUsers();
+        GetChats();
     }
 
     public static BotConfiguration GetBotConfiguration()
@@ -58,17 +61,17 @@ public static class IOHandler
         GetIllegalTriggers();
     }
 
-    public static Warnings GetWarnings()
+    public static List<ChatWarnings> GetWarnings()
     {
         if (warnings is null)
-            warnings = Deserialize<Warnings>(Path.Combine("Data", "Chats.json"));
+            warnings = Deserialize<List<ChatWarnings>>(Path.Combine("Data", "ChatWarnings.json"));
 
         return warnings;
     }
 
     private static Task SaveWarningsAsync()
     {
-        return Serialize(warnings, Path.Combine("Data", "Chats.json"));
+        return Serialize(warnings, Path.Combine("Data", "ChatWarnings.json"));
     }
 
     public static List<UserDTO> GetUsers()
@@ -84,7 +87,21 @@ public static class IOHandler
         return Serialize(users, Path.Combine("Data", "Users.json"));
     }
 
-    public static void RegisterClient(long id, string username, string name)
+
+    public static List<ChatDTO> GetChats()
+    {
+        if (chats is null)
+            chats = Deserialize<List<ChatDTO>>(Path.Combine("Data", "Chats.json"));
+
+        return chats;
+    }
+
+    private static Task SaveChatsAsync()
+    {
+        return Serialize(chats, Path.Combine("Data", "Chats.json"));
+    }
+
+    public static void RegisterUser(long id, string username, string name)
     {
         // Adding client to list if not exist
         var user = users.FirstOrDefault(u => u.Id == id);
@@ -100,6 +117,21 @@ public static class IOHandler
         }
     }
 
+    public static void RegisterChat(long id, string name)
+    {
+        // Adding chat to list if not exist
+        var chat = chats.FirstOrDefault(c => c.Id == id);
+        if (chat is null)
+        {
+            chat = new()
+            {
+                Id = id,
+                Name = name,
+            };
+            chats.Add(chat);
+        }
+    }
+
     public static void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
     {
         Task.Run(async () =>
@@ -107,20 +139,16 @@ public static class IOHandler
             while (true)
             {
                 await Task.Delay(delaySeconds * 1000, cancellationToken);
-                await SaveDataAsync();
+                await SaveUsersAsync();
+                await SaveWarningsAsync();
+                await SaveChatsAsync();
             }
         }, cancellationToken);
     }
 
-    private static async Task SaveDataAsync()
-    {
-        await SaveUsersAsync();
-        await SaveWarningsAsync();
-    }
-
     public static void SaveData()
     {
-        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync());
+        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync());
         Tools.WriteColor("[Saved successfully]", ConsoleColor.Green);
     }
 

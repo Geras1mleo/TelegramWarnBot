@@ -13,4 +13,6 @@ public class Captions
     public string WarnedSuccessfully { get; set; }
     public string UnwarnedSuccessfully { get; set; }
     public string BannedSuccessfully { get; set; }
+    public string IllegalTriggerWarned { get; set; }
+    public string IllegalTriggerBanned { get; set; }
 }
