@@ -53,6 +53,8 @@ You can change them at runtime and then use `reload` in console to reload new co
   - [WarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L14): Post */warn* message that will mention warned user and his current amount of warnings.
   - [UnwarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L15): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
   - [BannedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L16): Post */warn* message that will mention banned user.
+  - [IllegalTriggerWarned](TelegramWarnBot/Configuration/Configuration.json#L17): *Illegal trigger warning* that will mention warned user and his current amount of warnings.
+  - [IllegalTriggerBanned](TelegramWarnBot/Configuration/Configuration.json#L18): *Illegal trigger warning* that will mention banned user.
 
 ### [Triggers](TelegramWarnBot/Configuration/Triggers.json)
 
@@ -66,11 +68,13 @@ Messages that will trigger the bot and send a response to corresponding chat wit
 
 ### [IllegalTriggers](TelegramWarnBot/Configuration/IllegalTriggers.json#L48)
 
-Notification is sent to given admins when an **illegal word** is sent in a specific chat (or any chat).
+Notification is sent to admins (optional *Warn* sender) when an **illegal word** is sent in a specific chat (or any chat).
 
 - [Chat](TelegramWarnBot/Configuration/IllegalTriggers.json#L3): Chat to which the notification is applicable or *null* (any chat).
-- [IllegalWords](TelegramWarnBot/Configuration/IllegalTriggers.json#L4): Words array that will trigger the notification.
-- [NotifiedAdmins](TelegramWarnBot/Configuration/IllegalTriggers.json#L8): Array of IDs of *administrators* that will receive the notification.
+- [WarnMember](TelegramWarnBot/Configuration/IllegalTriggers.json#L4): Whether the sender of the message is going to receive a *warning* ([IllegalTriggerWarned](TelegramWarnBot/Configuration/Configuration.json#L17) or [IllegalTriggerBanned](TelegramWarnBot/Configuration/Configuration.json#L18) will be sent).
+- [DeleteMessage](TelegramWarnBot/Configuration/IllegalTriggers.json#L5): Whether the message with illegal word needs to be deleted.
+- [IllegalWords](TelegramWarnBot/Configuration/IllegalTriggers.json#L6): Words array that will trigger the notification.
+- [NotifiedAdmins](TelegramWarnBot/Configuration/IllegalTriggers.json#L7): Array of IDs of *administrators* that will receive the notification.
 
 ### Console Features
 
