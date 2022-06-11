@@ -97,12 +97,15 @@ public static class BotHandler
 
     private static async Task ResolveIllegalTriggersAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        // Illegal triggers are disabled for admins
-        if (await new UserService().IsAdmin(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
-            return;
+        var isAdmin = await new UserService().IsAdmin(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken);
 
         foreach (var trigger in IOHandler.GetIllegalTriggers())
         {
+            // Illegal triggers => ignore admins?
+            if (trigger.IgnoreAdmins && isAdmin)
+                continue;
+
+            // Applicapble in specific chat
             if (trigger.Chat is not null && trigger.Chat != update.Message.Chat.Id)
                 continue;
 
@@ -111,25 +114,32 @@ public static class BotHandler
                 foreach (var adminId in trigger.NotifiedAdmins)
                 {
                     await client.SendTextMessageAsync(adminId,
-                                                    $"*Illegal message detected!*\nChat: *{update.Message.Chat.Title}*" +
-                                                    $"\nFrom: *{update.Message.From?.GetFullName()}*" +
-                                                    $"\nSent: {update.Message.Date}" +
-                                                    $"\nContent:",
-                                                    cancellationToken: cancellationToken,
-                                                    parseMode: ParseMode.Markdown);
+                                                      $"*Illegal message detected!*\nChat: *{update.Message.Chat.Title}*" +
+                                                      $"\nFrom: *{update.Message.From?.GetFullName()}*" +
+                                                      $"\nSent: {update.Message.Date}" +
+                                                      $"\nContent:",
+                                                      cancellationToken: cancellationToken,
+                                                      parseMode: ParseMode.Markdown);
 
-                    await client.ForwardMessageAsync(adminId, update.Message.Chat.Id, update.Message.MessageId, cancellationToken: cancellationToken);
+                    await client.ForwardMessageAsync(adminId, update.Message.Chat.Id,
+                                                     update.Message.MessageId,
+                                                     cancellationToken: cancellationToken);
                 }
+
                 if (trigger.WarnMember)
                 {
+                    // Notify but don't warn admins
+                    if (isAdmin)
+                        return;
+
                     var service = new UserService();
 
                     var chat = service.ResolveChat(update, IOHandler.GetWarnings());
                     var user = service.ResolveWarnedUser(update.Message.From.Id, chat);
 
                     var banned = await service.Warn(user, chat.ChatId,
-                                              trigger.DeleteMessage ? update.Message.MessageId : null,
-                                              client, cancellationToken);
+                                                    trigger.DeleteMessage ? update.Message.MessageId : null,
+                                                    client, cancellationToken);
 
 
                     await client.SendTextMessageAsync(update.Message.Chat.Id,

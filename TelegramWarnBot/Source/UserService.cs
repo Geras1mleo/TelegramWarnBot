@@ -2,17 +2,19 @@
 
 public class UserService
 {
-    ///<summary></summary>
-    /// <returns>Whether user has been bannen from chat</returns>
+    /// <summary>
+    /// WarnedUser should not be an admin
+    /// </summary>
+    /// <returns>Whether user is banned from chat</returns>
     public async Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, ITelegramBotClient client, CancellationToken cancellationToken)
     {
-        warnedUser.Warnings++;
+        warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0, IOHandler.GetConfiguration().MaxWarnings);
 
         if (deleteMessageId is not null)
             await client.DeleteMessageAsync(chatId, deleteMessageId.Value, cancellationToken);
 
         // If not reached max warnings 
-        if (warnedUser.Warnings <= IOHandler.GetConfiguration().MaxWarnings)
+        if (warnedUser.Warnings < IOHandler.GetConfiguration().MaxWarnings)
         {
             return false;
         }
@@ -30,7 +32,7 @@ public class UserService
     /// <param name="update"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<OneOf<WarnedUser, string>> ResolveWarnedRoot(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task<OneOf<WarnedUser, string>> ResolveWarnedRoot(ITelegramBotClient client, Update update, bool isWarn, CancellationToken cancellationToken)
     {
         if (!await IsAdmin(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
             return IOHandler.GetConfiguration().Captions.NoPermissions;
@@ -53,8 +55,14 @@ public class UserService
             };
         }
 
-        var warnings = IOHandler.GetWarnings();
+        // Attempt to warn/unwarn admin
+        if (await IsAdmin(client, update.Message.Chat.Id, user.Id, cancellationToken))
+        {
+            return isWarn ? IOHandler.GetConfiguration().Captions.AdminWarnAttempt
+                          : IOHandler.GetConfiguration().Captions.AdminUnwarnAttempt;
+        }
 
+        var warnings = IOHandler.GetWarnings();
         var chat = ResolveChat(update, warnings);
 
         return ResolveWarnedUser(user.Id, chat);

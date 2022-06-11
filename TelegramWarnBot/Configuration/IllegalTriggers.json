@@ -1,8 +1,9 @@
 [
   {
     "Chat": null,
-    "WarnMember": false,
-    "DeleteMessage": true,
+    "WarnMember": true,
+    "DeleteMessage": false,
+    "IgnoreAdmins": false,
     "IllegalWords": [ "fuck admin" ],
     "NotifiedAdmins": [ 2005661324 ]
   }

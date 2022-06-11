@@ -11,15 +11,15 @@ public class WarnController
 
     public async Task<BotResponse> Warn(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        var resolve = await service.ResolveWarnedRoot(client, update, cancellationToken);
+        var resolve = await service.ResolveWarnedRoot(client, update, true, cancellationToken);
 
         if (!resolve.TryPickT0(out WarnedUser warnedUser, out _))
             return new(resolve.AsT1);
 
         var banned = await service.Warn(warnedUser,
-                                    update.Message.Chat.Id,
-                                    IOHandler.GetConfiguration().DeleteWarnMessage ? update.Message.MessageId : null,
-                                    client, cancellationToken);
+                                        update.Message.Chat.Id,
+                                        IOHandler.GetConfiguration().DeleteWarnMessage ? update.Message.MessageId : null,
+                                        client, cancellationToken);
 
         // Notify in chat that user has been warned or banned
         return new(Tools.ResolveResponseVariables(banned ? IOHandler.GetConfiguration().Captions.BannedSuccessfully
@@ -30,7 +30,7 @@ public class WarnController
 
     public async Task<BotResponse> Unwarn(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        var resolve = await service.ResolveWarnedRoot(client, update, cancellationToken);
+        var resolve = await service.ResolveWarnedRoot(client, update, false, cancellationToken);
 
         if (!resolve.TryPickT0(out WarnedUser warnedUser, out _))
             return new(resolve.AsT1);

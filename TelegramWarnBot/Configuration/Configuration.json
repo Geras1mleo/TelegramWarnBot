@@ -1,6 +1,6 @@
 ﻿{
   "UpdateDelay": 60,
-  "MaxWarnings": 2,
+  "MaxWarnings": 3,
   "DeleteWarnMessage": false,
   "Captions": {
     "OnBotJoinedChatMessage": "Hello there! 👋",
@@ -16,6 +16,8 @@
     "BannedSuccessfully": "*🐗 Мавка вийшла на полювання!*\n\nУчасник {warnedUser} зібрав повну колекцію попереджень. Звірі лісу тепер не будуть голодні 😋",
     "IllegalTriggerWarned": "You typed something wrong and received an automatic warning!\n\nCurrent warnings count: *{warnedUser.WarnedCount} of {configuration.MaxWarnings}*",
     "IllegalTriggerBanned": "User {warnedUser} has been bannen from this chat by automatic warn trigger!",
-    "WarningsCount": "User {warnedUser} has {warnedUser.WarnedCount} of {configuration.MaxWarnings} warnings"
+    "WarningsCount": "User {warnedUser} has {warnedUser.WarnedCount} of {configuration.MaxWarnings} warnings",
+    "AdminWarnAttempt": "Admin warn attempt",
+    "AdminUnwarnAttempt": "Admin unwarn attempt"
   }
 }

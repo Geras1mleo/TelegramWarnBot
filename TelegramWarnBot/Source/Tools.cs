@@ -16,14 +16,14 @@ public static class Tools
     {
         return response.Replace("{warnedUser.WarnedCount}", user.Warnings.ToString())
                        .Replace("{warnedUser}", Tools.GetMentionString(IOHandler.GetUsers().Find(u => u.Id == user.Id)?.Name ?? defaultName, user.Id))
-                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
+                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings).ToString());
     }
 
     public static string ResolveResponseVariables(string response, UserDTO user, int warnedCount)
     {
         return response.Replace("{warnedUser.WarnedCount}", warnedCount.ToString())
                        .Replace("{warnedUser}", Tools.GetMentionString(user.Name, user.Id))
-                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
+                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings).ToString());
     }
 
     // https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
