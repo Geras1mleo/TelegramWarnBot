@@ -13,7 +13,7 @@ I keep track of the **warnings** and automatically **ban members** when the maxi
 **Promote me to _admin_** and **/warn** the bad guy by replying to his message or by mentioning **@bad_guy** in your command.
 I will ban users who receive more than a certain number of warnings specified in [Configuration.json](TelegramWarnBot/Data/Configuration.json#L3).
 
-The default value of [MaxWarnings](/TelegramWarnBot/Data/Configuration.json#L3) is *2*, which means that the user will be banned on his *3<sup>rd</sup>* warning.
+The default value of [MaxWarnings](/TelegramWarnBot/Data/Configuration.json#L3) is *3*, which means that the user will be banned on his *3<sup>rd</sup>* warning.
 
 If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a member has already been banned, I will **unban** him so he can get back into the group.
 
@@ -38,8 +38,8 @@ Replace *\<Telegram Bot Token\>* by your own token.
 Here are some significant settings for the bot.
 You can change them at runtime and then use `reload` in console to reload new configurations.
 
-- [UpdateDelay](TelegramWarnBot/Configuration/Configuration.json#L2): Every given amount of seconds app will save all data of [Users](TelegramWarnBot/Data/Users.json) and [Chats](TelegramWarnBot/Data/Chats.json).
-- [MaxWarnings](TelegramWarnBot/Configuration/Configuration.json#L3): Maximum number of warnings a member can receive before being banned.
+- [UpdateDelay](TelegramWarnBot/Configuration/Configuration.json#L2): Every given amount of seconds app will save all data of [Users](TelegramWarnBot/Data/Users.json), [Chats](TelegramWarnBot/Data/Chats.json) and [ChatsWarnings](TelegramWarnBot/Data/ChatsWarnings.json).
+- [MaxWarnings](TelegramWarnBot/Configuration/Configuration.json#L3): The number of warnings the member will be banned on.
 - [DeleteWarnMessage](TelegramWarnBot/Configuration/Configuration.json#L4): Whether command message (`/warn @Geras1mleo` from administrator) needs to be deleted.
 - [Captions](TelegramWarnBot/Configuration/Configuration.json#L5): The following parameters indicate the reactions of bot on certain events:
   - [OnBotJoinedChatMessage](TelegramWarnBot/Configuration/Configuration.json#L6): Greeting message that will be sent when bot is added to chat.
