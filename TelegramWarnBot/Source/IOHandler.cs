@@ -71,6 +71,21 @@ public static class IOHandler
 
     private static Task SaveWarningsAsync()
     {
+        // Clear up first
+        foreach (var warning in warnings)
+        {
+            for (int i = warning.WarnedUsers.Count - 1; i >= 0; i--)
+            {
+                if (warning.WarnedUsers[i].Warnings < 1)
+                    warning.WarnedUsers.RemoveAt(i);
+            }
+        }
+        for (int i = warnings.Count - 1; i >= 0; i--)
+        {
+            if (warnings[i].WarnedUsers.Count < 1)
+                warnings.RemoveAt(i);
+        }
+
         return SerializeAsync(warnings, Path.Combine("Data", "ChatWarnings.json"));
     }
 

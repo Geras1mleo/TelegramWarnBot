@@ -13,18 +13,19 @@ public class WarnController
     {
         var resolve = await service.ResolveWarnedRoot(client, update, true, cancellationToken);
 
-        if (!resolve.TryPickT0(out WarnedUser warnedUser, out _))
+        if (!resolve.TryPickT0(out var warnedUser, out _))
             return new(resolve.AsT1);
 
-        var banned = await service.Warn(warnedUser,
+        var banned = await service.Warn(warnedUser.user,
                                         update.Message.Chat.Id,
                                         IOHandler.GetConfiguration().DeleteWarnMessage ? update.Message.MessageId : null,
+                                        !warnedUser.isAdmin,
                                         client, cancellationToken);
 
         // Notify in chat that user has been warned or banned
         return new(Tools.ResolveResponseVariables(banned ? IOHandler.GetConfiguration().Captions.BannedSuccessfully
                                                          : IOHandler.GetConfiguration().Captions.WarnedSuccessfully,
-                                                  warnedUser,
+                                                  warnedUser.user,
                                                   service.ResolveMentionedUser(update).AsT0.Name));
     }
 
@@ -32,25 +33,25 @@ public class WarnController
     {
         var resolve = await service.ResolveWarnedRoot(client, update, false, cancellationToken);
 
-        if (!resolve.TryPickT0(out WarnedUser warnedUser, out _))
+        if (!resolve.TryPickT0(out var warnedUser, out _))
             return new(resolve.AsT1);
 
-        if (warnedUser.Warnings == 0)
+        if (warnedUser.user.Warnings == 0)
         {
-            return new(Tools.ResolveResponseVariables(IOHandler.GetConfiguration().Captions.UserHasNoWarnings,
-                                                      warnedUser,
+            return new(Tools.ResolveResponseVariables(IOHandler.GetConfiguration().Captions.UserUnwarnNoWarnings,
+                                                      warnedUser.user,
                                                       service.ResolveMentionedUser(update).AsT0.Name));
         }
 
-        warnedUser.Warnings--;
+        warnedUser.user.Warnings--;
 
         if (IOHandler.GetConfiguration().DeleteWarnMessage)
             await client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
 
-        await client.UnbanChatMemberAsync(update.Message.Chat.Id, warnedUser.Id, onlyIfBanned: true, cancellationToken: cancellationToken);
+        await client.UnbanChatMemberAsync(update.Message.Chat.Id, warnedUser.user.Id, onlyIfBanned: true, cancellationToken: cancellationToken);
 
         return new(Tools.ResolveResponseVariables(IOHandler.GetConfiguration().Captions.UnwarnedSuccessfully,
-                                                  warnedUser,
+                                                  warnedUser.user,
                                                   service.ResolveMentionedUser(update).AsT0.Name));
     }
 
@@ -81,19 +82,26 @@ public class WarnController
             return resolveUser.AsT1 switch
             {
                 ResolveMentionedUserResult.UserNotFound => Task.FromResult(new BotResponse(IOHandler.GetConfiguration().Captions.UserNotFound)),
-                ResolveMentionedUserResult.BotMention => Task.FromResult(new BotResponse("What do you mean? My bot's are holy")), // todo from config
-                ResolveMentionedUserResult.BotSelfMention => Task.FromResult(new BotResponse("I'm holy!")),
+                ResolveMentionedUserResult.BotMention => Task.FromResult(new BotResponse(IOHandler.GetConfiguration().Captions.WarningsCountBotMention)),
+                ResolveMentionedUserResult.BotSelfMention => Task.FromResult(new BotResponse(IOHandler.GetConfiguration().Captions.WarningsCountBotSelfMention)),
                 _ => throw new ArgumentException("ResolveMentionedUserResult")
             };
+        }
+
+        if (!IOHandler.GetConfiguration().AllowAdminWarnings)
+        {
+            var isAdmin = service.IsAdmin(client, chat.ChatId, user.Id, cancellationToken).GetAwaiter().GetResult();
+            if (isAdmin)
+                return Task.FromResult(new BotResponse(IOHandler.GetConfiguration().Captions.WarningsCountAdminNotAllowed));
         }
 
         var count = IOHandler.GetWarnings().Find(c => c.ChatId == chat.ChatId)?.WarnedUsers.Find(u => u.Id == user.Id)?.Warnings ?? 0;
 
         if (count == 0)
         {
-            return Task.FromResult<BotResponse>(new(Tools.ResolveResponseVariables(IOHandler.GetConfiguration().Captions.UserHasNoWarnings, user, 0)));
+            return Task.FromResult(new BotResponse(Tools.ResolveResponseVariables(IOHandler.GetConfiguration().Captions.WarningsCountUserHasNoWarnings, user, 0)));
         }
 
-        return Task.FromResult<BotResponse>(new(Tools.ResolveResponseVariables(IOHandler.GetConfiguration().Captions.WarningsCount, user, count)));
+        return Task.FromResult(new BotResponse(Tools.ResolveResponseVariables(IOHandler.GetConfiguration().Captions.WarningsCount, user, count)));
     }
 }

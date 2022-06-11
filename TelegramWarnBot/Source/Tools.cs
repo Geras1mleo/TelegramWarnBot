@@ -56,22 +56,6 @@ public static class Tools
         Console.WriteLine();
     }
 
-    public static void PrintAvailableCommands()
-    {
-        WriteColor(
-         "\nAvailable commands:\n"
-
-         + "\n[send] \t=> Send message:"
-             + "\n\t[-c] => Chat with according chat ID. Use . to send to all chats"
-             + "\n\t[-m] => Message to send. Please use \"\" to indicate message. Markdown formating allowed"
-         + "\nExample: send -c 123456 -m \"Example message\"\n"
-
-         + "\n[reload]/[r] => Reload configurations\n"
-         + "\n[save]/[s] \t=> Save last data\n"
-         + "\n[exit]/[e] \t=> Save data and close the application (CTRL + C)\n"
-         , ConsoleColor.Red, false);
-    }
-
     // Extensions
 
     public static string GetFullName(this User user)

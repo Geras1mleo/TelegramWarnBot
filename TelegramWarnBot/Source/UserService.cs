@@ -6,7 +6,7 @@ public class UserService
     /// WarnedUser should not be an admin
     /// </summary>
     /// <returns>Whether user is banned from chat</returns>
-    public async Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, ITelegramBotClient client, CancellationToken cancellationToken)
+    public async Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, bool tryBanUser, ITelegramBotClient client, CancellationToken cancellationToken)
     {
         warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0, IOHandler.GetConfiguration().MaxWarnings);
 
@@ -20,9 +20,14 @@ public class UserService
         }
 
         // Max warnings reached
-        await client.BanChatMemberAsync(chatId, warnedUser.Id, cancellationToken: cancellationToken);
+        if (tryBanUser)
+        {
+            await client.BanChatMemberAsync(chatId, warnedUser.Id, cancellationToken: cancellationToken);
+            return true;
+        }
 
-        return true;
+        // This reaches only when admin got max warnings but bot cannot ban him...
+        return false;
     }
 
     /// <summary>
@@ -32,10 +37,10 @@ public class UserService
     /// <param name="update"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<OneOf<WarnedUser, string>> ResolveWarnedRoot(ITelegramBotClient client, Update update, bool isWarn, CancellationToken cancellationToken)
+    public async Task<OneOf<(WarnedUser user, bool isAdmin), string>> ResolveWarnedRoot(ITelegramBotClient client, Update update, bool isWarn, CancellationToken cancellationToken)
     {
         if (!await IsAdmin(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
-            return IOHandler.GetConfiguration().Captions.NoPermissions;
+            return IOHandler.GetConfiguration().Captions.UserNoPermissions;
 
         if (!await IsAdmin(client, update.Message.Chat.Id, Bot.User.Id, cancellationToken))
             return IOHandler.GetConfiguration().Captions.BotHasNoPermissions;
@@ -49,14 +54,18 @@ public class UserService
             {
                 ResolveMentionedUserResult.UserNotMentioned => IOHandler.GetConfiguration().Captions.UserNotSpecified,
                 ResolveMentionedUserResult.UserNotFound => IOHandler.GetConfiguration().Captions.UserNotFound,
-                ResolveMentionedUserResult.BotMention => IOHandler.GetConfiguration().Captions.BotWarnAttempt,
-                ResolveMentionedUserResult.BotSelfMention => IOHandler.GetConfiguration().Captions.Angry,
+                ResolveMentionedUserResult.BotMention => isWarn ? IOHandler.GetConfiguration().Captions.BotWarnAttempt
+                                                                : IOHandler.GetConfiguration().Captions.BotUnwarnAttempt,
+                ResolveMentionedUserResult.BotSelfMention => isWarn ? IOHandler.GetConfiguration().Captions.BotSelfWarnAttempt
+                                                                    : IOHandler.GetConfiguration().Captions.BotSelfUnwarnAttempt,
                 _ => throw new ArgumentException("ResolveMentionedUserResult"),
             };
         }
 
-        // Attempt to warn/unwarn admin
-        if (await IsAdmin(client, update.Message.Chat.Id, user.Id, cancellationToken))
+        var isAdmin = await IsAdmin(client, update.Message.Chat.Id, user.Id, cancellationToken);
+
+        // warn/unwarn admin disabled
+        if (isAdmin && !IOHandler.GetConfiguration().AllowAdminWarnings)
         {
             return isWarn ? IOHandler.GetConfiguration().Captions.AdminWarnAttempt
                           : IOHandler.GetConfiguration().Captions.AdminUnwarnAttempt;
@@ -65,13 +74,12 @@ public class UserService
         var warnings = IOHandler.GetWarnings();
         var chat = ResolveChat(update, warnings);
 
-        return ResolveWarnedUser(user.Id, chat);
+        return (ResolveWarnedUser(user.Id, chat), isAdmin);
     }
 
     public WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning)
     {
         var warnedUser = chatWarning.WarnedUsers.FirstOrDefault(u => u.Id == userId);
-
         if (warnedUser is null)
         {
             warnedUser = new()
@@ -87,7 +95,6 @@ public class UserService
     public ChatWarnings ResolveChat(Update update, List<ChatWarnings> warnings)
     {
         var chat = warnings.FirstOrDefault(c => c.ChatId == update.Message.Chat.Id);
-
         if (chat is null)
         {
             chat = new()

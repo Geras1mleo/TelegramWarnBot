@@ -86,10 +86,10 @@ public static class BotHandler
             if (MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, message))
             {
                 await client.SendTextMessageAsync(chatId,
-                                                trigger.Response,
-                                                replyToMessageId: messageId,
-                                                cancellationToken: cancellationToken,
-                                                parseMode: ParseMode.Markdown);
+                                                  trigger.Response,
+                                                  replyToMessageId: messageId,
+                                                  cancellationToken: cancellationToken,
+                                                  parseMode: ParseMode.Markdown);
                 return;
             }
         }
@@ -126,30 +126,32 @@ public static class BotHandler
                                                      cancellationToken: cancellationToken);
                 }
 
+                // Notify but don't warn admins and dont delete message if not allowed in config
+                if (isAdmin && !IOHandler.GetConfiguration().AllowAdminWarnings)
+                    return;
+
                 if (trigger.WarnMember)
                 {
-                    // Notify but don't warn admins
-                    if (isAdmin)
-                        return;
 
                     var service = new UserService();
 
                     var chat = service.ResolveChat(update, IOHandler.GetWarnings());
                     var user = service.ResolveWarnedUser(update.Message.From.Id, chat);
 
-                    var banned = await service.Warn(user, chat.ChatId,
-                                                    trigger.DeleteMessage ? update.Message.MessageId : null,
-                                                    client, cancellationToken);
+                    var banned = await service.Warn(user, chat.ChatId, null, !isAdmin, client, cancellationToken);
 
 
                     await client.SendTextMessageAsync(update.Message.Chat.Id,
                                                       Tools.ResolveResponseVariables(
                                                           banned ? IOHandler.GetConfiguration().Captions.IllegalTriggerBanned
-                                                                 : IOHandler.GetConfiguration().Captions.IllegalTriggerWarned, user, update.Message.From.GetFullName()),
+                                                                 : IOHandler.GetConfiguration().Captions.IllegalTriggerWarned,
+                                                          user,
+                                                          update.Message.From.GetFullName()),
                                                       cancellationToken: cancellationToken,
                                                       parseMode: ParseMode.Markdown);
                 }
-                else if (trigger.DeleteMessage)
+
+                if (trigger.DeleteMessage)
                 {
                     await client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
                 }

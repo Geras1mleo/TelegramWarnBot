@@ -22,7 +22,7 @@ public static class Bot
 
         IOHandler.BeginUpdate(IOHandler.GetConfiguration().UpdateDelay, cancellationToken);
 
-        Tools.WriteColor($"Bot: [{User.GetFullName()}] running...", ConsoleColor.Green, true);
+        Tools.WriteColor($"\n\nBot: [{User.GetFullName()}] running...", ConsoleColor.Green, true);
 
         Tools.WriteColor($"\n[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
 
