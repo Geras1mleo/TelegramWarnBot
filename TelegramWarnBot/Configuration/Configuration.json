@@ -13,6 +13,8 @@
     "UnwarnedSuccessfully": "{warnedUser}, Вийшла помилочка, ваше попередження скасовано. З ким не буває 🤷‍♂️\n\nАктуальних попереджень: {warnedUser.WarnedCount}.",
     "BannedSuccessfully": "*🐗 Мавка вийшла на полювання!*\n\nУчасник {warnedUser} зібрав повну колекцію попереджень. Звірі лісу тепер не будуть голодні 😋",
     "UserUnwarnNoWarnings": "Ну, {warnedUser} ще без попереджень. Поки що 😑",
+    "AdminWarnAttempt": "Admin warn attempt",
+    "AdminUnwarnAttempt": "Admin unwarn attempt",
     "BotWarnAttempt": "🦎 Це мій звір, не чіпай його!",
     "BotUnwarnAttempt": "😇 What do you mean? My bot's are already holy...",
     "BotSelfWarnAttempt": "🤬 Це на кого ти руку підняв?!",
@@ -23,8 +25,6 @@
     "WarningsCountUserHasNoWarnings": "О, {warnedUser} ще без попереджень. Поки що 😑",
     "WarningsCountAdminNotAllowed": "Admins cannot have warnings..",
     "WarningsCountBotMention": "😇 What do you mean? My bot's are holy!",
-    "WarningsCountBotSelfMention": "😇 Well, I'm holy!",
-    "AdminWarnAttempt": "Admin warn attempt",
-    "AdminUnwarnAttempt": "Admin unwarn attempt"
+    "WarningsCountBotSelfMention": "😇 Well, I'm holy!"
   }
 }

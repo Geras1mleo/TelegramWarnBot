@@ -11,6 +11,8 @@ public class Captions
     public string UnwarnedSuccessfully { get; set; }
     public string BannedSuccessfully { get; set; }
     public string UserUnwarnNoWarnings { get; set; }
+    public string AdminWarnAttempt { get; set; }
+    public string AdminUnwarnAttempt { get; set; }
     public string BotWarnAttempt { get; set; }
     public string BotUnwarnAttempt { get; set; }
     public string BotSelfWarnAttempt { get; set; }
@@ -22,6 +24,4 @@ public class Captions
     public string WarningsCountAdminNotAllowed { get; set; }
     public string WarningsCountBotMention { get; set; }
     public string WarningsCountBotSelfMention { get; set; }
-    public string AdminWarnAttempt { get; set; }
-    public string AdminUnwarnAttempt { get; set; }
 }
