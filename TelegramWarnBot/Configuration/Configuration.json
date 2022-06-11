@@ -10,11 +10,12 @@
     "UserNotFound": "🧐 А хіба він у Карпатах?",
     "Angry": "🤬 Це на кого ти руку підняв?!",
     "BotWarnAttempt": "🦎 Це мій звір, не чіпай його!",
-    "UserHasNoWarnings": "О, він ще без попереджень. Поки що 😑",
+    "UserHasNoWarnings": "О, {warnedUser} ще без попереджень. Поки що 😑",
     "WarnedSuccessfully": "*🐗 Мавка вийшла на полювання!*\n\n{warnedUser}, Ви отримали *{warnedUser.WarnedCount} попередження з {configuration.MaxWarnings}* від адміністрації групи.\n\nСкоріш за все, Ви порушили правила чату або відзначились несприйнятною поведінкою. Якщо зберете всі попередження — Мавка забере вас до лісу. А звідти інтернет точно не ловить 😶",
     "UnwarnedSuccessfully": "{warnedUser}, Вийшла помилочка, ваше попередження скасовано. З ким не буває 🤷‍♂️\n\nАктуальних попереджень: {warnedUser.WarnedCount}.",
     "BannedSuccessfully": "*🐗 Мавка вийшла на полювання!*\n\nУчасник {warnedUser} зібрав повну колекцію попереджень. Звірі лісу тепер не будуть голодні 😋",
     "IllegalTriggerWarned": "You typed something wrong and received an automatic warning!\n\nCurrent warnings count: *{warnedUser.WarnedCount} of {configuration.MaxWarnings}*",
-    "IllegalTriggerBanned": "User {warnedUser} has been bannen from this chat by automatic warn trigger!"
+    "IllegalTriggerBanned": "User {warnedUser} has been bannen from this chat by automatic warn trigger!",
+    "WarningsCount": "User {warnedUser} has {warnedUser.WarnedCount} of {configuration.MaxWarnings} warnings"
   }
 }

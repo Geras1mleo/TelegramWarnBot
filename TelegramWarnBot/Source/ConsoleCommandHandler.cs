@@ -28,7 +28,7 @@ public static class CommandHandler
                     break;
                 case "reload":
                     IOHandler.ReloadConfiguration();
-                    Tools.WriteColor("[Reloaded successfully]", ConsoleColor.Green);
+                    Tools.WriteColor("[Configuration reloaded successfully!]", ConsoleColor.Green, true);
                     break;
                 case "save":
                     IOHandler.SaveData();
@@ -42,7 +42,7 @@ public static class CommandHandler
                 case "r": goto case "reload";
 
                 default:
-                    Console.WriteLine("Not recognized...");
+                    Tools.WriteColor("Not recognized...", ConsoleColor.Gray, false);
                     Tools.PrintAvailableCommands();
                     break;
             }
@@ -105,7 +105,7 @@ public static class CommandHandler
             catch (Exception) { }
         }
 
-        Tools.WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow);
+        Tools.WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow, true);
 
         return true;
     }

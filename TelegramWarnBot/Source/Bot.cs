@@ -17,11 +17,14 @@ public static class Bot
 
         User = Client.GetMeAsync(cancellationToken).GetAwaiter().GetResult();
 
+        // Register bot itself to recognize when someone mentions it with @
+        IOHandler.RegisterUser(User.Id, User.Username, User.GetFullName());
+
         IOHandler.BeginUpdate(IOHandler.GetConfiguration().UpdateDelay, cancellationToken);
 
-        Tools.WriteColor($"Bot: [{User.GetFullName()}] running...", ConsoleColor.Green);
+        Tools.WriteColor($"Bot: [{User.GetFullName()}] running...", ConsoleColor.Green, true);
 
-        Tools.WriteColor($"\n[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow);
+        Tools.WriteColor($"\n[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
 
         Console.Title = User.GetFullName();
     }

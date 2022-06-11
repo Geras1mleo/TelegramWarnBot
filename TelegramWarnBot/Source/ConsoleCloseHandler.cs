@@ -2,7 +2,7 @@ namespace TelegramWarnBot;
 
 public static class CloseHandler
 {
-    public static CancellationTokenSource CancellationTokenSource;
+    private static CancellationTokenSource cancellationTokenSource;
 
     public static void Configure(CancellationTokenSource cancellationTokenSource)
     {
@@ -12,13 +12,13 @@ public static class CloseHandler
         };
 
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-        CancellationTokenSource = cancellationTokenSource;
+        CloseHandler.cancellationTokenSource = cancellationTokenSource;
     }
 
     private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
     {
-        CancellationTokenSource.Cancel();
-        Console.WriteLine("Saving data...");
+        cancellationTokenSource.Cancel();
+        Tools.WriteColor("Saving data...", ConsoleColor.Yellow, true);
         IOHandler.SaveData();
     }
 }

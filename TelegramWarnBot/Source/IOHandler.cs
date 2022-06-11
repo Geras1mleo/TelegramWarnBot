@@ -2,7 +2,7 @@
 
 public static class IOHandler
 {
-    public static string ExecutablePath = AppDomain.CurrentDomain.BaseDirectory;
+    private static readonly string ExecutablePath = AppDomain.CurrentDomain.BaseDirectory;
 
     private static Configuration configuration;
     private static Trigger[] triggers;
@@ -71,7 +71,7 @@ public static class IOHandler
 
     private static Task SaveWarningsAsync()
     {
-        return Serialize(warnings, Path.Combine("Data", "ChatWarnings.json"));
+        return SerializeAsync(warnings, Path.Combine("Data", "ChatWarnings.json"));
     }
 
     public static List<UserDTO> GetUsers()
@@ -84,9 +84,8 @@ public static class IOHandler
 
     private static Task SaveUsersAsync()
     {
-        return Serialize(users, Path.Combine("Data", "Users.json"));
+        return SerializeAsync(users, Path.Combine("Data", "Users.json"));
     }
-
 
     public static List<ChatDTO> GetChats()
     {
@@ -98,7 +97,7 @@ public static class IOHandler
 
     private static Task SaveChatsAsync()
     {
-        return Serialize(chats, Path.Combine("Data", "Chats.json"));
+        return SerializeAsync(chats, Path.Combine("Data", "Chats.json"));
     }
 
     public static void RegisterUser(long id, string username, string name)
@@ -132,6 +131,13 @@ public static class IOHandler
         }
     }
 
+    public static Task LogErrorAsync(BotError error)
+    {
+        var errors = Deserialize<List<BotError>>(Path.Combine("Data", "Logs.json"));
+        errors.Add(error);
+        return SerializeAsync(errors, Path.Combine("Data", "Logs.json"));
+    }
+
     public static void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
     {
         Task.Run(async () =>
@@ -149,7 +155,7 @@ public static class IOHandler
     public static void SaveData()
     {
         Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync());
-        Tools.WriteColor("[Saved successfully]", ConsoleColor.Green);
+        Tools.WriteColor("[Data saved successfully!]", ConsoleColor.Green, true);
     }
 
     private static T Deserialize<T>(string path)
@@ -158,7 +164,7 @@ public static class IOHandler
         return JsonConvert.DeserializeObject<T>(text) ?? throw new Exception($"U fucker changed {path} file...");
     }
 
-    private static Task Serialize(object value, string path)
+    private static Task SerializeAsync(object value, string path)
     {
         var text = JsonConvert.SerializeObject(value, Formatting.Indented);
         return System.IO.File.WriteAllTextAsync(Path.Combine(ExecutablePath, path), text, Encoding.UTF8);

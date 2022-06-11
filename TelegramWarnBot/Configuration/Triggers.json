@@ -4,7 +4,7 @@
     "Messages": [ "Росія" ],
     "Response": "ₚосія пишеться з дуже мальнької 😉",
     "MatchCase": true,
-    "MatchWholeMessage": true
+    "MatchWholeMessage": false
   },
   {
     "Chat": null,

@@ -15,4 +15,5 @@ public class Captions
     public string BannedSuccessfully { get; set; }
     public string IllegalTriggerWarned { get; set; }
     public string IllegalTriggerBanned { get; set; }
+    public string WarningsCount { get; set; }
 }

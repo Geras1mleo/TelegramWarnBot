@@ -19,10 +19,24 @@ public static class Tools
                        .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
     }
 
+    public static string ResolveResponseVariables(string response, UserDTO user, int warnedCount)
+    {
+        return response.Replace("{warnedUser.WarnedCount}", warnedCount.ToString())
+                       .Replace("{warnedUser}", Tools.GetMentionString(user.Name, user.Id))
+                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings + 1).ToString());
+    }
+
     // https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
     // usage: WriteColor("This is my [message] with inline [color] changes.", ConsoleColor.Yellow);
-    public static void WriteColor(string message, ConsoleColor color)
+    public static void WriteColor(string message, ConsoleColor color, bool logDateTime)
     {
+        if (logDateTime)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"[{DateTime.Now}] ");
+            Console.ResetColor();
+        }
+
         var pieces = Regex.Split(message, @"(\[[^\]]*\])");
 
         for (int i = 0; i < pieces.Length; i++)
@@ -52,16 +66,16 @@ public static class Tools
              + "\n\t[-m] => Message to send. Please use \"\" to indicate message. Markdown formating allowed"
          + "\nExample: send -c 123456 -m \"Example message\"\n"
 
-         + "\n[reload]/[r] \t=> Reload configurations\n"
+         + "\n[reload]/[r] => Reload configurations\n"
          + "\n[save]/[s] \t=> Save last data\n"
          + "\n[exit]/[e] \t=> Save data and close the application (CTRL + C)\n"
-         , ConsoleColor.Red);
+         , ConsoleColor.Red, false);
     }
 
     // Extensions
 
     public static string GetFullName(this User user)
     {
-        return user.FirstName + " " + user.LastName;
+        return (user.FirstName + " " + user.LastName).Trim();
     }
 }
