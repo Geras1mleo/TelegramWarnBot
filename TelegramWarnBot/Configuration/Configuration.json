@@ -2,9 +2,11 @@
   "UpdateDelay": 60,
   "MaxWarnings": 3,
   "DeleteWarnMessage": false,
+  "DeleteJoinedLeftMessage": true,
   "AllowAdminWarnings": true,
   "Captions": {
     "OnBotJoinedChatMessage": "Hello there! 👋",
+    "ChatNotRegistered": "Not registered",
     "UserNoPermissions": "🤐 Я не визнаю вашу силу",
     "BotHasNoPermissions": "🌿 Цей чат мені не підвладний...",
     "UserNotSpecified": "💀 Я зараз покличу лісовика і скажу, що ти не вмієш цим користуватись",

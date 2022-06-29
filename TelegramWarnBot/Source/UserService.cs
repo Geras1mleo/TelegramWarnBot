@@ -2,19 +2,23 @@
 
 public class UserService
 {
+    private static readonly UserService shared = new();
+
+    public static UserService Shared { get => shared; }
+
     /// <summary>
     /// WarnedUser should not be an admin
     /// </summary>
     /// <returns>Whether user is banned from chat</returns>
     public async Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, bool tryBanUser, ITelegramBotClient client, CancellationToken cancellationToken)
     {
-        warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0, IOHandler.GetConfiguration().MaxWarnings);
+        warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0, IOHandler.Configuration.MaxWarnings);
 
         if (deleteMessageId is not null)
             await client.DeleteMessageAsync(chatId, deleteMessageId.Value, cancellationToken);
 
         // If not reached max warnings 
-        if (warnedUser.Warnings < IOHandler.GetConfiguration().MaxWarnings)
+        if (warnedUser.Warnings < IOHandler.Configuration.MaxWarnings)
         {
             return false;
         }
@@ -37,13 +41,13 @@ public class UserService
     /// <param name="update"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<OneOf<(WarnedUser user, bool isAdmin), string>> ResolveWarnedRoot(ITelegramBotClient client, Update update, bool isWarn, CancellationToken cancellationToken)
+    public OneOf<WarnedUser, string> ResolveWarnedRoot(ITelegramBotClient client, Update update, bool isWarn, CancellationToken cancellationToken)
     {
-        if (!await IsAdmin(client, update.Message.Chat.Id, update.Message.From.Id, cancellationToken))
-            return IOHandler.GetConfiguration().Captions.UserNoPermissions;
+        if (!IsAdmin(update.Message.Chat.Id, update.Message.From.Id))
+            return IOHandler.Configuration.Captions.UserNoPermissions;
 
-        if (!await IsAdmin(client, update.Message.Chat.Id, Bot.User.Id, cancellationToken))
-            return IOHandler.GetConfiguration().Captions.BotHasNoPermissions;
+        if (!IsAdmin(update.Message.Chat.Id, Bot.User.Id))
+            return IOHandler.Configuration.Captions.BotHasNoPermissions;
 
         var resolve = ResolveMentionedUser(update);
 
@@ -52,29 +56,28 @@ public class UserService
         {
             return resolve.AsT1 switch
             {
-                ResolveMentionedUserResult.UserNotMentioned => IOHandler.GetConfiguration().Captions.UserNotSpecified,
-                ResolveMentionedUserResult.UserNotFound => IOHandler.GetConfiguration().Captions.UserNotFound,
-                ResolveMentionedUserResult.BotMention => isWarn ? IOHandler.GetConfiguration().Captions.BotWarnAttempt
-                                                                : IOHandler.GetConfiguration().Captions.BotUnwarnAttempt,
-                ResolveMentionedUserResult.BotSelfMention => isWarn ? IOHandler.GetConfiguration().Captions.BotSelfWarnAttempt
-                                                                    : IOHandler.GetConfiguration().Captions.BotSelfUnwarnAttempt,
+                ResolveMentionedUserResult.UserNotMentioned => IOHandler.Configuration.Captions.UserNotSpecified,
+                ResolveMentionedUserResult.UserNotFound => IOHandler.Configuration.Captions.UserNotFound,
+                ResolveMentionedUserResult.BotMention => isWarn ? IOHandler.Configuration.Captions.BotWarnAttempt
+                                                                : IOHandler.Configuration.Captions.BotUnwarnAttempt,
+                ResolveMentionedUserResult.BotSelfMention => isWarn ? IOHandler.Configuration.Captions.BotSelfWarnAttempt
+                                                                    : IOHandler.Configuration.Captions.BotSelfUnwarnAttempt,
                 _ => throw new ArgumentException("ResolveMentionedUserResult"),
             };
         }
 
-        var isAdmin = await IsAdmin(client, update.Message.Chat.Id, user.Id, cancellationToken);
+        var isAdmin = IsAdmin(update.Message.Chat.Id, user.Id);
 
         // warn/unwarn admin disabled
-        if (isAdmin && !IOHandler.GetConfiguration().AllowAdminWarnings)
+        if (isAdmin && !IOHandler.Configuration.AllowAdminWarnings)
         {
-            return isWarn ? IOHandler.GetConfiguration().Captions.AdminWarnAttempt
-                          : IOHandler.GetConfiguration().Captions.AdminUnwarnAttempt;
+            return isWarn ? IOHandler.Configuration.Captions.AdminWarnAttempt
+                          : IOHandler.Configuration.Captions.AdminUnwarnAttempt;
         }
 
-        var warnings = IOHandler.GetWarnings();
-        var chat = ResolveChat(update, warnings);
+        var chat = ResolveChatWarning(update.Message.Chat.Id, IOHandler.Warnings);
 
-        return (ResolveWarnedUser(user.Id, chat), isAdmin);
+        return ResolveWarnedUser(user.Id, chat);
     }
 
     public WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning)
@@ -92,14 +95,14 @@ public class UserService
         return warnedUser;
     }
 
-    public ChatWarnings ResolveChat(Update update, List<ChatWarnings> warnings)
+    public ChatWarnings ResolveChatWarning(long chatId, List<ChatWarnings> warnings)
     {
-        var chat = warnings.FirstOrDefault(c => c.ChatId == update.Message.Chat.Id);
+        var chat = warnings.FirstOrDefault(c => c.ChatId == chatId);
         if (chat is null)
         {
             chat = new()
             {
-                ChatId = update.Message.Chat.Id,
+                ChatId = chatId,
                 WarnedUsers = new List<WarnedUser>()
             };
             warnings.Add(chat);
@@ -122,7 +125,7 @@ public class UserService
              && update.Message?.EntityValues is not null)
             {
                 var mentionedUser = update.Message.EntityValues.ElementAt(1)[1..].ToLower();
-                var userDto = IOHandler.GetUsers().FirstOrDefault(u => u.Username == mentionedUser);
+                var userDto = IOHandler.Users.FirstOrDefault(u => u.Username == mentionedUser);
 
                 if (userDto is not null)
                 {
@@ -179,10 +182,13 @@ public class UserService
         };
     }
 
-    public async Task<bool> IsAdmin(ITelegramBotClient client, long chatId, long userId, CancellationToken cancellationToken)
+    public bool IsAdmin(long chatId, long userId)
     {
-        var status = (await client.GetChatMemberAsync(chatId, userId, cancellationToken: cancellationToken)).Status;
+        return IOHandler.Chats.Find(c => c.Id == chatId)?.Admins.Any(a => a == userId) ?? false;
+    }
 
-        return status == ChatMemberStatus.Creator || status == ChatMemberStatus.Administrator;
+    public long[] GetAdmins(ITelegramBotClient client, long chatId, CancellationToken cancellationToken)
+    {
+        return client.GetChatAdministratorsAsync(chatId, cancellationToken).GetAwaiter().GetResult().Select(c => c.User.Id).ToArray();
     }
 }

@@ -3,6 +3,7 @@
 public class Captions
 {
     public string OnBotJoinedChatMessage { get; set; }
+    public string ChatNotRegistered { get; set; }
     public string UserNoPermissions { get; set; }
     public string BotHasNoPermissions { get; set; }
     public string UserNotSpecified { get; set; }

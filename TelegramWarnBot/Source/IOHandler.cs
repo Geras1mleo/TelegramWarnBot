@@ -4,6 +4,7 @@ public static class IOHandler
 {
     private static readonly string ExecutablePath = AppDomain.CurrentDomain.BaseDirectory;
 
+    // Caching all configs
     private static Configuration configuration;
     private static Trigger[] triggers;
     private static IllegalTrigger[] illegalTriggers;
@@ -12,43 +13,93 @@ public static class IOHandler
     private static List<UserDTO> users;
     private static List<ChatDTO> chats;
 
-    static IOHandler()
+    private static List<BotError> logs;
+
+    public static BotConfiguration BotConfiguration
     {
-        GetConfiguration();
-        GetTriggers();
-        GetIllegalTriggers();
-        GetWarnings();
-        GetUsers();
-        GetChats();
+        get
+        {
+            var config = Deserialize<BotConfiguration>("Bot.json");
+            config.RegisteredChats = Deserialize<List<long>>(Path.Combine("Configuration", "RegisteredChats.json"));
+            return config;
+        }
     }
 
-    public static BotConfiguration GetBotConfiguration()
+    public static Configuration Configuration
     {
-        return Deserialize<BotConfiguration>("Bot.json");
+        get
+        {
+            if (configuration is null)
+                configuration = Deserialize<Configuration>(Path.Combine("Configuration", "Configuration.json"));
+
+            return configuration;
+        }
     }
 
-    public static Configuration GetConfiguration()
+    public static Trigger[] Triggers
     {
-        if (configuration is null)
-            configuration = Deserialize<Configuration>(Path.Combine("Configuration", "Configuration.json"));
+        get
+        {
+            if (triggers is null)
+                triggers = Deserialize<Trigger[]>(Path.Combine("Configuration", "Triggers.json"));
 
-        return configuration;
+            return triggers;
+        }
     }
 
-    public static Trigger[] GetTriggers()
+    public static IllegalTrigger[] IllegalTriggers
     {
-        if (triggers is null)
-            triggers = Deserialize<Trigger[]>(Path.Combine("Configuration", "Triggers.json"));
+        get
+        {
+            if (illegalTriggers is null)
+                illegalTriggers = Deserialize<IllegalTrigger[]>(Path.Combine("Configuration", "IllegalTriggers.json"));
 
-        return triggers;
+            return illegalTriggers;
+        }
     }
 
-    public static IllegalTrigger[] GetIllegalTriggers()
+    public static List<UserDTO> Users
     {
-        if (illegalTriggers is null)
-            illegalTriggers = Deserialize<IllegalTrigger[]>(Path.Combine("Configuration", "IllegalTriggers.json"));
+        get
+        {
+            if (users is null)
+                users = Deserialize<List<UserDTO>>(Path.Combine("Data", "Users.json"));
 
-        return illegalTriggers;
+            return users;
+        }
+    }
+
+    public static List<ChatDTO> Chats
+    {
+        get
+        {
+            if (chats is null)
+                chats = Deserialize<List<ChatDTO>>(Path.Combine("Data", "Chats.json"));
+
+            return chats;
+        }
+    }
+
+    public static List<ChatWarnings> Warnings
+    {
+        get
+        {
+            if (warnings is null)
+                warnings = Deserialize<List<ChatWarnings>>(Path.Combine("Data", "ChatWarnings.json"));
+
+            return warnings;
+        }
+    }
+
+    public static List<BotError> Logs
+    {
+        get
+        {
+            if (logs is null)
+                logs = Deserialize<List<BotError>>(Path.Combine("Data", "Logs.json"));
+
+            return logs;
+        }
     }
 
     public static void ReloadConfiguration()
@@ -56,23 +107,13 @@ public static class IOHandler
         configuration = null;
         triggers = null;
         illegalTriggers = null;
-        GetConfiguration();
-        GetTriggers();
-        GetIllegalTriggers();
-    }
-
-    public static List<ChatWarnings> GetWarnings()
-    {
-        if (warnings is null)
-            warnings = Deserialize<List<ChatWarnings>>(Path.Combine("Data", "ChatWarnings.json"));
-
-        return warnings;
+        Bot.Configuration = BotConfiguration;
     }
 
     private static Task SaveWarningsAsync()
     {
         // Clear up first
-        foreach (var warning in warnings)
+        foreach (var warning in Warnings)
         {
             for (int i = warning.WarnedUsers.Count - 1; i >= 0; i--)
             {
@@ -80,77 +121,65 @@ public static class IOHandler
                     warning.WarnedUsers.RemoveAt(i);
             }
         }
-        for (int i = warnings.Count - 1; i >= 0; i--)
+        for (int i = Warnings.Count - 1; i >= 0; i--)
         {
-            if (warnings[i].WarnedUsers.Count < 1)
-                warnings.RemoveAt(i);
+            if (Warnings[i].WarnedUsers.Count < 1)
+                Warnings.RemoveAt(i);
         }
 
-        return SerializeAsync(warnings, Path.Combine("Data", "ChatWarnings.json"));
-    }
-
-    public static List<UserDTO> GetUsers()
-    {
-        if (users is null)
-            users = Deserialize<List<UserDTO>>(Path.Combine("Data", "Users.json"));
-
-        return users;
+        return SerializeAsync(Warnings, Path.Combine("Data", "ChatWarnings.json"));
     }
 
     private static Task SaveUsersAsync()
     {
-        return SerializeAsync(users, Path.Combine("Data", "Users.json"));
-    }
-
-    public static List<ChatDTO> GetChats()
-    {
-        if (chats is null)
-            chats = Deserialize<List<ChatDTO>>(Path.Combine("Data", "Chats.json"));
-
-        return chats;
+        return SerializeAsync(Users, Path.Combine("Data", "Users.json"));
     }
 
     private static Task SaveChatsAsync()
     {
-        return SerializeAsync(chats, Path.Combine("Data", "Chats.json"));
+        return SerializeAsync(Chats, Path.Combine("Data", "Chats.json"));
     }
 
-    public static void RegisterUser(long id, string username, string name)
+    public static Task SaveRegisteredChats()
+    {
+        return SerializeAsync(Bot.Configuration.RegisteredChats, Path.Combine("Configuration", "RegisteredChats.json"));
+    }
+
+    public static Task SaveLogsAsync()
+    {
+        return SerializeAsync(Logs, Path.Combine("Data", "Logs.json"));
+    }
+
+    public static void CacheUser(User user)
     {
         // Adding client to list if not exist
-        var user = users.FirstOrDefault(u => u.Id == id);
-        if (user is null)
+        var userDto = Users.FirstOrDefault(u => u.Id == user.Id);
+        if (userDto is null)
         {
-            user = new()
+            userDto = new()
             {
-                Id = id,
-                Username = username?.ToLower(),
-                Name = name,
+                Id = user.Id,
+                Username = user.Username?.ToLower(),
+                Name = user.GetFullName(),
             };
-            users.Add(user);
+            Users.Add(userDto);
         }
     }
 
-    public static void RegisterChat(long id, string name)
+    public static void CacheChat(Chat chat, long[] admins)
     {
         // Adding chat to list if not exist
-        var chat = chats.FirstOrDefault(c => c.Id == id);
-        if (chat is null)
+        var chatDto = Chats.FirstOrDefault(c => c.Id == chat.Id);
+        if (chatDto is null)
         {
-            chat = new()
+            chatDto = new()
             {
-                Id = id,
-                Name = name,
+                Id = chat.Id,
+                Name = chat.Title,
+                Admins = admins
             };
-            chats.Add(chat);
+            Chats.Add(chatDto);
         }
-    }
-
-    public static Task LogErrorAsync(BotError error)
-    {
-        var errors = Deserialize<List<BotError>>(Path.Combine("Data", "Logs.json"));
-        errors.Add(error);
-        return SerializeAsync(errors, Path.Combine("Data", "Logs.json"));
     }
 
     public static void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
@@ -169,7 +198,7 @@ public static class IOHandler
 
     public static void SaveData()
     {
-        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync());
+        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync(), SaveLogsAsync());
         Tools.WriteColor("[Data saved successfully!]", ConsoleColor.Green, true);
     }
 

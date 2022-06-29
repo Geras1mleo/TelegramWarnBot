@@ -7,23 +7,32 @@ public static class Tools
         return $"[{caption}](tg://user?id={id})";
     }
 
+    private static readonly Dictionary<Type, MethodInfo[]> methodsDict = new();
     public static MethodInfo ResolveMethod(Type type, string prefix)
     {
-        return type.GetMethods().FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
+        if (methodsDict.TryGetValue(type, out var cachedMethods))
+            return cachedMethods.FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
+
+        var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+        methodsDict.Add(type, methods);
+        return methods.FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
     }
 
     public static string ResolveResponseVariables(string response, WarnedUser user, string defaultName = "Not Found")
     {
         return response.Replace("{warnedUser.WarnedCount}", user.Warnings.ToString())
-                       .Replace("{warnedUser}", Tools.GetMentionString(IOHandler.GetUsers().Find(u => u.Id == user.Id)?.Name ?? defaultName, user.Id))
-                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings).ToString());
+                       .Replace("{warnedUser}", Tools.GetMentionString(IOHandler.Users
+                                                                                    .Find(u => u.Id == user.Id)?
+                                                                                    .Name ?? defaultName,
+                                                                                user.Id))
+                       .Replace("{configuration.MaxWarnings}", (IOHandler.Configuration.MaxWarnings).ToString());
     }
 
     public static string ResolveResponseVariables(string response, UserDTO user, int warnedCount)
     {
         return response.Replace("{warnedUser.WarnedCount}", warnedCount.ToString())
                        .Replace("{warnedUser}", Tools.GetMentionString(user.Name, user.Id))
-                       .Replace("{configuration.MaxWarnings}", (IOHandler.GetConfiguration().MaxWarnings).ToString());
+                       .Replace("{configuration.MaxWarnings}", (IOHandler.Configuration.MaxWarnings).ToString());
     }
 
     // https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net

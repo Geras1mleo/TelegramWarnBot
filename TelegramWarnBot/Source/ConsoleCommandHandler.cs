@@ -6,7 +6,7 @@ public static class CommandHandler
 {
     public static void StartListening(CancellationToken cancellationToken)
     {
-        PrintAvailableCommands();
+        //PrintAvailableCommands();
 
         while (true)
         {
@@ -28,23 +28,37 @@ public static class CommandHandler
                     if (!Send(Bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
                         goto default; // if not succeed => show available commands 
                     break;
+
+                case "register":
+                    if (!Register(parts.Skip(1).ToList()))
+                        goto default;
+                    break;
+
                 case "reload":
                     IOHandler.ReloadConfiguration();
                     Tools.WriteColor("[Configuration reloaded successfully!]", ConsoleColor.Green, true);
                     break;
-                case "save":
-                    IOHandler.SaveData();
-                    break;
-                case "info":
-                    WriteInfo();
-                    break;
-                case "exit":
-                    Environment.Exit(1);
+
+                case "leave":
+                    if (long.TryParse(parts[1], out var chatId))
+                        try
+                        {
+                            Bot.Client.LeaveChatAsync(chatId, cancellationToken: cancellationToken).GetAwaiter().GetResult();
+                        }
+                        catch (Exception e)
+                        {
+                            Tools.WriteColor("[Error]: " + e.Message, ConsoleColor.Red, false);
+                        }
                     break;
 
+                case "save": IOHandler.SaveData(); break;
+                case "info": WriteInfo(); break;
+                case "exit": Environment.Exit(1); break;
+
+                case "l": goto case "leave";
+                case "r": goto case "reload";
                 case "s": goto case "save";
                 case "e": goto case "exit";
-                case "r": goto case "reload";
                 case "i": goto case "info";
 
                 default:
@@ -55,55 +69,54 @@ public static class CommandHandler
         }
     }
 
-    private static void WriteInfo()
+    public static bool Register(List<string> parameters)
     {
-        if (IOHandler.GetChats().Count > 0)
+        if (parameters.Count == 1)
         {
-            WriteColor($"\nRegistered Chats: [{IOHandler.GetChats().Count}]", ConsoleColor.DarkMagenta, true);
-
-            foreach (var chat in IOHandler.GetChats())
+            if (long.TryParse(parameters[0], out var newChatId))
             {
-                WriteColor($"\t[{chat.Name}]", ConsoleColor.DarkMagenta, false);
+                Bot.Configuration.RegisteredChats.Add(newChatId);
+                IOHandler.SaveRegisteredChats();
+                Tools.WriteColor("[Chat registered successfully]", ConsoleColor.Green, true);
+                return true;
             }
-        }
 
-        if (IOHandler.GetUsers().Count > 0)
-        {
-            WriteColor($"\nRegistered Users: [{IOHandler.GetUsers().Count}]", ConsoleColor.DarkMagenta, false);
-
-            foreach (var user in IOHandler.GetUsers())
+            if (parameters[0] == "-l")
             {
-                WriteColor($"\t[{user.Name}]", ConsoleColor.DarkMagenta, false);
-            }
-        }
-
-        if (IOHandler.GetWarnings().Count > 0)
-        {
-            Console.WriteLine("\nWarnings:");
-
-            string chatName, userName;
-
-            foreach (var warning in IOHandler.GetWarnings())
-            {
-                chatName = IOHandler.GetChats().Find(c => c.Id == warning.ChatId)?.Name ?? "Not found...";
-
-                WriteColor($"\t[{chatName}]:", ConsoleColor.DarkMagenta, false);
-
-                foreach (var user in warning.WarnedUsers)
+                Console.WriteLine("\nRegistered chats:");
+                foreach (var chatId in Bot.Configuration.RegisteredChats)
                 {
-                    userName = IOHandler.GetUsers().Find(u => u.Id == user.Id)?.Name ?? "Not found...";
-                    WriteColor($"\t\t[{userName}] - [{user.Warnings}]", ConsoleColor.DarkMagenta, false);
+                    Tools.WriteColor("\t[" + (IOHandler.Chats.Find(c => c.Id == chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId.ToString(),
+                                     ConsoleColor.Blue, false);
                 }
+                return true;
             }
         }
+        else if (parameters.Count == 2)
+        {
+            if (parameters[0] == "-rm" && long.TryParse(parameters[1], out var removedChatId))
+            {
+                if (Bot.Configuration.RegisteredChats.Remove(removedChatId))
+                {
+                    IOHandler.SaveRegisteredChats();
+                    Tools.WriteColor("[Chat removed successfully]", ConsoleColor.Green, true);
+                }
+                else
+                    Tools.WriteColor("[Chat not found...]", ConsoleColor.Red, true);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    public static async Task<bool> Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken)
+    public static Task<bool> Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken)
     {
         int chatIndex = parameters.FindIndex(p => p.ToLower() == "-c");
 
         if (chatIndex < 0)
-            return false;
+            return Task.FromResult(false);
 
         string chatParameter = parameters.ElementAtOrDefault(chatIndex + 1);
 
@@ -112,17 +125,17 @@ public static class CommandHandler
         long chatId = 0;
 
         if (!broadcast && !long.TryParse(chatParameter, out chatId))
-            return false;
+            return Task.FromResult(false);
 
         int messageIndex = parameters.FindIndex(p => p.ToLower() == "-m");
 
         if (messageIndex < 0)
-            return false;
+            return Task.FromResult(false);
 
         string message = parameters.ElementAtOrDefault(messageIndex + 1);
 
         if (message is null || !message.StartsWith("\"") || !message.EndsWith("\"") || message.Length == 1)
-            return false;
+            return Task.FromResult(false);
 
         message = message[1..^1];
 
@@ -130,7 +143,7 @@ public static class CommandHandler
 
         if (broadcast)
         {
-            chats = IOHandler.GetChats();
+            chats = IOHandler.Chats;
         }
         else
         {
@@ -140,6 +153,8 @@ public static class CommandHandler
             });
         }
 
+        var tasks = new List<Task>();
+
         int sentCount = 0;
         for (int i = 0; i < chats.Count; i++)
         {
@@ -147,7 +162,7 @@ public static class CommandHandler
             {
                 if (chats[i].Id != 0)
                 {
-                    await client.SendTextMessageAsync(chats[i].Id, message, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown);
+                    tasks.Add(client.SendTextMessageAsync(chats[i].Id, message, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown));
                     sentCount++;
                 }
             }
@@ -156,7 +171,66 @@ public static class CommandHandler
 
         WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow, true);
 
-        return true;
+        Task.WhenAll(tasks).GetAwaiter().GetResult();
+
+        return Task.FromResult(true);
+    }
+
+    private static void WriteInfo()
+    {
+        if (IOHandler.Chats.Count > 0)
+        {
+            WriteColor($"\nCached Chats: [{IOHandler.Chats.Count}]", ConsoleColor.DarkYellow, true);
+
+            string userName;
+
+            foreach (var chat in IOHandler.Chats)
+            {
+                WriteColor($"\t[{chat.Name}]", ConsoleColor.DarkMagenta, false);
+
+                WriteColor($"\tAdmins: [{chat.Admins.Length}]", ConsoleColor.DarkYellow, false);
+
+                foreach (var admin in chat.Admins)
+                {
+                    userName = IOHandler.Users.Find(u => u.Id == admin)?.Name ?? $"Not found - {admin}";
+
+                    WriteColor($"\t\t[{userName}]", ConsoleColor.DarkMagenta, false);
+                }
+                Console.WriteLine();
+            }
+        }
+
+        if (IOHandler.Users.Count > 0)
+        {
+            WriteColor($"\nCached Users: [{IOHandler.Users.Count}]", ConsoleColor.DarkYellow, false);
+
+            foreach (var user in IOHandler.Users)
+            {
+                WriteColor($"\t[{user.Name}]", ConsoleColor.DarkMagenta, false);
+            }
+        }
+
+        if (IOHandler.Warnings.Count > 0)
+        {
+            WriteColor($"\nWarnings: [{IOHandler.Warnings.SelectMany(w => w.WarnedUsers).Select(u => u.Warnings).Sum()}]", ConsoleColor.DarkYellow, false);
+
+            string chatName, userName;
+
+            foreach (var warning in IOHandler.Warnings)
+            {
+                chatName = IOHandler.Chats.Find(c => c.Id == warning.ChatId)?.Name ?? $"Not found - {warning.ChatId}";
+
+                WriteColor($"\t[{chatName}]:", ConsoleColor.DarkMagenta, false);
+
+                foreach (var user in warning.WarnedUsers)
+                {
+                    userName = IOHandler.Users.Find(u => u.Id == user.Id)?.Name ?? $"Not found - {user.Id}";
+
+                    WriteColor($"\t\t[{userName}] - [{user.Warnings}]", ConsoleColor.DarkMagenta, false);
+                }
+                Console.WriteLine();
+            }
+        }
     }
 
     public static void PrintAvailableCommands()
@@ -169,6 +243,11 @@ public static class CommandHandler
              + "\n\t[-m] => Message to send. Please use \"\" to indicate message. Markdown formatting allowed"
          + "\nExample: send -c 123456 -m \"Example message\"\n"
 
+         + "\n[register] => Register new chat:"
+             + "\n\t[-l] => List of registered chats"
+             + "\n\t[-rm] => Remove one specific chat\n"
+
+         + "\n[leave]/l => Leave a chat"
          + "\n[reload]/[r] => Reload configurations\n"
          + "\n[save]/[s] \t=> Save last data\n"
          + "\n[info]/[i] \t=> Show info about registered chats and users\n"

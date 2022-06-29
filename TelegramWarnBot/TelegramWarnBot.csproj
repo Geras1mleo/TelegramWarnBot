@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <PackageIcon></PackageIcon>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <AssemblyVersion>1.0.1.1</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -20,6 +20,7 @@
   <ItemGroup>
     <None Remove="Bot.json" />
     <None Remove="Configuration\IllegalTriggers.json" />
+    <None Remove="Configuration\RegisteredChats.json" />
     <None Remove="Configuration\Triggers.json" />
     <None Remove="Data\Chats.json" />
     <None Remove="Data\ChatWarnings.json" />
@@ -30,6 +31,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Bot.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Configuration\RegisteredChats.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Configuration\IllegalTriggers.json">

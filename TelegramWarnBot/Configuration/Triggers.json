@@ -1,8 +1,8 @@
 [
   {
     "Chat": null,
-    "Messages": [ "Росія" ],
-    "Response": "ₚосія пишеться з дуже мальнької 😉",
+    "Messages": [ "Russia" ],
+    "Response": "russia is written in lower case 😉",
     "MatchCase": true,
     "MatchWholeMessage": false
   },
@@ -15,16 +15,23 @@
   },
   {
     "Chat": null,
-    "Messages": [ "наша русофобія", "західна русофобія" ],
-    "Response": "Недостатня!",
+    "Messages": [ "our russophobia", "western russophobia" ],
+    "Response": "Is not enough!",
     "MatchCase": false,
     "MatchWholeMessage": true
   },
   {
     "Chat": -1001505758084,
-    "Messages": [ "хороших росіян", "добрих росіян" ],
-    "Response": "Не існує!",
+    "Messages": [ "good russians", "nice russians" ],
+    "Response": "Do not exist!",
     "MatchCase": false,
+    "MatchWholeMessage": true
+  },
+  {
+    "Chat": null,
+    "Messages": [ "test" ],
+    "Response": "TESTING",
+    "MatchCase": true,
     "MatchWholeMessage": true
   }
 ]
