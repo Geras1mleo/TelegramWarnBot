@@ -19,6 +19,8 @@ If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a
 
 **The commands _/warn_ and _/unwarn_ are only available to _administrators_ and the _owner_ of the group.**
 
+By the way, now I can also [delete](TelegramWarnBot/Configuration/Configuration.json#L5) **"User joined/left chat"** - messages...
+
 #### Triggers
 I will look at the **messages** in one specific chat (or any chat) and **respond/trigger** to the most offensive/provocative/funny ones.
 
@@ -41,25 +43,27 @@ You can change them at runtime and then use `reload` in console to reload new co
 - [UpdateDelay](TelegramWarnBot/Configuration/Configuration.json#L2): Every given amount of seconds app will save all data of [Users](TelegramWarnBot/Data/Users.json), [Chats](TelegramWarnBot/Data/Chats.json) and [ChatsWarnings](TelegramWarnBot/Data/ChatsWarnings.json).
 - [MaxWarnings](TelegramWarnBot/Configuration/Configuration.json#L3): The number of warnings warned member will be banned on.
 - [DeleteWarnMessage](TelegramWarnBot/Configuration/Configuration.json#L4): Whether command message (`/warn @Geras1mleo` from administrator) needs to be deleted.
-- [AllowAdminWarnings](TelegramWarnBot/Configuration/Configuration.json#L5): Whether *administrators* can receive *warnings*. 
-- [Captions](TelegramWarnBot/Configuration/Configuration.json#L6): The following parameters indicate the reactions of bot on certain events:
-  - [OnBotJoinedChatMessage](TelegramWarnBot/Configuration/Configuration.json#L7): Greeting message that will be sent when bot is added to chat.
-  - [UserNoPermissions](TelegramWarnBot/Configuration/Configuration.json#L8): Non-admin user attempts to warn chat member.
-  - [BotHasNoPermissions](TelegramWarnBot/Configuration/Configuration.json#L9): Bot require admin rights to warn and ban members.
-  - [UserNotSpecified](TelegramWarnBot/Configuration/Configuration.json#L10): Use of command (*/warn* or */unwarn*) without mentioning the user or replying to some (suspicious) message.
-  - [UserNotFound](TelegramWarnBot/Configuration/Configuration.json#L11): Mentioned user has been not found in this chat.
-  - [WarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L12): Post */warn* message that will mention warned user and his current amount of warnings.
-  - [UnwarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L13): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
-  - [BannedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L14): Post */warn* message that will mention banned user.
-  - [UserUnwarnNoWarnings](TelegramWarnBot/Configuration/Configuration.json#L15): Attempt to use */unwarn* on a user without any warnings.
-  - [AdminWarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L16): Attempt to use */warn* on administrator when *AllowAdminWarnings = false*
-  - [AdminUnwarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L17): Attempt to use */unwarn* on administrator when *AllowAdminWarnings = false*
-  - [BotWarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L18): Attempt to use */warn* on *another bot*.
-  - [BotUnwarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L19): Attempt to use */unwarn* on *another bot*.
-  - [BotSelfWarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L20): Attempt to use */warn* on the *bot itself*.
-  - [BotSelfUnwarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L21): Attempt to use */unwarn* on the *bot itself*.
-  - [IllegalTriggerWarned](TelegramWarnBot/Configuration/Configuration.json#L22): Automatic *Illegal trigger warning* that will mention warned user and his current amount of warnings.
-  - [IllegalTriggerBanned](TelegramWarnBot/Configuration/Configuration.json#L23): Automatic *Illegal trigger warning* that will mention banned user.
+- [DeleteJoinedLeftMessage](TelegramWarnBot/Configuration/Configuration.json#L5): Whether *"geras1mleo joined chat"* - message needs to be deleted.
+- [AllowAdminWarnings](TelegramWarnBot/Configuration/Configuration.json#L6): Whether *administrators* can receive *warnings*. 
+- [Captions](TelegramWarnBot/Configuration/Configuration.json#L7): The following parameters indicate the reactions of bot on certain events:
+  - [OnBotJoinedChatMessage](TelegramWarnBot/Configuration/Configuration.json#L8): Greeting message that will be sent when bot is added to chat.
+  - [ChatNotRegistered](TelegramWarnBot/Configuration/Configuration.json#L9): When the bot is being used in a chat, it is not intended to be a member of.
+  - [UserNoPermissions](TelegramWarnBot/Configuration/Configuration.json#L10): Non-admin user attempts to warn chat member.
+  - [BotHasNoPermissions](TelegramWarnBot/Configuration/Configuration.json#L11): Bot require admin rights to warn and ban members.
+  - [UserNotSpecified](TelegramWarnBot/Configuration/Configuration.json#L12): Use of command (*/warn* or */unwarn*) without mentioning the user or replying to some (suspicious) message.
+  - [UserNotFound](TelegramWarnBot/Configuration/Configuration.json#L13): Mentioned user has been not found in this chat.
+  - [WarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L14): Post */warn* message that will mention warned user and his current amount of warnings.
+  - [UnwarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L15): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
+  - [BannedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L16): Post */warn* message that will mention banned user.
+  - [UserUnwarnNoWarnings](TelegramWarnBot/Configuration/Configuration.json#L17): Attempt to use */unwarn* on a user without any warnings.
+  - [AdminWarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L18): Attempt to use */warn* on administrator when *AllowAdminWarnings = false*
+  - [AdminUnwarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L19): Attempt to use */unwarn* on administrator when *AllowAdminWarnings = false*
+  - [BotWarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L20): Attempt to use */warn* on *another bot*.
+  - [BotUnwarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L21): Attempt to use */unwarn* on *another bot*.
+  - [BotSelfWarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L22): Attempt to use */warn* on the *bot itself*.
+  - [BotSelfUnwarnAttempt](TelegramWarnBot/Configuration/Configuration.json#L23): Attempt to use */unwarn* on the *bot itself*.
+  - [IllegalTriggerWarned](TelegramWarnBot/Configuration/Configuration.json#L24): Automatic *Illegal trigger warning* that will mention warned user and his current amount of warnings.
+  - [IllegalTriggerBanned](TelegramWarnBot/Configuration/Configuration.json#L25): Automatic *Illegal trigger warning* that will mention banned user.
 
 ### [Triggers](TelegramWarnBot/Configuration/Triggers.json)
 
@@ -90,11 +94,19 @@ Notification is sent to admins (optional *Warn* sender) when an **illegal word**
 
 Example: **send -c 123456 -m "Example message"**
 
-- **reload/r** => Reload configurations.
+- **register** => Register new chat:
+  - **-l** => List of registered chats.
+  - **-rm** => Remove one specific chat.
 
-- **save/s** => Save last data.
+Example: **register 123456** or **register -rm 123456**
 
-- **info/i**  => Show info about registered chats and users.
+- **leave / l** => Leave a chat.
+
+- **reload / r** => Reload configurations.
+
+- **save / s** => Save last data.
+
+- **info / i**  => Show info about registered chats and users.
 
 ## Like the project?
 
