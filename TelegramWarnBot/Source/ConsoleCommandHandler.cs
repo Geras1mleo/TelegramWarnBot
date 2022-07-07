@@ -76,8 +76,8 @@ public static class CommandHandler
             if (long.TryParse(parameters[0], out var newChatId))
             {
                 Bot.Configuration.RegisteredChats.Add(newChatId);
-                IOHandler.SaveRegisteredChats();
-                Tools.WriteColor("[Chat registered successfully]", ConsoleColor.Green, true);
+                IOHandler.SaveRegisteredChatsAsync().GetAwaiter().GetResult();
+                WriteColor("[Chat registered successfully]", ConsoleColor.Green, true);
                 return true;
             }
 
@@ -86,9 +86,20 @@ public static class CommandHandler
                 Console.WriteLine("\nRegistered chats:");
                 foreach (var chatId in Bot.Configuration.RegisteredChats)
                 {
-                    Tools.WriteColor("\t[" + (IOHandler.Chats.Find(c => c.Id == chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId.ToString(),
+                    WriteColor("\t[" + (IOHandler.Chats.Find(c => c.Id == chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId,
                                      ConsoleColor.Blue, false);
                 }
+
+                var notRegistered = IOHandler.Chats.Where(cached => !Bot.Configuration.RegisteredChats.Contains(cached.Id));
+                if (!notRegistered.Any())
+                    return true;
+
+                Console.WriteLine("\nNot registered chats:");
+                foreach (var chat in notRegistered)
+                {
+                    WriteColor("\t[" + chat.Name + "]: " + chat.Id, ConsoleColor.Red, false);
+                }
+
                 return true;
             }
         }
@@ -98,11 +109,11 @@ public static class CommandHandler
             {
                 if (Bot.Configuration.RegisteredChats.Remove(removedChatId))
                 {
-                    IOHandler.SaveRegisteredChats();
-                    Tools.WriteColor("[Chat removed successfully]", ConsoleColor.Green, true);
+                    IOHandler.SaveRegisteredChatsAsync();
+                    WriteColor("[Chat removed successfully]", ConsoleColor.Green, true);
                 }
                 else
-                    Tools.WriteColor("[Chat not found...]", ConsoleColor.Red, true);
+                    WriteColor("[Chat not found...]", ConsoleColor.Red, true);
 
                 return true;
             }
@@ -200,15 +211,15 @@ public static class CommandHandler
             }
         }
 
-        if (IOHandler.Users.Count > 0)
-        {
-            WriteColor($"\nCached Users: [{IOHandler.Users.Count}]", ConsoleColor.DarkYellow, false);
+        WriteColor($"\nCached Users: [{IOHandler.Users.Count}]", ConsoleColor.DarkYellow, false);
 
-            foreach (var user in IOHandler.Users)
-            {
-                WriteColor($"\t[{user.Name}]", ConsoleColor.DarkMagenta, false);
-            }
-        }
+        //if (IOHandler.Users.Count > 0)
+        //{
+        //    foreach (var user in IOHandler.Users)
+        //    {
+        //        WriteColor($"\t[{user.Name}]", ConsoleColor.DarkMagenta, false);
+        //    }
+        //}
 
         if (IOHandler.Warnings.Count > 0)
         {
@@ -247,10 +258,10 @@ public static class CommandHandler
              + "\n\t[-l] => List of registered chats"
              + "\n\t[-rm] => Remove one specific chat\n"
 
-         + "\n[leave]/l => Leave a chat"
+         + "\n[leave]/[l] => Leave a chat"
          + "\n[reload]/[r] => Reload configurations\n"
          + "\n[save]/[s] \t=> Save last data\n"
-         + "\n[info]/[i] \t=> Show info about registered chats and users\n"
+         + "\n[info]/[i] \t=> Show info about cached chats and users\n"
          + "\n[exit]/[e] \t=> Save data and close the application (CTRL + C)\n"
          , ConsoleColor.Red, false);
     }

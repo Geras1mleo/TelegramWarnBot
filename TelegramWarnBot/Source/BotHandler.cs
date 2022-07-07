@@ -166,8 +166,11 @@ public static class BotHandler
 
             if (MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, message.Text))
             {
+                // Get random response
+                var response = trigger.Responses[Random.Shared.Next(trigger.Responses.Length)];
+
                 return client.SendTextMessageAsync(message.Chat.Id,
-                                                   trigger.Response,
+                                                   response,
                                                    replyToMessageId: message.MessageId,
                                                    cancellationToken: cancellationToken,
                                                    parseMode: ParseMode.Markdown);

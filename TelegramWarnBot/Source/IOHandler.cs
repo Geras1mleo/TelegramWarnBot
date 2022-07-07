@@ -140,7 +140,7 @@ public static class IOHandler
         return SerializeAsync(Chats, Path.Combine("Data", "Chats.json"));
     }
 
-    public static Task SaveRegisteredChats()
+    public static Task SaveRegisteredChatsAsync()
     {
         return SerializeAsync(Bot.Configuration.RegisteredChats, Path.Combine("Configuration", "RegisteredChats.json"));
     }
@@ -163,6 +163,12 @@ public static class IOHandler
                 Name = user.GetFullName(),
             };
             Users.Add(userDto);
+        }
+        else if (userDto.Username != user.Username?.ToLower()
+              || userDto.Name != user.GetFullName())
+        {
+            userDto.Username = user.Username?.ToLower();
+            userDto.Name = user.GetFullName();
         }
     }
 

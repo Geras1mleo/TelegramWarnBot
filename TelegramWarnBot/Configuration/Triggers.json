@@ -2,35 +2,35 @@
   {
     "Chat": null,
     "Messages": [ "Russia" ],
-    "Response": "russia is written in lower case 😉",
+    "Responses": [ "russia is written in lower case 😉" ],
     "MatchCase": true,
     "MatchWholeMessage": false
   },
   {
     "Chat": null,
     "Messages": [ "росіянин", "росиянин", "росіянка", "росиянка" ],
-    "Response": "У нас прийнято говорити москаль 😉",
+    "Responses": [ "У нас прийнято говорити москаль 😉" ],
     "MatchCase": false,
     "MatchWholeMessage": false
   },
   {
     "Chat": null,
     "Messages": [ "our russophobia", "western russophobia" ],
-    "Response": "Is not enough!",
+    "Responses": [ "Is not enough!" ],
     "MatchCase": false,
     "MatchWholeMessage": true
   },
   {
     "Chat": -1001505758084,
     "Messages": [ "good russians", "nice russians" ],
-    "Response": "Do not exist!",
+    "Responses": [ "Do not exist!" ],
     "MatchCase": false,
     "MatchWholeMessage": true
   },
   {
     "Chat": null,
     "Messages": [ "test" ],
-    "Response": "TESTING",
+    "Responses": [ "TESTING", "Hi, second..." ],
     "MatchCase": true,
     "MatchWholeMessage": true
   }
