@@ -15,9 +15,7 @@ public class ResponseHelper
     public string ResolveResponseVariables(string response, WarnedUser user, string defaultName = "Not Found")
     {
         return response.Replace("{warnedUser.WarnedCount}", user.Warnings.ToString())
-                       .Replace("{warnedUser}", GetMentionString(cachedDataContext.Users.Find(u => u.Id == user.Id)?
-                                                                                  .Name ?? defaultName,
-                                                                       user.Id))
+                       .Replace("{warnedUser}", GetMentionString(cachedDataContext.Users.Find(u => u.Id == user.Id)?.Name ?? defaultName, user.Id))
                        .Replace("{configuration.MaxWarnings}", (configurationContext.Configuration.MaxWarnings).ToString());
     }
 

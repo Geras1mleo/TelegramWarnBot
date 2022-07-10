@@ -1,14 +1,18 @@
 ﻿namespace TelegramWarnBot;
 
-public class ChatService
+public class CommandService
 {
     private readonly ConfigurationContext configurationContext;
     private readonly CachedDataContext cachedDataContext;
+    private readonly ChatHelper chatHelper;
 
-    public ChatService(ConfigurationContext configurationContext, CachedDataContext cachedDataContext)
+    public CommandService(ConfigurationContext configurationContext,
+                          CachedDataContext cachedDataContext,
+                          ChatHelper chatHelper)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
+        this.chatHelper = chatHelper;
     }
 
     /// <summary>
@@ -46,7 +50,7 @@ public class ChatService
     /// <param name="update"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public OneOf<WarnedUser, string> ResolveWarnedRoot(TelegramUpdateContext context, bool isWarn)
+    public OneOf<WarnedUser, string> ResolveWarnedRoot(UpdateContext context, bool isWarn)
     {
         if (!context.IsSenderAdmin)
             return configurationContext.Configuration.Captions.UserNoPermissions;
@@ -71,7 +75,7 @@ public class ChatService
             };
         }
 
-        var isAdmin = IsAdmin(context.Update.Message.Chat.Id, user.Id);
+        var isAdmin = chatHelper.IsAdmin(context.Update.Message.Chat.Id, user.Id);
 
         // warn/unwarn admin disabled
         if (isAdmin && !configurationContext.Configuration.AllowAdminWarnings)
@@ -185,16 +189,5 @@ public class ChatService
             Name = user.GetFullName(),
             Username = user.Username,
         };
-    }
-
-    // Todo from context
-    public bool IsAdmin(long chatId, long userId)
-    {
-        return cachedDataContext.Chats.Find(c => c.Id == chatId)?.Admins.Any(a => a == userId) ?? false;
-    }
-
-    public async Task<long[]> GetAdminsAsync(ITelegramBotClient client, long chatId, CancellationToken cancellationToken)
-    {
-        return (await client.GetChatAdministratorsAsync(chatId, cancellationToken)).Select(c => c.User.Id).ToArray();
     }
 }

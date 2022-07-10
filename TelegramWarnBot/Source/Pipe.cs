@@ -1,6 +1,4 @@
-﻿using Autofac;
-
-namespace TelegramWarnBot;
+﻿namespace TelegramWarnBot;
 
 public abstract class Pipe<T>
 {

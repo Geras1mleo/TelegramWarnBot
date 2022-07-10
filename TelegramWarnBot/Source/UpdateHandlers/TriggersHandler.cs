@@ -1,26 +1,26 @@
 ﻿namespace TelegramWarnBot;
 
-public class TriggersHandler : Pipe<TelegramUpdateContext>
+public class TriggersHandler : Pipe<UpdateContext>
 {
     private readonly ConfigurationContext configurationContext;
-    private readonly UpdateHelper updateHelper;
+    private readonly MessageHelper messageHelper;
 
-    public TriggersHandler(Func<TelegramUpdateContext, Task> next,
+    public TriggersHandler(Func<UpdateContext, Task> next,
                            ConfigurationContext configurationContext,
-                           UpdateHelper updateHelper) : base(next)
+                           MessageHelper messageHelper) : base(next)
     {
         this.configurationContext = configurationContext;
-        this.updateHelper = updateHelper;
+        this.messageHelper = messageHelper;
     }
 
-    public override async Task<Task> Handle(TelegramUpdateContext context)
+    public override async Task<Task> Handle(UpdateContext context)
     {
         foreach (var trigger in configurationContext.Triggers)
         {
             if (trigger.Chat is not null && trigger.Chat != context.Update.Message.Chat.Id)
                 continue;
 
-            if (updateHelper.MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, context.Update.Message.Text))
+            if (messageHelper.MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, context.Update.Message.Text))
             {
                 // Get random response
                 var response = trigger.Responses[Random.Shared.Next(trigger.Responses.Length)];

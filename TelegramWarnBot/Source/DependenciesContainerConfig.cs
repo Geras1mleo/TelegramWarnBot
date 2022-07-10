@@ -17,8 +17,9 @@ public static class DependenciesContainerConfig
 
         builder.RegisterType<WarnController>().As<WarnController>();
 
-        builder.RegisterType<UpdateHelper>().As<UpdateHelper>();
-        builder.RegisterType<ChatService>().As<ChatService>();
+        builder.RegisterType<MessageHelper>().As<MessageHelper>();
+        builder.RegisterType<ChatHelper>().As<ChatHelper>();
+        builder.RegisterType<CommandService>().As<CommandService>();
         builder.RegisterType<ResponseHelper>().As<ResponseHelper>();
 
         return builder.Build();

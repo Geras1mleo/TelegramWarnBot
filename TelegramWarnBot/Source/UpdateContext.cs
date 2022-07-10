@@ -1,6 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
-public class TelegramUpdateContext
+public class UpdateContext
 {
     public ITelegramBotClient Client { get; init; }
     public Update Update { get; init; }

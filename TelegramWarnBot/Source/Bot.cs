@@ -1,12 +1,10 @@
-﻿using Autofac;
-
-namespace TelegramWarnBot;
+﻿namespace TelegramWarnBot;
 
 public class Bot
 {
     private readonly CachedDataContext cachedContext;
     private readonly ConfigurationContext configContext;
-    private Func<TelegramUpdateContext, Task> pipe;
+    private Func<UpdateContext, Task> pipe;
 
     public Bot(ConfigurationContext configContext,
                CachedDataContext cachedContext)
@@ -38,7 +36,7 @@ public class Bot
     {
         Client = new(configContext.BotConfiguration.Token);
 
-        var builder = new PipeBuilder<TelegramUpdateContext>(_ => Task.CompletedTask, scope)
+        var builder = new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, scope)
                             .AddPipe<JoinedLeftHandler>(c => c.Update.Message.Type == MessageType.ChatMembersAdded || c.Update.Message.Type == MessageType.ChatMemberLeft)
                             .AddPipe<CachingHandler>(c => c.IsChatRegistered)
                             .AddPipe<TriggersHandler>(c => c.IsChatRegistered && c.Update.Message?.Text is not null)
@@ -66,7 +64,7 @@ public class Bot
         var chatId = update.Message.Chat.Id!;
         var chatDto = cachedContext.Chats.Find(c => c.Id == chatId);
 
-        var context = new TelegramUpdateContext
+        var context = new UpdateContext
         {
             Client = Client,
             Update = update,

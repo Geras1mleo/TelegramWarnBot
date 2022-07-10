@@ -1,6 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
-public class UpdateHelper
+public class MessageHelper
 {
     public bool MatchMessage(string[] matchFromMessages, bool matchWholeMessage, bool matchCase, string message)
     {

@@ -13,5 +13,6 @@ global using Telegram.Bot.Polling;
 global using Telegram.Bot.Types;
 global using Telegram.Bot.Types.Enums;
 
+global using Autofac;
 global using Newtonsoft.Json;
 global using OneOf;

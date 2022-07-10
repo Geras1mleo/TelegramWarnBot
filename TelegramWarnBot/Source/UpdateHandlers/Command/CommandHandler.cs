@@ -1,24 +1,19 @@
-﻿using Autofac;
+﻿namespace TelegramWarnBot;
 
-namespace TelegramWarnBot;
-
-public class CommandHandler : Pipe<TelegramUpdateContext>
+public class CommandHandler : Pipe<UpdateContext>
 {
     private readonly ConfigurationContext configurationContext;
-    private readonly UpdateHelper updateHelper;
     private readonly WarnController warnController;
 
-    public CommandHandler(Func<TelegramUpdateContext, Task> next,
+    public CommandHandler(Func<UpdateContext, Task> next,
                           ConfigurationContext configurationContext,
-                          UpdateHelper updateHelper,
                           WarnController warnController) : base(next)
     {
         this.configurationContext = configurationContext;
-        this.updateHelper = updateHelper;
         this.warnController = warnController;
     }
 
-    public override async Task<Task> Handle(TelegramUpdateContext context)
+    public override async Task<Task> Handle(UpdateContext context)
     {
         var method = Tools.ResolveMethod(typeof(WarnController), context.Update.Message.Text.Split(' ')[0][1..]);
 

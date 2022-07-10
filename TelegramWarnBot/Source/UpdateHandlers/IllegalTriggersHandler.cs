@@ -1,28 +1,28 @@
 ﻿namespace TelegramWarnBot;
 
-public class IllegalTriggersHandler : Pipe<TelegramUpdateContext>
+public class IllegalTriggersHandler : Pipe<UpdateContext>
 {
     private readonly ConfigurationContext configurationContext;
     private readonly CachedDataContext cachedDataContext;
-    private readonly ChatService chatService;
-    private readonly UpdateHelper updateHelper;
+    private readonly MessageHelper messageHelper;
     private readonly ResponseHelper responseHelper;
+    private readonly CommandService commandService;
 
-    public IllegalTriggersHandler(Func<TelegramUpdateContext, Task> next,
+    public IllegalTriggersHandler(Func<UpdateContext, Task> next,
                                   ConfigurationContext configurationContext,
                                   CachedDataContext cachedDataContext,
-                                  ChatService chatService,
-                                  UpdateHelper updateHelper,
-                                  ResponseHelper responseHelper) : base(next)
+                                  MessageHelper messageHelper,
+                                  ResponseHelper responseHelper,
+                                  CommandService commandService) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
-        this.chatService = chatService;
-        this.updateHelper = updateHelper;
+        this.messageHelper = messageHelper;
         this.responseHelper = responseHelper;
+        this.commandService = commandService;
     }
 
-    public override async Task<Task> Handle(TelegramUpdateContext context)
+    public override async Task<Task> Handle(UpdateContext context)
     {
         foreach (var trigger in configurationContext.IllegalTriggers)
         {
@@ -34,7 +34,7 @@ public class IllegalTriggersHandler : Pipe<TelegramUpdateContext>
             if (trigger.Chat is not null && trigger.Chat != context.Update.Message.Chat.Id)
                 continue;
 
-            if (!updateHelper.MatchMessage(trigger.IllegalWords, false, false, context.Update.Message.Text))
+            if (!messageHelper.MatchMessage(trigger.IllegalWords, false, false, context.Update.Message.Text))
                 continue;
 
             foreach (var adminId in trigger.NotifiedAdmins)
@@ -57,10 +57,10 @@ public class IllegalTriggersHandler : Pipe<TelegramUpdateContext>
             {
                 if (trigger.WarnMember)
                 {
-                    var chat = chatService.ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
-                    var user = chatService.ResolveWarnedUser(context.Update.Message.From.Id, chat);
+                    var chat = commandService.ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
+                    var user = commandService.ResolveWarnedUser(context.Update.Message.From.Id, chat);
 
-                    var banned = await chatService.Warn(user, chat.ChatId, null, !context.IsSenderAdmin, context.Client, context.CancellationToken);
+                    var banned = await commandService.Warn(user, chat.ChatId, null, !context.IsSenderAdmin, context.Client, context.CancellationToken);
 
 
                     await context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,

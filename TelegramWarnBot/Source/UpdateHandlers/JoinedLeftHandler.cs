@@ -1,22 +1,22 @@
 ﻿namespace TelegramWarnBot;
 
-public class JoinedLeftHandler : Pipe<TelegramUpdateContext>
+public class JoinedLeftHandler : Pipe<UpdateContext>
 {
     private readonly ConfigurationContext configurationContext;
     private readonly CachedDataContext cachedDataContext;
-    private readonly ChatService chatService;
+    private readonly ChatHelper chatHelper;
 
-    public JoinedLeftHandler(Func<TelegramUpdateContext, Task> next,
+    public JoinedLeftHandler(Func<UpdateContext, Task> next,
                              ConfigurationContext configurationContext,
                              CachedDataContext cachedDataContext,
-                             ChatService chatService) : base(next)
+                             ChatHelper chatHelper) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
-        this.chatService = chatService;
+        this.chatHelper = chatHelper;
     }
 
-    public override async Task<Task> Handle(TelegramUpdateContext context)
+    public override async Task<Task> Handle(UpdateContext context)
     {
         if (context.Update.Message.Type == MessageType.ChatMembersAdded)
         {
@@ -24,7 +24,7 @@ public class JoinedLeftHandler : Pipe<TelegramUpdateContext>
             if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
             {
                 cachedDataContext.CacheChat(context.Update.Message.Chat,
-                                           await chatService.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken));
+                                           await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken));
 
                 return context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
                           configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
@@ -50,7 +50,7 @@ public class JoinedLeftHandler : Pipe<TelegramUpdateContext>
         return next(context);
     }
 
-    private Task HandleJoinedAsync(TelegramUpdateContext context)
+    private Task HandleJoinedAsync(UpdateContext context)
     {
         if (!context.IsChatRegistered)
             return Task.CompletedTask;
@@ -72,7 +72,7 @@ public class JoinedLeftHandler : Pipe<TelegramUpdateContext>
         return Task.CompletedTask;
     }
 
-    private Task HandleLeftAsync(TelegramUpdateContext context)
+    private Task HandleLeftAsync(UpdateContext context)
     {
         if (!context.IsChatRegistered)
             return Task.CompletedTask;
