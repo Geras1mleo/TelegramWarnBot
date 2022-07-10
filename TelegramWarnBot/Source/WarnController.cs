@@ -2,64 +2,70 @@
 
 public class WarnController
 {
-    private readonly UserService service;
+    private readonly ConfigurationContext configurationContext;
+    private readonly CachedDataContext cachedDataContext;
+    private readonly ChatService chatService;
+    private readonly ResponseHelper responseHelper;
 
-    public WarnController(UserService service)
+    public WarnController(ConfigurationContext configurationContext,
+                          CachedDataContext cachedDataContext,
+                          ChatService chatService,
+                          ResponseHelper responseHelper)
     {
-        this.service = service;
+        this.configurationContext = configurationContext;
+        this.cachedDataContext = cachedDataContext;
+        this.chatService = chatService;
+        this.responseHelper = responseHelper;
     }
 
-    public async Task<BotResponse> Warn(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task<BotResponse> Warn(TelegramUpdateContext context)
     {
-        var resolve = service.ResolveWarnedRoot(client, update, true, cancellationToken);
+        var resolve = chatService.ResolveWarnedRoot(context, true);
 
-        if (!resolve.TryPickT0(out var warnedUser, out _))
+        if (!resolve.TryPickT0(out WarnedUser warnedUser, out _))
             return new(resolve.AsT1);
 
-        var banned = await service.Warn(warnedUser,
-                                        update.Message.Chat.Id,
-                                        IOHandler.Configuration.DeleteWarnMessage ? update.Message.MessageId : null,
-                                        !service.IsAdmin(update.Message.Chat.Id, warnedUser.Id),
-                                        client, cancellationToken);
+        var banned = await chatService.Warn(warnedUser,
+                                            context.Update.Message.Chat.Id,
+                                            configurationContext.Configuration.DeleteWarnMessage ? context.Update.Message.MessageId : null,
+                                            !chatService.IsAdmin(context.Update.Message.Chat.Id, warnedUser.Id),
+                                            context.Client, context.CancellationToken);
 
         // Notify in chat that user has been warned or banned
-        return new(Tools.ResolveResponseVariables(banned ? IOHandler.Configuration.Captions.BannedSuccessfully
-                                                         : IOHandler.Configuration.Captions.WarnedSuccessfully,
-                                                  warnedUser,
-                                                  service.ResolveMentionedUser(update).AsT0.Name));
+        return new(responseHelper.ResolveResponseVariables(banned ? configurationContext.Configuration.Captions.BannedSuccessfully
+                                                                  : configurationContext.Configuration.Captions.WarnedSuccessfully,
+                                                           warnedUser, chatService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name));
     }
 
-    public async Task<BotResponse> Unwarn(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task<BotResponse> Unwarn(TelegramUpdateContext context)
     {
-        var resolve = service.ResolveWarnedRoot(client, update, false, cancellationToken);
+        var resolve = chatService.ResolveWarnedRoot(context, false);
 
         if (!resolve.TryPickT0(out var warnedUser, out _))
             return new(resolve.AsT1);
 
         if (warnedUser.Warnings == 0)
         {
-            return new(Tools.ResolveResponseVariables(IOHandler.Configuration.Captions.UserUnwarnNoWarnings,
-                                                      warnedUser,
-                                                      service.ResolveMentionedUser(update).AsT0.Name));
+            return new(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.UserUnwarnNoWarnings,
+                                                               warnedUser, chatService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name));
         }
 
         warnedUser.Warnings--;
 
-        if (IOHandler.Configuration.DeleteWarnMessage)
-            await client.DeleteMessageAsync(update.Message.Chat.Id, update.Message.MessageId, cancellationToken);
+        if (configurationContext.Configuration.DeleteWarnMessage)
+            await context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id, context.Update.Message.MessageId, context.CancellationToken);
 
-        await client.UnbanChatMemberAsync(update.Message.Chat.Id, warnedUser.Id, onlyIfBanned: true, cancellationToken: cancellationToken);
+        await context.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id, warnedUser.Id, onlyIfBanned: true, cancellationToken: context.CancellationToken);
 
-        return new(Tools.ResolveResponseVariables(IOHandler.Configuration.Captions.UnwarnedSuccessfully,
-                                                  warnedUser,
-                                                  service.ResolveMentionedUser(update).AsT0.Name));
+        return new(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.UnwarnedSuccessfully,
+                                                           warnedUser, chatService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name));
     }
 
-    public Task<BotResponse> WCount(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public Task<BotResponse> WCount(TelegramUpdateContext context)
     {
-        var chat = service.ResolveChatWarning(update.Message.Chat.Id, IOHandler.Warnings);
+        var chat = chatService.ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
 
-        var resolveUser = service.ResolveMentionedUser(update);
+        var resolveUser = chatService.ResolveMentionedUser(context.Update, context.Bot);
 
         UserDTO user = resolveUser.Match<UserDTO>(
         userDto => userDto,
@@ -70,8 +76,8 @@ public class WarnController
                 ResolveMentionedUserResult.UserNotMentioned =>
                 user = new()
                 {
-                    Id = update.Message.From.Id,
-                    Name = update.Message.From.GetFullName(),
+                    Id = context.Update.Message.From.Id,
+                    Name = context.Update.Message.From.GetFullName(),
                 },
                 _ => null,
             };
@@ -81,43 +87,45 @@ public class WarnController
         {
             return resolveUser.AsT1 switch
             {
-                ResolveMentionedUserResult.UserNotFound => Task.FromResult(new BotResponse(IOHandler.Configuration.Captions.UserNotFound)),
-                ResolveMentionedUserResult.BotMention => Task.FromResult(new BotResponse(IOHandler.Configuration.Captions.WarningsCountBotMention)),
-                ResolveMentionedUserResult.BotSelfMention => Task.FromResult(new BotResponse(IOHandler.Configuration.Captions.WarningsCountBotSelfMention)),
+                ResolveMentionedUserResult.UserNotFound => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.UserNotFound)),
+                ResolveMentionedUserResult.BotMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WarningsCountBotMention)),
+                ResolveMentionedUserResult.BotSelfMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WarningsCountBotSelfMention)),
                 _ => throw new ArgumentException("ResolveMentionedUserResult")
             };
         }
 
-        if (!IOHandler.Configuration.AllowAdminWarnings)
+        if (!configurationContext.Configuration.AllowAdminWarnings)
         {
-            var isAdmin = service.IsAdmin(chat.ChatId, user.Id);
+            var isAdmin = chatService.IsAdmin(chat.ChatId, user.Id);
             if (isAdmin)
-                return Task.FromResult(new BotResponse(IOHandler.Configuration.Captions.WarningsCountAdminNotAllowed));
+                return Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WarningsCountAdminNotAllowed));
         }
 
-        var count = IOHandler.Warnings.Find(c => c.ChatId == chat.ChatId)?.WarnedUsers.Find(u => u.Id == user.Id)?.Warnings ?? 0;
+        var count = cachedDataContext.Warnings.Find(c => c.ChatId == chat.ChatId)?.WarnedUsers.Find(u => u.Id == user.Id)?.Warnings ?? 0;
 
         if (count == 0)
         {
-            return Task.FromResult(new BotResponse(Tools.ResolveResponseVariables(IOHandler.Configuration.Captions.WarningsCountUserHasNoWarnings, user, 0)));
+            return Task.FromResult(new BotResponse(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.WarningsCountUserHasNoWarnings,
+                                                                                            user, 0)));
         }
 
-        return Task.FromResult(new BotResponse(Tools.ResolveResponseVariables(IOHandler.Configuration.Captions.WarningsCount, user, count)));
+        return Task.FromResult(new BotResponse(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.WarningsCount,
+                                                                                        user, count)));
     }
 
-    public Task<BotResponse> Update(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task<BotResponse> Update(TelegramUpdateContext context)
     {
-        var chat = IOHandler.Chats.Find(c => c.Id == update.Message.Chat.Id);
+        var chat = cachedDataContext.Chats.Find(c => c.Id == context.Update.Message.Chat.Id);
 
         if (chat?.Admins is null)
         {
-            IOHandler.CacheChat(update.Message.Chat, service.GetAdmins(client, update.Message.Chat.Id, cancellationToken));
+            cachedDataContext.CacheChat(context.Update.Message.Chat, await chatService.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken));
         }
         else
         {
-            chat.Admins = service.GetAdmins(client, update.Message.Chat.Id, cancellationToken);
+            chat.Admins = await chatService.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken);
         }
 
-        return Task.FromResult(new BotResponse("Admins updated successfully!"));
+        return new BotResponse("Admins updated successfully!");
     }
 }
