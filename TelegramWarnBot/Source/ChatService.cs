@@ -1,10 +1,15 @@
 ﻿namespace TelegramWarnBot;
 
-public class UserService
+public class ChatService
 {
-    private static readonly UserService shared = new();
+    private readonly ConfigurationContext configurationContext;
+    private readonly CachedDataContext cachedDataContext;
 
-    public static UserService Shared { get => shared; }
+    public ChatService(ConfigurationContext configurationContext, CachedDataContext cachedDataContext)
+    {
+        this.configurationContext = configurationContext;
+        this.cachedDataContext = cachedDataContext;
+    }
 
     /// <summary>
     /// WarnedUser should not be an admin
@@ -12,13 +17,13 @@ public class UserService
     /// <returns>Whether user is banned from chat</returns>
     public async Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, bool tryBanUser, ITelegramBotClient client, CancellationToken cancellationToken)
     {
-        warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0, IOHandler.Configuration.MaxWarnings);
+        warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0, configurationContext.Configuration.MaxWarnings);
 
         if (deleteMessageId is not null)
             await client.DeleteMessageAsync(chatId, deleteMessageId.Value, cancellationToken);
 
         // If not reached max warnings 
-        if (warnedUser.Warnings < IOHandler.Configuration.MaxWarnings)
+        if (warnedUser.Warnings < configurationContext.Configuration.MaxWarnings)
         {
             return false;
         }
@@ -41,41 +46,41 @@ public class UserService
     /// <param name="update"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public OneOf<WarnedUser, string> ResolveWarnedRoot(ITelegramBotClient client, Update update, bool isWarn, CancellationToken cancellationToken)
+    public OneOf<WarnedUser, string> ResolveWarnedRoot(TelegramUpdateContext context, bool isWarn)
     {
-        if (!IsAdmin(update.Message.Chat.Id, update.Message.From.Id))
-            return IOHandler.Configuration.Captions.UserNoPermissions;
+        if (!context.IsSenderAdmin)
+            return configurationContext.Configuration.Captions.UserNoPermissions;
 
-        if (!IsAdmin(update.Message.Chat.Id, Bot.User.Id))
-            return IOHandler.Configuration.Captions.BotHasNoPermissions;
+        if (!context.IsBotAdmin)
+            return configurationContext.Configuration.Captions.BotHasNoPermissions;
 
-        var resolve = ResolveMentionedUser(update);
+        var resolve = ResolveMentionedUser(context.Update, context.Bot);
 
         // Didn't find the user => return reason 
         if (!resolve.TryPickT0(out UserDTO user, out _))
         {
             return resolve.AsT1 switch
             {
-                ResolveMentionedUserResult.UserNotMentioned => IOHandler.Configuration.Captions.UserNotSpecified,
-                ResolveMentionedUserResult.UserNotFound => IOHandler.Configuration.Captions.UserNotFound,
-                ResolveMentionedUserResult.BotMention => isWarn ? IOHandler.Configuration.Captions.BotWarnAttempt
-                                                                : IOHandler.Configuration.Captions.BotUnwarnAttempt,
-                ResolveMentionedUserResult.BotSelfMention => isWarn ? IOHandler.Configuration.Captions.BotSelfWarnAttempt
-                                                                    : IOHandler.Configuration.Captions.BotSelfUnwarnAttempt,
+                ResolveMentionedUserResult.UserNotMentioned => configurationContext.Configuration.Captions.UserNotSpecified,
+                ResolveMentionedUserResult.UserNotFound => configurationContext.Configuration.Captions.UserNotFound,
+                ResolveMentionedUserResult.BotMention => isWarn ? configurationContext.Configuration.Captions.BotWarnAttempt
+                                                                : configurationContext.Configuration.Captions.BotUnwarnAttempt,
+                ResolveMentionedUserResult.BotSelfMention => isWarn ? configurationContext.Configuration.Captions.BotSelfWarnAttempt
+                                                                    : configurationContext.Configuration.Captions.BotSelfUnwarnAttempt,
                 _ => throw new ArgumentException("ResolveMentionedUserResult"),
             };
         }
 
-        var isAdmin = IsAdmin(update.Message.Chat.Id, user.Id);
+        var isAdmin = IsAdmin(context.Update.Message.Chat.Id, user.Id);
 
         // warn/unwarn admin disabled
-        if (isAdmin && !IOHandler.Configuration.AllowAdminWarnings)
+        if (isAdmin && !configurationContext.Configuration.AllowAdminWarnings)
         {
-            return isWarn ? IOHandler.Configuration.Captions.AdminWarnAttempt
-                          : IOHandler.Configuration.Captions.AdminUnwarnAttempt;
+            return isWarn ? configurationContext.Configuration.Captions.AdminWarnAttempt
+                          : configurationContext.Configuration.Captions.AdminUnwarnAttempt;
         }
 
-        var chat = ResolveChatWarning(update.Message.Chat.Id, IOHandler.Warnings);
+        var chat = ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
 
         return ResolveWarnedUser(user.Id, chat);
     }
@@ -115,7 +120,7 @@ public class UserService
     /// </summary>
     /// <param name="update"></param>
     /// <returns></returns>
-    public OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(Update update)
+    public OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(Update update, User bot)
     {
         User user = null;
 
@@ -125,7 +130,7 @@ public class UserService
              && update.Message?.EntityValues is not null)
             {
                 var mentionedUser = update.Message.EntityValues.ElementAt(1)[1..].ToLower();
-                var userDto = IOHandler.Users.FirstOrDefault(u => u.Username == mentionedUser);
+                var userDto = cachedDataContext.Users.FirstOrDefault(u => u.Username == mentionedUser);
 
                 if (userDto is not null)
                 {
@@ -163,7 +168,7 @@ public class UserService
         }
 
         // Mentioned bot itself
-        if (user.Id == Bot.User.Id)
+        if (user.Id == bot.Id)
         {
             return ResolveMentionedUserResult.BotSelfMention;
         }
@@ -182,13 +187,14 @@ public class UserService
         };
     }
 
+    // Todo from context
     public bool IsAdmin(long chatId, long userId)
     {
-        return IOHandler.Chats.Find(c => c.Id == chatId)?.Admins.Any(a => a == userId) ?? false;
+        return cachedDataContext.Chats.Find(c => c.Id == chatId)?.Admins.Any(a => a == userId) ?? false;
     }
 
-    public long[] GetAdmins(ITelegramBotClient client, long chatId, CancellationToken cancellationToken)
+    public async Task<long[]> GetAdminsAsync(ITelegramBotClient client, long chatId, CancellationToken cancellationToken)
     {
-        return client.GetChatAdministratorsAsync(chatId, cancellationToken).GetAwaiter().GetResult().Select(c => c.User.Id).ToArray();
+        return (await client.GetChatAdministratorsAsync(chatId, cancellationToken)).Select(c => c.User.Id).ToArray();
     }
 }

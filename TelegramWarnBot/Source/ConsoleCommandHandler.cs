@@ -2,11 +2,25 @@ using static TelegramWarnBot.Tools;
 
 namespace TelegramWarnBot;
 
-public static class CommandHandler
+public class ConsoleCommandHandler
 {
-    public static void StartListening(CancellationToken cancellationToken)
+    private readonly Bot bot;
+    private readonly ConfigurationContext configurationContext;
+    private readonly CachedDataContext cachedDataContext;
+
+    public ConsoleCommandHandler(Bot bot,
+                                ConfigurationContext configurationContext,
+                                CachedDataContext cachedDataContext)
     {
-        //PrintAvailableCommands();
+        this.bot = bot;
+        this.configurationContext = configurationContext;
+        this.cachedDataContext = cachedDataContext;
+    }
+
+    public void Start(CancellationToken cancellationToken)
+    {
+        // Display registered chats
+        Register(new List<string> { "-l" });
 
         while (true)
         {
@@ -25,7 +39,7 @@ public static class CommandHandler
             switch (parts[0])
             {
                 case "send":
-                    if (!Send(Bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
+                    if (!Send(bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
                         goto default; // if not succeed => show available commands 
                     break;
 
@@ -35,7 +49,7 @@ public static class CommandHandler
                     break;
 
                 case "reload":
-                    IOHandler.ReloadConfiguration();
+                    configurationContext.ReloadConfiguration();
                     Tools.WriteColor("[Configuration reloaded successfully!]", ConsoleColor.Green, true);
                     break;
 
@@ -43,7 +57,7 @@ public static class CommandHandler
                     if (long.TryParse(parts[1], out var chatId))
                         try
                         {
-                            Bot.Client.LeaveChatAsync(chatId, cancellationToken: cancellationToken).GetAwaiter().GetResult();
+                            bot.Client.LeaveChatAsync(chatId, cancellationToken: cancellationToken).GetAwaiter().GetResult();
                         }
                         catch (Exception e)
                         {
@@ -51,7 +65,7 @@ public static class CommandHandler
                         }
                     break;
 
-                case "save": IOHandler.SaveData(); break;
+                case "save": cachedDataContext.SaveData(); break;
                 case "info": WriteInfo(); break;
                 case "exit": Environment.Exit(1); break;
 
@@ -69,14 +83,15 @@ public static class CommandHandler
         }
     }
 
-    public static bool Register(List<string> parameters)
+    public bool Register(List<string> parameters)
     {
         if (parameters.Count == 1)
         {
             if (long.TryParse(parameters[0], out var newChatId))
             {
-                Bot.Configuration.RegisteredChats.Add(newChatId);
-                IOHandler.SaveRegisteredChatsAsync().GetAwaiter().GetResult();
+                configurationContext.BotConfiguration.RegisteredChats.Add(newChatId);
+                cachedDataContext.SaveRegisteredChatsAsync(configurationContext.BotConfiguration.RegisteredChats).GetAwaiter().GetResult();
+
                 WriteColor("[Chat registered successfully]", ConsoleColor.Green, true);
                 return true;
             }
@@ -84,13 +99,13 @@ public static class CommandHandler
             if (parameters[0] == "-l")
             {
                 Console.WriteLine("\nRegistered chats:");
-                foreach (var chatId in Bot.Configuration.RegisteredChats)
+                foreach (var chatId in configurationContext.BotConfiguration.RegisteredChats)
                 {
-                    WriteColor("\t[" + (IOHandler.Chats.Find(c => c.Id == chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId,
+                    WriteColor("\t[" + (cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId,
                                      ConsoleColor.Blue, false);
                 }
 
-                var notRegistered = IOHandler.Chats.Where(cached => !Bot.Configuration.RegisteredChats.Contains(cached.Id));
+                var notRegistered = cachedDataContext.Chats.Where(cached => !configurationContext.BotConfiguration.RegisteredChats.Contains(cached.Id));
                 if (!notRegistered.Any())
                     return true;
 
@@ -107,9 +122,9 @@ public static class CommandHandler
         {
             if (parameters[0] == "-rm" && long.TryParse(parameters[1], out var removedChatId))
             {
-                if (Bot.Configuration.RegisteredChats.Remove(removedChatId))
+                if (configurationContext.BotConfiguration.RegisteredChats.Remove(removedChatId))
                 {
-                    IOHandler.SaveRegisteredChatsAsync();
+                    cachedDataContext.SaveRegisteredChatsAsync(configurationContext.BotConfiguration.RegisteredChats);
                     WriteColor("[Chat removed successfully]", ConsoleColor.Green, true);
                 }
                 else
@@ -122,7 +137,7 @@ public static class CommandHandler
         return false;
     }
 
-    public static Task<bool> Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken)
+    public Task<bool> Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken)
     {
         int chatIndex = parameters.FindIndex(p => p.ToLower() == "-c");
 
@@ -154,7 +169,7 @@ public static class CommandHandler
 
         if (broadcast)
         {
-            chats = IOHandler.Chats;
+            chats = cachedDataContext.Chats;
         }
         else
         {
@@ -187,15 +202,15 @@ public static class CommandHandler
         return Task.FromResult(true);
     }
 
-    private static void WriteInfo()
+    private void WriteInfo()
     {
-        if (IOHandler.Chats.Count > 0)
+        if (cachedDataContext.Chats.Count > 0)
         {
-            WriteColor($"\nCached Chats: [{IOHandler.Chats.Count}]", ConsoleColor.DarkYellow, true);
+            WriteColor($"\nCached Chats: [{cachedDataContext.Chats.Count}]", ConsoleColor.DarkYellow, true);
 
             string userName;
 
-            foreach (var chat in IOHandler.Chats)
+            foreach (var chat in cachedDataContext.Chats)
             {
                 WriteColor($"\t[{chat.Name}]", ConsoleColor.DarkMagenta, false);
 
@@ -203,7 +218,7 @@ public static class CommandHandler
 
                 foreach (var admin in chat.Admins)
                 {
-                    userName = IOHandler.Users.Find(u => u.Id == admin)?.Name ?? $"Not found - {admin}";
+                    userName = cachedDataContext.Users.Find(u => u.Id == admin)?.Name ?? $"Not found - {admin}";
 
                     WriteColor($"\t\t[{userName}]", ConsoleColor.DarkMagenta, false);
                 }
@@ -211,7 +226,7 @@ public static class CommandHandler
             }
         }
 
-        WriteColor($"\nCached Users: [{IOHandler.Users.Count}]", ConsoleColor.DarkYellow, false);
+        WriteColor($"\nCached Users: [{cachedDataContext.Users.Count}]", ConsoleColor.DarkYellow, false);
 
         //if (IOHandler.Users.Count > 0)
         //{
@@ -221,21 +236,21 @@ public static class CommandHandler
         //    }
         //}
 
-        if (IOHandler.Warnings.Count > 0)
+        if (cachedDataContext.Warnings.Count > 0)
         {
-            WriteColor($"\nWarnings: [{IOHandler.Warnings.SelectMany(w => w.WarnedUsers).Select(u => u.Warnings).Sum()}]", ConsoleColor.DarkYellow, false);
+            WriteColor($"\nWarnings: [{cachedDataContext.Warnings.SelectMany(w => w.WarnedUsers).Select(u => u.Warnings).Sum()}]", ConsoleColor.DarkYellow, false);
 
             string chatName, userName;
 
-            foreach (var warning in IOHandler.Warnings)
+            foreach (var warning in cachedDataContext.Warnings)
             {
-                chatName = IOHandler.Chats.Find(c => c.Id == warning.ChatId)?.Name ?? $"Not found - {warning.ChatId}";
+                chatName = cachedDataContext.Chats.Find(c => c.Id == warning.ChatId)?.Name ?? $"Not found - {warning.ChatId}";
 
                 WriteColor($"\t[{chatName}]:", ConsoleColor.DarkMagenta, false);
 
                 foreach (var user in warning.WarnedUsers)
                 {
-                    userName = IOHandler.Users.Find(u => u.Id == user.Id)?.Name ?? $"Not found - {user.Id}";
+                    userName = cachedDataContext.Users.Find(u => u.Id == user.Id)?.Name ?? $"Not found - {user.Id}";
 
                     WriteColor($"\t\t[{userName}] - [{user.Warnings}]", ConsoleColor.DarkMagenta, false);
                 }
@@ -244,7 +259,7 @@ public static class CommandHandler
         }
     }
 
-    public static void PrintAvailableCommands()
+    public void PrintAvailableCommands()
     {
         WriteColor(
          "\nAvailable commands:\n"

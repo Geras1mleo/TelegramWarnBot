@@ -61,6 +61,7 @@
 
 
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.4.0" />
     <PackageReference Include="OneOf" Version="3.0.216" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0-alpha.3" />
   </ItemGroup>
