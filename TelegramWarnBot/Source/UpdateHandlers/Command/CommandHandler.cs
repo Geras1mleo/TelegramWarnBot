@@ -2,12 +2,12 @@
 
 public class CommandHandler : Pipe<UpdateContext>
 {
-    private readonly ConfigurationContext configurationContext;
-    private readonly WarnController warnController;
+    private readonly IConfigurationContext configurationContext;
+    private readonly IWarnController warnController;
 
     public CommandHandler(Func<UpdateContext, Task> next,
-                          ConfigurationContext configurationContext,
-                          WarnController warnController) : base(next)
+                          IConfigurationContext configurationContext,
+                          IWarnController warnController) : base(next)
     {
         this.configurationContext = configurationContext;
         this.warnController = warnController;
@@ -15,7 +15,7 @@ public class CommandHandler : Pipe<UpdateContext>
 
     public override async Task<Task> Handle(UpdateContext context)
     {
-        var method = Tools.ResolveMethod(typeof(WarnController), context.Update.Message.Text.Split(' ')[0][1..]);
+        var method = Tools.ResolveMethod(warnController.GetType(), context.Update.Message.Text.Split(' ')[0][1..]);
 
         if (method is not null)
         {

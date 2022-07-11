@@ -1,14 +1,23 @@
 ﻿namespace TelegramWarnBot;
 
-public class CommandService
+public interface ICommandService
 {
-    private readonly ConfigurationContext configurationContext;
-    private readonly CachedDataContext cachedDataContext;
-    private readonly ChatHelper chatHelper;
+    ChatWarnings ResolveChatWarning(long chatId, List<ChatWarnings> warnings);
+    OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(Update update, User bot);
+    OneOf<WarnedUser, string> ResolveWarnedRoot(UpdateContext context, bool isWarn);
+    WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning);
+    Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, bool tryBanUser, ITelegramBotClient client, CancellationToken cancellationToken);
+}
 
-    public CommandService(ConfigurationContext configurationContext,
-                          CachedDataContext cachedDataContext,
-                          ChatHelper chatHelper)
+public class CommandService : ICommandService
+{
+    private readonly IConfigurationContext configurationContext;
+    private readonly ICachedDataContext cachedDataContext;
+    private readonly IChatHelper chatHelper;
+
+    public CommandService(IConfigurationContext configurationContext,
+                          ICachedDataContext cachedDataContext,
+                          IChatHelper chatHelper)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;

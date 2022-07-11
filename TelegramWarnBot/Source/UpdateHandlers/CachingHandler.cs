@@ -2,10 +2,10 @@
 
 public class CachingHandler : Pipe<UpdateContext>
 {
-    private readonly CachedDataContext cachedDataContext;
+    private readonly ICachedDataContext cachedDataContext;
 
     public CachingHandler(Func<UpdateContext, Task> next,
-                          CachedDataContext cachedDataContext) : base(next)
+                          ICachedDataContext cachedDataContext) : base(next)
     {
         this.cachedDataContext = cachedDataContext;
     }

@@ -1,6 +1,21 @@
 ﻿namespace TelegramWarnBot;
 
-public class CachedDataContext : IOContext
+public interface ICachedDataContext
+{
+    List<ChatDTO> Chats { get; }
+    List<BotError> Logs { get; }
+    List<UserDTO> Users { get; }
+    List<ChatWarnings> Warnings { get; }
+
+    void BeginUpdate(int delaySeconds, CancellationToken cancellationToken);
+    void CacheChat(Chat chat, long[] admins);
+    void CacheUser(User user);
+    void SaveData();
+    Task SaveLogsAsync();
+    Task SaveRegisteredChatsAsync(List<long> registeredChats);
+}
+
+public class CachedDataContext : IOContext, ICachedDataContext
 {
     private List<ChatWarnings> warnings;
     private List<UserDTO> users;

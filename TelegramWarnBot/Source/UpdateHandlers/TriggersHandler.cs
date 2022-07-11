@@ -2,12 +2,12 @@
 
 public class TriggersHandler : Pipe<UpdateContext>
 {
-    private readonly ConfigurationContext configurationContext;
-    private readonly MessageHelper messageHelper;
+    private readonly IConfigurationContext configurationContext;
+    private readonly IMessageHelper messageHelper;
 
     public TriggersHandler(Func<UpdateContext, Task> next,
-                           ConfigurationContext configurationContext,
-                           MessageHelper messageHelper) : base(next)
+                           IConfigurationContext configurationContext,
+                           IMessageHelper messageHelper) : base(next)
     {
         this.configurationContext = configurationContext;
         this.messageHelper = messageHelper;

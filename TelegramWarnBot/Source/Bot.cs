@@ -1,13 +1,21 @@
 ﻿namespace TelegramWarnBot;
 
-public class Bot
+public interface IBot
 {
-    private readonly CachedDataContext cachedContext;
-    private readonly ConfigurationContext configContext;
+    TelegramBotClient Client { get; set; }
+    User User { get; set; }
+
+    Bot Start(ILifetimeScope scope, CancellationToken cancellationToken);
+}
+
+public class Bot : IBot
+{
+    private readonly ICachedDataContext cachedContext;
+    private readonly IConfigurationContext configContext;
     private Func<UpdateContext, Task> pipe;
 
-    public Bot(ConfigurationContext configContext,
-               CachedDataContext cachedContext)
+    public Bot(IConfigurationContext configContext,
+               ICachedDataContext cachedContext)
     {
         this.configContext = configContext;
         this.cachedContext = cachedContext;

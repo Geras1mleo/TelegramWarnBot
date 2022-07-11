@@ -1,6 +1,17 @@
 ﻿namespace TelegramWarnBot;
 
-public class ConfigurationContext : IOContext
+public interface IConfigurationContext
+{
+    BotConfiguration BotConfiguration { get; }
+    Configuration Configuration { get; }
+    IllegalTrigger[] IllegalTriggers { get; }
+    Trigger[] Triggers { get; }
+
+    bool IsChatRegistered(long chatId);
+    void ReloadConfiguration();
+}
+
+public class ConfigurationContext : IOContext, IConfigurationContext
 {
     private BotConfiguration botConfiguration;
     private Configuration configuration;

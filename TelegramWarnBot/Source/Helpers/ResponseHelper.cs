@@ -1,12 +1,18 @@
 ﻿namespace TelegramWarnBot;
 
-public class ResponseHelper
+public interface IResponseHelper
 {
-    private readonly ConfigurationContext configurationContext;
-    private readonly CachedDataContext cachedDataContext;
+    string ResolveResponseVariables(string response, UserDTO user, int warnedCount);
+    string ResolveResponseVariables(string response, WarnedUser user, string defaultName = "Not Found");
+}
 
-    public ResponseHelper(ConfigurationContext configurationContext,
-                          CachedDataContext cachedDataContext)
+public class ResponseHelper : IResponseHelper
+{
+    private readonly IConfigurationContext configurationContext;
+    private readonly ICachedDataContext cachedDataContext;
+
+    public ResponseHelper(IConfigurationContext configurationContext,
+                          ICachedDataContext cachedDataContext)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;

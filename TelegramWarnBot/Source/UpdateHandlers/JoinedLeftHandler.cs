@@ -2,14 +2,14 @@
 
 public class JoinedLeftHandler : Pipe<UpdateContext>
 {
-    private readonly ConfigurationContext configurationContext;
-    private readonly CachedDataContext cachedDataContext;
-    private readonly ChatHelper chatHelper;
+    private readonly IConfigurationContext configurationContext;
+    private readonly ICachedDataContext cachedDataContext;
+    private readonly IChatHelper chatHelper;
 
     public JoinedLeftHandler(Func<UpdateContext, Task> next,
-                             ConfigurationContext configurationContext,
-                             CachedDataContext cachedDataContext,
-                             ChatHelper chatHelper) : base(next)
+                             IConfigurationContext configurationContext,
+                             ICachedDataContext cachedDataContext,
+                             IChatHelper chatHelper) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;

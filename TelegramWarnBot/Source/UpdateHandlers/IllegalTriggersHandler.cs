@@ -2,18 +2,18 @@
 
 public class IllegalTriggersHandler : Pipe<UpdateContext>
 {
-    private readonly ConfigurationContext configurationContext;
-    private readonly CachedDataContext cachedDataContext;
-    private readonly MessageHelper messageHelper;
-    private readonly ResponseHelper responseHelper;
-    private readonly CommandService commandService;
+    private readonly IConfigurationContext configurationContext;
+    private readonly ICachedDataContext cachedDataContext;
+    private readonly IMessageHelper messageHelper;
+    private readonly IResponseHelper responseHelper;
+    private readonly ICommandService commandService;
 
     public IllegalTriggersHandler(Func<UpdateContext, Task> next,
-                                  ConfigurationContext configurationContext,
-                                  CachedDataContext cachedDataContext,
-                                  MessageHelper messageHelper,
-                                  ResponseHelper responseHelper,
-                                  CommandService commandService) : base(next)
+                                  IConfigurationContext configurationContext,
+                                  ICachedDataContext cachedDataContext,
+                                  IMessageHelper messageHelper,
+                                  IResponseHelper responseHelper,
+                                  ICommandService commandService) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;

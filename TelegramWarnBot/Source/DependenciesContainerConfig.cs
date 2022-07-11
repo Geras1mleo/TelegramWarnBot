@@ -8,19 +8,19 @@ public static class DependenciesContainerConfig
     {
         var builder = new ContainerBuilder();
 
-        builder.RegisterType<Bot>().As<Bot>();
-        builder.RegisterType<CloseHandler>().As<CloseHandler>();
-        builder.RegisterType<ConsoleCommandHandler>().As<ConsoleCommandHandler>();
+        builder.RegisterType<Bot>().As<IBot>();
+        builder.RegisterType<CloseHandler>().As<ICloseHandler>();
+        builder.RegisterType<ConsoleCommandHandler>().As<IConsoleCommandHandler>();
 
-        builder.RegisterType<ConfigurationContext>().As<ConfigurationContext>().InstancePerLifetimeScope();
-        builder.RegisterType<CachedDataContext>().As<CachedDataContext>().InstancePerLifetimeScope();
+        builder.RegisterType<ConfigurationContext>().As<IConfigurationContext>().InstancePerLifetimeScope();
+        builder.RegisterType<CachedDataContext>().As<ICachedDataContext>().InstancePerLifetimeScope();
 
-        builder.RegisterType<WarnController>().As<WarnController>();
+        builder.RegisterType<WarnController>().As<IWarnController>();
 
-        builder.RegisterType<MessageHelper>().As<MessageHelper>();
-        builder.RegisterType<ChatHelper>().As<ChatHelper>();
-        builder.RegisterType<CommandService>().As<CommandService>();
-        builder.RegisterType<ResponseHelper>().As<ResponseHelper>();
+        builder.RegisterType<MessageHelper>().As<IMessageHelper>();
+        builder.RegisterType<ChatHelper>().As<IChatHelper>();
+        builder.RegisterType<CommandService>().As<ICommandService>();
+        builder.RegisterType<ResponseHelper>().As<IResponseHelper>();
 
         return builder.Build();
     }

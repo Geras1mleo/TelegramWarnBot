@@ -8,9 +8,9 @@ var container = DependenciesContainerConfig.Configure();
 using (var scope = container.BeginLifetimeScope())
 {
     // Makes sure all data is saved when closing console, also cancelling token and breaks all running requests etc..
-    scope.Resolve<CloseHandler>().Configure(cts);
+    scope.Resolve<ICloseHandler>().Configure(cts);
 
-    scope.Resolve<Bot>().Start(scope, cts.Token);
+    scope.Resolve<IBot>().Start(scope, cts.Token);
 
-    scope.Resolve<ConsoleCommandHandler>().Start(cts.Token);
+    scope.Resolve<IConsoleCommandHandler>().Start(cts.Token);
 }

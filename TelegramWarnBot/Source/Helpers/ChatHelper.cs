@@ -1,10 +1,16 @@
 ﻿namespace TelegramWarnBot;
 
-public class ChatHelper
+public interface IChatHelper
 {
-    private readonly CachedDataContext cachedDataContext;
+    Task<long[]> GetAdminsAsync(ITelegramBotClient client, long chatId, CancellationToken cancellationToken);
+    bool IsAdmin(long chatId, long userId);
+}
 
-    public ChatHelper(CachedDataContext cachedDataContext)
+public class ChatHelper : IChatHelper
+{
+    private readonly ICachedDataContext cachedDataContext;
+
+    public ChatHelper(ICachedDataContext cachedDataContext)
     {
         this.cachedDataContext = cachedDataContext;
     }

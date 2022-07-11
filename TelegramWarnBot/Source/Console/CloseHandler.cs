@@ -1,11 +1,16 @@
 namespace TelegramWarnBot;
 
-public class CloseHandler
+public interface ICloseHandler
+{
+    void Configure(CancellationTokenSource cancellationTokenSource);
+}
+
+public class CloseHandler : ICloseHandler
 {
     private CancellationTokenSource cancellationTokenSource;
-    private readonly CachedDataContext cachedDataContext;
+    private readonly ICachedDataContext cachedDataContext;
 
-    public CloseHandler(CachedDataContext cachedDataContext)
+    public CloseHandler(ICachedDataContext cachedDataContext)
     {
         this.cachedDataContext = cachedDataContext;
     }

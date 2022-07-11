@@ -2,15 +2,23 @@ using static TelegramWarnBot.Tools;
 
 namespace TelegramWarnBot;
 
-public class ConsoleCommandHandler
+public interface IConsoleCommandHandler
 {
-    private readonly Bot bot;
-    private readonly ConfigurationContext configurationContext;
-    private readonly CachedDataContext cachedDataContext;
+    void PrintAvailableCommands();
+    bool Register(List<string> parameters);
+    Task<bool> Send(TelegramBotClient client, List<string> parameters, CancellationToken cancellationToken);
+    void Start(CancellationToken cancellationToken);
+}
 
-    public ConsoleCommandHandler(Bot bot,
-                                ConfigurationContext configurationContext,
-                                CachedDataContext cachedDataContext)
+public class ConsoleCommandHandler : IConsoleCommandHandler
+{
+    private readonly IBot bot;
+    private readonly IConfigurationContext configurationContext;
+    private readonly ICachedDataContext cachedDataContext;
+
+    public ConsoleCommandHandler(IBot bot,
+                                 IConfigurationContext configurationContext,
+                                 ICachedDataContext cachedDataContext)
     {
         this.bot = bot;
         this.configurationContext = configurationContext;

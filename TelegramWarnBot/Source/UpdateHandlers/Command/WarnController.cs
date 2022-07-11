@@ -1,18 +1,26 @@
 ﻿namespace TelegramWarnBot;
 
-public class WarnController
+public interface IWarnController
 {
-    private readonly ConfigurationContext configurationContext;
-    private readonly CachedDataContext cachedDataContext;
-    private readonly ChatHelper chatHelper;
-    private readonly ResponseHelper responseHelper;
-    private readonly CommandService commandService;
+    Task<BotResponse> Unwarn(UpdateContext context);
+    Task<BotResponse> Update(UpdateContext context);
+    Task<BotResponse> Warn(UpdateContext context);
+    Task<BotResponse> WCount(UpdateContext context);
+}
 
-    public WarnController(ConfigurationContext configurationContext,
-                          CachedDataContext cachedDataContext,
-                          ChatHelper chatHelper,
-                          ResponseHelper responseHelper,
-                          CommandService commandService)
+public class WarnController : IWarnController
+{
+    private readonly IConfigurationContext configurationContext;
+    private readonly ICachedDataContext cachedDataContext;
+    private readonly IChatHelper chatHelper;
+    private readonly IResponseHelper responseHelper;
+    private readonly ICommandService commandService;
+
+    public WarnController(IConfigurationContext configurationContext,
+                          ICachedDataContext cachedDataContext,
+                          IChatHelper chatHelper,
+                          IResponseHelper responseHelper,
+                          ICommandService commandService)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;

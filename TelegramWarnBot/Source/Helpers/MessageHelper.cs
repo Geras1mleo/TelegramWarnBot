@@ -1,6 +1,11 @@
 ﻿namespace TelegramWarnBot;
 
-public class MessageHelper
+public interface IMessageHelper
+{
+    bool MatchMessage(string[] matchFromMessages, bool matchWholeMessage, bool matchCase, string message);
+}
+
+public class MessageHelper : IMessageHelper
 {
     public bool MatchMessage(string[] matchFromMessages, bool matchWholeMessage, bool matchCase, string message)
     {
