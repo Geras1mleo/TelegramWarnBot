@@ -3,9 +3,9 @@
 public interface IWarnController
 {
     Task<BotResponse> Unwarn(UpdateContext context);
-    Task<BotResponse> Update(UpdateContext context);
     Task<BotResponse> Warn(UpdateContext context);
     Task<BotResponse> WCount(UpdateContext context);
+    //Task<BotResponse> Update(UpdateContext context);
 }
 
 public class WarnController : IWarnController
@@ -124,19 +124,19 @@ public class WarnController : IWarnController
                                                                                         user, count)));
     }
 
-    public async Task<BotResponse> Update(UpdateContext context)
-    {
-        var chat = cachedDataContext.Chats.Find(c => c.Id == context.Update.Message.Chat.Id);
+    //public async Task<BotResponse> Update(UpdateContext context)
+    //{
+    //    var chat = cachedDataContext.Chats.Find(c => c.Id == context.Update.Message.Chat.Id);
 
-        if (chat?.Admins is null)
-        {
-            cachedDataContext.CacheChat(context.Update.Message.Chat, await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken));
-        }
-        else
-        {
-            chat.Admins = await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken);
-        }
+    //    if (chat?.Admins is null)
+    //    {
+    //        cachedDataContext.CacheChat(context.Update.Message.Chat, await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken));
+    //    }
+    //    else
+    //    {
+    //        chat.Admins = await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken);
+    //    }
 
-        return new BotResponse("Admins updated successfully!");
-    }
+    //    return new BotResponse("Admins updated successfully!");
+    //}
 }

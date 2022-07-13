@@ -9,7 +9,7 @@ public interface ICachedDataContext
     List<MemberDTO> Members { get; }
 
     void BeginUpdate(int delaySeconds, CancellationToken cancellationToken);
-    void CacheChat(Chat chat, long[] admins);
+    void CacheChat(Chat chat, List<long> admins);
     void CacheUser(User user);
     void SaveData();
     Task SaveLogsAsync();
@@ -132,7 +132,7 @@ public class CachedDataContext : IOContext, ICachedDataContext
         }
     }
 
-    public void CacheChat(Chat chat, long[] admins)
+    public void CacheChat(Chat chat, List<long> admins)
     {
         // Adding chat to list if not exist
         var chatDto = Chats.FirstOrDefault(c => c.Id == chat.Id);

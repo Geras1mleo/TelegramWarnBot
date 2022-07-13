@@ -37,39 +37,33 @@ public class Bot : IBot
 
         Console.Title = User.GetFullName();
 
-        // Testing
-        cachedContext.Members.Add(new()
-        {
-            UserId = 2005661324,
-            ChatId = -1001505758084,
-            JoinedDate = DateTime.Now,
-        });
-
         return this;
     }
 
     private void StartReceiving(ILifetimeScope scope, CancellationToken cancellationToken)
     {
-        Client = new(configContext.BotConfiguration.Token);
-
         var builder = new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, scope)
-                            .AddPipe<JoinedLeftHandler>(c => c.Update.Message.Type == MessageType.ChatMembersAdded || c.Update.Message.Type == MessageType.ChatMemberLeft)
-                            .AddPipe<CachingHandler>(c => c.IsChatRegistered)
-                            .AddPipe<SpamHandler>(c => c.IsChatRegistered && c.IsBotAdmin && configContext.Configuration.DeleteLinksFromNewMembers && c.Update.Message.Text is not null)
-                            .AddPipe<TriggersHandler>(c => c.IsChatRegistered && c.Update.Message?.Text is not null)
-                            .AddPipe<IllegalTriggersHandler>(c => c.IsChatRegistered && c.IsBotAdmin && c.Update.Message?.Text is not null)
-                            .AddPipe<CommandHandler>(c => c.Update.Message.Text is not null && c.Update.Message.Text.IsValidCommand());
+                             .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
+                             .AddPipe<CachingHandler>(c => c.IsChatRegistered && c.IsMessageUpdate)
+                             .AddPipe<AdminsHandler>(c => c.IsChatRegistered && c.IsAdminsUpdate)
+                             .AddPipe<SpamHandler>(c => c.IsChatRegistered && c.IsBotAdmin && !c.IsSenderAdmin 
+                                                     && c.IsText && configContext.Configuration.DeleteLinksFromNewMembers)
+                             .AddPipe<TriggersHandler>(c => c.IsChatRegistered && c.IsText)
+                             .AddPipe<IllegalTriggersHandler>(c => c.IsChatRegistered && c.IsBotAdmin && c.IsText)
+                             .AddPipe<CommandHandler>(c => c.IsText && c.Update.Message.Text.IsValidCommand());
 
         pipe = builder.Build();
+
+        Client = new(configContext.BotConfiguration.Token);
+
+        User = Client.GetMeAsync(cancellationToken).GetAwaiter().GetResult();
 
         Client.StartReceiving(UpdateHandler, PollingErrorHandler,
         receiverOptions: new ReceiverOptions()
         {
-            AllowedUpdates = new[] { UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember }, // todo
+            AllowedUpdates = new[] { UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember },
         },
         cancellationToken: cancellationToken);
-
-        User = Client.GetMeAsync(cancellationToken).GetAwaiter().GetResult();
     }
 
     private Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
@@ -78,8 +72,11 @@ public class Bot : IBot
         if (!update.Validate())
             return Task.CompletedTask;
 
-        var chatId = update.Message.Chat.Id!;
+        var chatId = update.GetChat().Id;
+
         var chatDto = cachedContext.Chats.Find(c => c.Id == chatId);
+
+        var fromUser = update.GetFromUser();
 
         var context = new UpdateContext
         {
@@ -88,9 +85,15 @@ public class Bot : IBot
             CancellationToken = cancellationToken,
             Bot = User,
             ChatDTO = chatDto,
+            IsMessageUpdate = update.Type == UpdateType.Message,
+            IsText = update.Message?.Text is not null,
+            IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
+                        (update.Message.Type == MessageType.ChatMembersAdded || update.Message.Type == MessageType.ChatMemberLeft),
+            IsAdminsUpdate = (update.Type == UpdateType.ChatMember || update.Type == UpdateType.MyChatMember) 
+                     && (update.GetOldMember().Status == ChatMemberStatus.Administrator || update.GetNewMember().Status == ChatMemberStatus.Administrator),
             IsChatRegistered = configContext.IsChatRegistered(chatId),
             IsBotAdmin = chatDto?.Admins.Any(a => a == User.Id) ?? false,
-            IsSenderAdmin = chatDto?.Admins.Any(a => a == update.Message.From.Id) ?? false,
+            IsSenderAdmin = chatDto?.Admins.Any(a => a == fromUser.Id) ?? false,
         };
 
         try

@@ -73,15 +73,25 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
                         }
                     break;
 
-                case "save": cachedDataContext.SaveData(); break;
-                case "info": WriteInfo(); break;
-                case "exit": Environment.Exit(1); break;
+                case "save":
+                    cachedDataContext.SaveData();
+                    break;
+                case "info":
+                    WriteInfo();
+                    break;
+                case "exit":
+                    Environment.Exit(1);
+                    break;
+                case "version":
+                    Tools.WriteColor($"[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
+                    break;
 
                 case "l": goto case "leave";
                 case "r": goto case "reload";
                 case "s": goto case "save";
                 case "e": goto case "exit";
                 case "i": goto case "info";
+                case "v": goto case "version";
 
                 default:
                     WriteColor("Not recognized...", ConsoleColor.Gray, false);
@@ -204,7 +214,7 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
         }
 
         WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow, true);
-        // todo
+
         Task.WhenAll(tasks).GetAwaiter().GetResult();
 
         return Task.FromResult(true);
@@ -222,7 +232,7 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
             {
                 WriteColor($"\t[{chat.Name}]", ConsoleColor.DarkMagenta, false);
 
-                WriteColor($"\tAdmins: [{chat.Admins.Length}]", ConsoleColor.DarkYellow, false);
+                WriteColor($"\tAdmins: [{chat.Admins.Count}]", ConsoleColor.DarkYellow, false);
 
                 foreach (var admin in chat.Admins)
                 {

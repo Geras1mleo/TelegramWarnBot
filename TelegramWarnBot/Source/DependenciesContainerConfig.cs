@@ -8,7 +8,7 @@ public static class DependenciesContainerConfig
     {
         var builder = new ContainerBuilder();
 
-        builder.RegisterType<Bot>().As<IBot>();
+        builder.RegisterType<Bot>().As<IBot>().InstancePerLifetimeScope();
         builder.RegisterType<CloseHandler>().As<ICloseHandler>();
         builder.RegisterType<ConsoleCommandHandler>().As<IConsoleCommandHandler>();
 

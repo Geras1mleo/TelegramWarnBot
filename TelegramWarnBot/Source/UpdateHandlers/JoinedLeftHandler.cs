@@ -24,7 +24,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
             {
                 cachedDataContext.CacheChat(context.Update.Message.Chat,
-                                           await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken));
+                                           (await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken)).ToList());
 
                 return context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
                           configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
