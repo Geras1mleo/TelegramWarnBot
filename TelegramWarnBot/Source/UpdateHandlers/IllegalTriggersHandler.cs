@@ -74,16 +74,14 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
 
                 if (trigger.DeleteMessage)
                 {
-                    await context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id,
-                                                            context.Update.Message.MessageId,
-                                                            context.CancellationToken);
+                    return context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id,
+                                                             context.Update.Message.MessageId,
+                                                             context.CancellationToken);
                 }
-
-
-
-                // Match only 1 trigger
-                return next(context);
             }
+
+            // Match only 1 trigger
+            return next(context);
         }
 
         return next(context);

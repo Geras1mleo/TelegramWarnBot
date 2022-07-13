@@ -204,7 +204,7 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
         }
 
         WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow, true);
-
+        // todo
         Task.WhenAll(tasks).GetAwaiter().GetResult();
 
         return Task.FromResult(true);

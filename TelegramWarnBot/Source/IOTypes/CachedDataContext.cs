@@ -6,6 +6,7 @@ public interface ICachedDataContext
     List<BotError> Logs { get; }
     List<UserDTO> Users { get; }
     List<ChatWarnings> Warnings { get; }
+    List<MemberDTO> Members { get; }
 
     void BeginUpdate(int delaySeconds, CancellationToken cancellationToken);
     void CacheChat(Chat chat, long[] admins);
@@ -21,6 +22,7 @@ public class CachedDataContext : IOContext, ICachedDataContext
     private List<UserDTO> users;
     private List<ChatDTO> chats;
     private List<BotError> logs;
+    private readonly List<MemberDTO> members = new();
 
     public List<UserDTO> Users
     {
@@ -65,6 +67,8 @@ public class CachedDataContext : IOContext, ICachedDataContext
             return logs;
         }
     }
+
+    public List<MemberDTO> Members => members;
 
     private Task SaveWarningsAsync()
     {

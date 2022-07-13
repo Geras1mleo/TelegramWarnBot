@@ -6,6 +6,7 @@ public class Configuration
     public int MaxWarnings { get; set; }
     public bool DeleteWarnMessage { get; set; }
     public bool DeleteJoinedLeftMessage { get; set; }
+    public bool DeleteLinksFromNewMembers { get; set; }
     public bool AllowAdminWarnings { get; set; }
     public Captions Captions { get; set; }
 }

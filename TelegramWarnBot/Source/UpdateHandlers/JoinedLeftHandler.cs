@@ -50,15 +50,15 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
         return next(context);
     }
 
-    private Task HandleJoinedAsync(UpdateContext context)
+    private async Task HandleJoinedAsync(UpdateContext context)
     {
         if (!context.IsChatRegistered)
-            return Task.CompletedTask;
+            return;
 
         if (configurationContext.Configuration.DeleteJoinedLeftMessage)
         {
             if (context.IsBotAdmin)
-                return context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id,
+                await context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id,
                                                          context.Update.Message.MessageId,
                                                          context.CancellationToken);
         }
@@ -66,10 +66,16 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
         foreach (var member in context.Update.Message.NewChatMembers)
         {
             if (!member.IsBot)
+            {
                 cachedDataContext.CacheUser(member);
+                cachedDataContext.Members.Add(new()
+                {
+                    ChatId = context.Update.Message.Chat.Id,
+                    UserId = member.Id,
+                    JoinedDate = DateTime.Now
+                });
+            }
         }
-
-        return Task.CompletedTask;
     }
 
     private Task HandleLeftAsync(UpdateContext context)

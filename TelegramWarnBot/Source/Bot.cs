@@ -37,6 +37,14 @@ public class Bot : IBot
 
         Console.Title = User.GetFullName();
 
+        // Testing
+        cachedContext.Members.Add(new()
+        {
+            UserId = 2005661324,
+            ChatId = -1001505758084,
+            JoinedDate = DateTime.Now,
+        });
+
         return this;
     }
 
@@ -47,8 +55,9 @@ public class Bot : IBot
         var builder = new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, scope)
                             .AddPipe<JoinedLeftHandler>(c => c.Update.Message.Type == MessageType.ChatMembersAdded || c.Update.Message.Type == MessageType.ChatMemberLeft)
                             .AddPipe<CachingHandler>(c => c.IsChatRegistered)
+                            .AddPipe<SpamHandler>(c => c.IsChatRegistered && c.IsBotAdmin && configContext.Configuration.DeleteLinksFromNewMembers && c.Update.Message.Text is not null)
                             .AddPipe<TriggersHandler>(c => c.IsChatRegistered && c.Update.Message?.Text is not null)
-                            .AddPipe<IllegalTriggersHandler>(c => c.IsChatRegistered && c.Update.Message?.Text is not null)
+                            .AddPipe<IllegalTriggersHandler>(c => c.IsChatRegistered && c.IsBotAdmin && c.Update.Message?.Text is not null)
                             .AddPipe<CommandHandler>(c => c.Update.Message.Text is not null && c.Update.Message.Text.IsValidCommand());
 
         pipe = builder.Build();
@@ -56,7 +65,7 @@ public class Bot : IBot
         Client.StartReceiving(UpdateHandler, PollingErrorHandler,
         receiverOptions: new ReceiverOptions()
         {
-            AllowedUpdates = new[] { UpdateType.Message },
+            AllowedUpdates = new[] { UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember }, // todo
         },
         cancellationToken: cancellationToken);
 

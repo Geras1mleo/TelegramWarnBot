@@ -3,6 +3,7 @@
   "MaxWarnings": 3,
   "DeleteWarnMessage": false,
   "DeleteJoinedLeftMessage": true,
+  "DeleteLinksFromNewMembers": true,
   "AllowAdminWarnings": true,
   "Captions": {
     "OnBotJoinedChatMessage": "Hello there! 👋",
