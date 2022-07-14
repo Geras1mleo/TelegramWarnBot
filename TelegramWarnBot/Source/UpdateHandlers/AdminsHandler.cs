@@ -1,5 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
+[RegisteredChat]
 public class AdminsHandler : Pipe<UpdateContext>
 {
     private readonly IChatHelper chatHelper;

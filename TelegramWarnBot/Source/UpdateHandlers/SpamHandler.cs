@@ -1,5 +1,7 @@
 ﻿namespace TelegramWarnBot;
 
+[RegisteredChat]
+[TextMessageUpdate]
 public class SpamHandler : Pipe<UpdateContext>
 {
     private readonly ICachedDataContext cachedDataContext;

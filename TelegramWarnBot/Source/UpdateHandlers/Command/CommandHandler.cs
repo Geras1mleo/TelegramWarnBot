@@ -1,5 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
+[TextMessageUpdate]
 public class CommandHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
@@ -19,9 +20,9 @@ public class CommandHandler : Pipe<UpdateContext>
 
         if (method is not null)
         {
-            if (!configurationContext.IsChatRegistered(context.Update.Message.Chat.Id))
+            if (!context.IsChatRegistered)
             {
-                await context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
+                return context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
                                                            configurationContext.Configuration.Captions.ChatNotRegistered,
                                                            cancellationToken: context.CancellationToken,
                                                            parseMode: ParseMode.Markdown);

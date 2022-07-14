@@ -11,14 +11,17 @@ public interface IBot
 public class Bot : IBot
 {
     private readonly ICachedDataContext cachedContext;
+    private readonly IChatHelper chatHelper;
     private readonly IConfigurationContext configContext;
     private Func<UpdateContext, Task> pipe;
 
     public Bot(IConfigurationContext configContext,
-               ICachedDataContext cachedContext)
+               ICachedDataContext cachedContext,
+               IChatHelper chatHelper)
     {
         this.configContext = configContext;
         this.cachedContext = cachedContext;
+        this.chatHelper = chatHelper;
     }
 
     public TelegramBotClient Client { get; set; }
@@ -44,13 +47,12 @@ public class Bot : IBot
     {
         var builder = new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, scope)
                              .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
-                             .AddPipe<CachingHandler>(c => c.IsChatRegistered && c.IsMessageUpdate)
-                             .AddPipe<AdminsHandler>(c => c.IsChatRegistered && c.IsAdminsUpdate)
-                             .AddPipe<SpamHandler>(c => c.IsChatRegistered && c.IsBotAdmin && !c.IsSenderAdmin 
-                                                     && c.IsText && configContext.Configuration.DeleteLinksFromNewMembers)
-                             .AddPipe<TriggersHandler>(c => c.IsChatRegistered && c.IsText)
-                             .AddPipe<IllegalTriggersHandler>(c => c.IsChatRegistered && c.IsBotAdmin && c.IsText)
-                             .AddPipe<CommandHandler>(c => c.IsText && c.Update.Message.Text.IsValidCommand());
+                             .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
+                             .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
+                             .AddPipe<SpamHandler>(c => c.IsBotAdmin && !c.IsSenderAdmin && configContext.Configuration.DeleteLinksFromNewMembers)
+                             .AddPipe<TriggersHandler>()
+                             .AddPipe<IllegalTriggersHandler>(c => c.IsBotAdmin)
+                             .AddPipe<CommandHandler>(c => c.Update.Message.Text.IsValidCommand());
 
         pipe = builder.Build();
 
@@ -89,9 +91,9 @@ public class Bot : IBot
             IsText = update.Message?.Text is not null,
             IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
                         (update.Message.Type == MessageType.ChatMembersAdded || update.Message.Type == MessageType.ChatMemberLeft),
-            IsAdminsUpdate = (update.Type == UpdateType.ChatMember || update.Type == UpdateType.MyChatMember) 
+            IsAdminsUpdate = (update.Type == UpdateType.ChatMember || update.Type == UpdateType.MyChatMember)
                      && (update.GetOldMember().Status == ChatMemberStatus.Administrator || update.GetNewMember().Status == ChatMemberStatus.Administrator),
-            IsChatRegistered = configContext.IsChatRegistered(chatId),
+            IsChatRegistered = chatHelper.IsChatRegistered(chatId),
             IsBotAdmin = chatDto?.Admins.Any(a => a == User.Id) ?? false,
             IsSenderAdmin = chatDto?.Admins.Any(a => a == fromUser.Id) ?? false,
         };

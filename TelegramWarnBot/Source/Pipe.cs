@@ -1,37 +1,39 @@
 ﻿namespace TelegramWarnBot;
 
-public abstract class Pipe<T>
+public abstract class Pipe<TContext>
+    where TContext : IContext
 {
-    protected Func<T, Task> next;
-    protected Pipe(Func<T, Task> next)
+    protected Func<TContext, Task> next;
+    protected Pipe(Func<TContext, Task> next)
     {
         this.next = next;
     }
 
-    public abstract Task Handle(T context);
+    public abstract Task Handle(TContext context);
 }
 
-public class PipeBuilder<T>
+public class PipeBuilder<TContext>
+    where TContext : IContext
 {
     private readonly ILifetimeScope scope;
-    private readonly Func<T, Task> mainAction;
+    private readonly Func<TContext, Task> mainAction;
     private readonly List<PipeContainer> pipes;
 
-    public PipeBuilder(Func<T, Task> mainAction, ILifetimeScope scope)
+    public PipeBuilder(Func<TContext, Task> mainAction, ILifetimeScope scope)
     {
         this.mainAction = mainAction;
         this.scope = scope;
         pipes = new List<PipeContainer>();
     }
 
-    public PipeBuilder<T> AddPipe<Type>()
-        where Type : Pipe<T>
+    public PipeBuilder<TContext> AddPipe<Type>()
+        where Type : Pipe<TContext>
     {
         return AddPipe<Type>(_ => true);
     }
 
-    public PipeBuilder<T> AddPipe<Type>(Func<T, bool> executionFilter)
-        where Type : Pipe<T>
+    public PipeBuilder<TContext> AddPipe<Type>(Func<TContext, bool> executionFilter)
+        where Type : Pipe<TContext>
     {
         pipes.Add(new()
         {
@@ -41,21 +43,21 @@ public class PipeBuilder<T>
         return this;
     }
 
-    public Func<T, Task> Build()
+    public Func<TContext, Task> Build()
     {
         return CreatePipe(0);
     }
 
-    public Func<T, Task> CreatePipe(int index)
+    public Func<TContext, Task> CreatePipe(int index)
     {
         if (index < pipes.Count - 1)
         {
             var child = CreatePipe(index + 1);
-            var pipe = (Pipe<T>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(child, pipes[index].Type));
+            var pipe = (Pipe<TContext>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(child, pipes[index].Type));
 
             return context =>
             {
-                if (pipes[index].ExecutionFilter(context))
+                if (context.ResolveAttributes(pipes[index].Type) && pipes[index].ExecutionFilter(context))
                     return pipe.Handle(context);
                 else
                     return child(context);
@@ -63,10 +65,10 @@ public class PipeBuilder<T>
         }
         else
         {
-            var finalPipe = (Pipe<T>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(mainAction, pipes[index].Type));
+            var finalPipe = (Pipe<TContext>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(mainAction, pipes[index].Type));
             return context =>
             {
-                if (pipes[index].ExecutionFilter(context))
+                if (context.ResolveAttributes(pipes[index].Type) && pipes[index].ExecutionFilter(context))
                     return finalPipe.Handle(context);
                 else
                     return mainAction(context);
@@ -94,6 +96,6 @@ public class PipeBuilder<T>
     public class PipeContainer
     {
         public Type Type { get; init; }
-        public Func<T, bool> ExecutionFilter { get; init; }
+        public Func<TContext, bool> ExecutionFilter { get; init; }
     }
 }

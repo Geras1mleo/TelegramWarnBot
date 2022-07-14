@@ -7,7 +7,6 @@ public interface IConfigurationContext
     IllegalTrigger[] IllegalTriggers { get; }
     Trigger[] Triggers { get; }
 
-    bool IsChatRegistered(long chatId);
     void ReloadConfiguration();
 }
 
@@ -70,10 +69,5 @@ public class ConfigurationContext : IOContext, IConfigurationContext
         configuration = null;
         triggers = null;
         illegalTriggers = null;
-    }
-
-    public bool IsChatRegistered(long chatId)
-    {
-        return BotConfiguration.RegisteredChats.Any(c => c == chatId);
     }
 }

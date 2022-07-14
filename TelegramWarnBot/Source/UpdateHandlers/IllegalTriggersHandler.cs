@@ -1,5 +1,7 @@
 ﻿namespace TelegramWarnBot;
 
+[RegisteredChat]
+[TextMessageUpdate]
 public class IllegalTriggersHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
