@@ -15,18 +15,16 @@ public class SpamHandler : Pipe<UpdateContext>
 
     public override Task Handle(UpdateContext context)
     {
-        long chatId = context.Update.Message.Chat.Id;
-
         if ((context.Update.Message.Entities?.Any(e => e.Type == MessageEntityType.Url || e.Type == MessageEntityType.TextLink
                                               || e.Type == MessageEntityType.TextMention || e.Type == MessageEntityType.Mention) ?? false)
            || messageHelper.MatchCardNumber(context.Update.Message.Text))
         {
-            var member = cachedDataContext.Members.FirstOrDefault(m => m.ChatId == chatId && m.UserId == context.Update.Message.From.Id);
+            var member = cachedDataContext.Members.FirstOrDefault(m => m.ChatId == context.ChatDTO.Id && m.UserId == context.Update.Message.From.Id);
 
             // Member joined less than 24 hours ago
             if (DateTime.Now - (member?.JoinedDate ?? DateTime.MinValue) < TimeSpan.FromHours(24))
             {
-                return context.Client.DeleteMessageAsync(chatId, context.Update.Message.MessageId, context.CancellationToken);
+                return context.Client.DeleteMessageAsync(context.ChatDTO.Id, context.Update.Message.MessageId, context.CancellationToken);
             }
         }
 

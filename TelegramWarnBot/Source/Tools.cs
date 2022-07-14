@@ -2,6 +2,7 @@
 
 public static class Tools
 {
+    public static readonly Regex CardNumberRegex = new(@"\d{4} ?\d{4} ?\d{4} ?\d{4} ?", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
 
     private static readonly Dictionary<Type, MethodInfo[]> methodsDict = new();
     public static MethodInfo ResolveMethod(Type type, string prefix)

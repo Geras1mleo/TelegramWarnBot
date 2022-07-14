@@ -18,7 +18,6 @@ public class MessageHelper : IMessageHelper
 
     public bool MatchCardNumber(string message)
     {
-        message = message.Replace(" ", "");
-        return Regex.Match(message, @"\d{16}").Success;
+        return Tools.CardNumberRegex.Match(message).Success;
     }
 }
