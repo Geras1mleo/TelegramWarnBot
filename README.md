@@ -71,7 +71,7 @@ You can change them at runtime and then use `reload` in console to reload new co
   - [IllegalTriggerBanned](TelegramWarnBot/Configuration/Configuration.json#L26): Automatic *Illegal trigger warning* that will mention banned user.
   - [WCountMessage](TelegramWarnBot/Configuration/Configuration.json#L27): Post */wcount* message that will mention user and his amount of warnings (only when > 0).
   - [WCountUserHasNoWarnings](TelegramWarnBot/Configuration/Configuration.json#L28): Post */wcount* message that will mention user, user has any warnings (= 0).
-  - [WCountAdminAttempt](TelegramWarnBot/Configuration/Configuration.json#L29): Attempt to use */wcount* on administrator when *AllowAdminWarnings = false*
+  - [WCountAdminAttempt](TelegramWarnBot/Configuration/Configuration.json#L29): Attempt to use */wcount* on administrator when *AllowAdminWarnings = false*.
   - [WCountBotAttempt](TelegramWarnBot/Configuration/Configuration.json#L30): Attempt to use */wcount* on *another bot*.
   - [WCountBotSelfAttempt](TelegramWarnBot/Configuration/Configuration.json#L31): Attempt to use */wcount* on the *bot itself*.
 
