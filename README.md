@@ -21,8 +21,8 @@ All members can check their number of warnings by typing **/wcount**, or **/wcou
 
 **The commands _/warn_ and _/unwarn_ are only available to _administrators_ and the _owner_ of the group.**
 
-**I can also:**
-[delete](TelegramWarnBot/Configuration/Configuration.json#L5) **"User joined/left chat"** - messages...
+**I can also:**<br>
+[delete](TelegramWarnBot/Configuration/Configuration.json#L5) **"User joined/left chat"** - messages...<br>
 [delete](TelegramWarnBot/Configuration/Configuration.json#L6) spam (external links or mentions) of newly joined members (<24 hours in chat)
 
 #### Triggers
