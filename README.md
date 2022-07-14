@@ -17,7 +17,7 @@ The default value of [MaxWarnings](TelegramWarnBot/Configuration/Configuration.j
 
 If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a member has already been banned, I will **unban** him so he can get back into the group.
 
-All members can check their number of warnings by typing **/wcount**, or **/wcount @bad_guy** to check the number of warnings of someone else
+All members can check their number of warnings by typing **/wcount**, or **/wcount @bad_guy** to check the number of warnings of someone else.
 
 **The commands _/warn_ and _/unwarn_ are only available to _administrators_ and the _owner_ of the group.**
 
