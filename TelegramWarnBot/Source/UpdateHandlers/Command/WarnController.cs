@@ -57,7 +57,7 @@ public class WarnController : IWarnController
 
         if (warnedUser.Warnings == 0)
         {
-            return new(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.UserUnwarnNoWarnings,
+            return new(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.UnwarnUserNoWarnings,
                                                                warnedUser, commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name));
         }
 
@@ -99,8 +99,8 @@ public class WarnController : IWarnController
             return resolveUser.AsT1 switch
             {
                 ResolveMentionedUserResult.UserNotFound => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.UserNotFound)),
-                ResolveMentionedUserResult.BotMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WarningsCountBotMention)),
-                ResolveMentionedUserResult.BotSelfMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WarningsCountBotSelfMention)),
+                ResolveMentionedUserResult.BotMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WCountBotAttempt)),
+                ResolveMentionedUserResult.BotSelfMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WCountBotSelfAttempt)),
                 _ => throw new ArgumentException("ResolveMentionedUserResult")
             };
         }
@@ -109,18 +109,18 @@ public class WarnController : IWarnController
         {
             var isAdmin = chatHelper.IsAdmin(chat.ChatId, user.Id);
             if (isAdmin)
-                return Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WarningsCountAdminNotAllowed));
+                return Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WCountAdminAttempt));
         }
 
         var count = cachedDataContext.Warnings.Find(c => c.ChatId == chat.ChatId)?.WarnedUsers.Find(u => u.Id == user.Id)?.Warnings ?? 0;
 
         if (count == 0)
         {
-            return Task.FromResult(new BotResponse(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.WarningsCountUserHasNoWarnings,
+            return Task.FromResult(new BotResponse(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.WCountUserHasNoWarnings,
                                                                                             user, 0)));
         }
 
-        return Task.FromResult(new BotResponse(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.WarningsCount,
+        return Task.FromResult(new BotResponse(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.WCountMessage,
                                                                                         user, count)));
     }
 

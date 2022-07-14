@@ -11,18 +11,18 @@ public class Captions
     public string WarnedSuccessfully { get; set; }
     public string UnwarnedSuccessfully { get; set; }
     public string BannedSuccessfully { get; set; }
-    public string UserUnwarnNoWarnings { get; set; }
-    public string AdminWarnAttempt { get; set; }
-    public string AdminUnwarnAttempt { get; set; }
-    public string BotWarnAttempt { get; set; }
-    public string BotUnwarnAttempt { get; set; }
-    public string BotSelfWarnAttempt { get; set; }
-    public string BotSelfUnwarnAttempt { get; set; }
+    public string UnwarnUserNoWarnings { get; set; }
+    public string WarnAdminAttempt { get; set; }
+    public string UnwarnAdminAttempt { get; set; }
+    public string WarnBotAttempt { get; set; }
+    public string UnwarnBotAttempt { get; set; }
+    public string WarnBotSelfAttempt { get; set; }
+    public string UnwarnBotSelfAttempt { get; set; }
     public string IllegalTriggerWarned { get; set; }
     public string IllegalTriggerBanned { get; set; }
-    public string WarningsCount { get; set; }
-    public string WarningsCountUserHasNoWarnings { get; set; }
-    public string WarningsCountAdminNotAllowed { get; set; }
-    public string WarningsCountBotMention { get; set; }
-    public string WarningsCountBotSelfMention { get; set; }
+    public string WCountMessage { get; set; }
+    public string WCountUserHasNoWarnings { get; set; }
+    public string WCountAdminAttempt { get; set; }
+    public string WCountBotAttempt { get; set; }
+    public string WCountBotSelfAttempt { get; set; }
 }

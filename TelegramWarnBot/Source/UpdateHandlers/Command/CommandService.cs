@@ -76,10 +76,10 @@ public class CommandService : ICommandService
             {
                 ResolveMentionedUserResult.UserNotMentioned => configurationContext.Configuration.Captions.UserNotSpecified,
                 ResolveMentionedUserResult.UserNotFound => configurationContext.Configuration.Captions.UserNotFound,
-                ResolveMentionedUserResult.BotMention => isWarn ? configurationContext.Configuration.Captions.BotWarnAttempt
-                                                                : configurationContext.Configuration.Captions.BotUnwarnAttempt,
-                ResolveMentionedUserResult.BotSelfMention => isWarn ? configurationContext.Configuration.Captions.BotSelfWarnAttempt
-                                                                    : configurationContext.Configuration.Captions.BotSelfUnwarnAttempt,
+                ResolveMentionedUserResult.BotMention => isWarn ? configurationContext.Configuration.Captions.WarnBotAttempt
+                                                                : configurationContext.Configuration.Captions.UnwarnBotAttempt,
+                ResolveMentionedUserResult.BotSelfMention => isWarn ? configurationContext.Configuration.Captions.WarnBotSelfAttempt
+                                                                    : configurationContext.Configuration.Captions.UnwarnBotSelfAttempt,
                 _ => throw new ArgumentException("ResolveMentionedUserResult"),
             };
         }
@@ -89,8 +89,8 @@ public class CommandService : ICommandService
         // warn/unwarn admin disabled
         if (isAdmin && !configurationContext.Configuration.AllowAdminWarnings)
         {
-            return isWarn ? configurationContext.Configuration.Captions.AdminWarnAttempt
-                          : configurationContext.Configuration.Captions.AdminUnwarnAttempt;
+            return isWarn ? configurationContext.Configuration.Captions.WarnAdminAttempt
+                          : configurationContext.Configuration.Captions.UnwarnAdminAttempt;
         }
 
         var chat = ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
