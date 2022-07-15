@@ -5,15 +5,15 @@ var cts = new CancellationTokenSource();
 
 var host = AppConfiguration.Build();
 
-var bot = ActivatorUtilities.GetServiceOrCreateInstance<IBot>(host.Services);
+var bot = host.Services.GetService<IBot>();
 
-var consoleHandler = ActivatorUtilities.GetServiceOrCreateInstance<IConsoleCommandHandler>(host.Services);
+var consoleHandler = host.Services.GetService<IConsoleCommandHandler>();
 
-var logger = ActivatorUtilities.GetServiceOrCreateInstance<ILogger<Program>>(host.Services);
+var logger = host.Services.GetService<ILogger<Program>>();
 
-var cachedDataContext = ActivatorUtilities.GetServiceOrCreateInstance<ICachedDataContext>(host.Services);
+var cachedDataContext = host.Services.GetService<ICachedDataContext>();
 
-bot.Run(host.Services, cts.Token);
+await bot.StartAsync(host.Services, cts.Token);
 
 consoleHandler.Start(cts.Token);
 

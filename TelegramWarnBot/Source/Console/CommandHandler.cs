@@ -78,7 +78,7 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
 
                     case "save":
                         cachedDataContext.SaveData();
-                        logger.LogTrace("Data saved successfully!");
+                        logger.LogInformation("Data saved successfully!");
                         break;
                     case "info":
                         WriteInfo();

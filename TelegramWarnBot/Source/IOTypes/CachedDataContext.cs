@@ -21,6 +21,8 @@ public class CachedDataContext : IOContext, ICachedDataContext
     private List<ChatDTO> chats;
     private readonly List<MemberDTO> members = new();
 
+    public CachedDataContext(IHostEnvironment hostEnvironment) : base(hostEnvironment) { }
+
     public List<UserDTO> Users
     {
         get

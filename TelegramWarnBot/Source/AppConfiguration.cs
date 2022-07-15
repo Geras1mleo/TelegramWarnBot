@@ -11,6 +11,16 @@ public static class AppConfiguration
         Log.Logger.Information("Configuring and building host...");
 
         var host = Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((context, builder) =>
+            {
+                // To use dotnet watch/run and not corrupt Data\ files in project
+                var env = context.HostingEnvironment;
+                if (env.IsDevelopment()
+                 && env.ContentRootPath.EndsWith(env.ApplicationName))
+                {
+                    env.ContentRootPath += @"\bin\Debug\net6.0";
+                }
+            })
             .ConfigureServices(ConfigureServices)
             .UseConsoleLifetime()
             .UseSerilog()

@@ -64,6 +64,8 @@ public class ConfigurationContext : IOContext, IConfigurationContext
         }
     }
 
+    public ConfigurationContext(IHostEnvironment hostEnvironment) : base(hostEnvironment) { }
+
     public void ReloadConfiguration()
     {
         configuration = null;

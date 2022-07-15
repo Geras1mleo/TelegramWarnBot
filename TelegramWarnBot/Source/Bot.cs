@@ -5,7 +5,7 @@ public interface IBot
     TelegramBotClient Client { get; set; }
     User User { get; set; }
 
-    void Run(IServiceProvider provider, CancellationToken cancellationToken);
+    Task StartAsync(IServiceProvider provider, CancellationToken cancellationToken);
 }
 
 public class Bot : IBot
@@ -30,9 +30,11 @@ public class Bot : IBot
     public TelegramBotClient Client { get; set; }
     public User User { get; set; }
 
-    public void Run(IServiceProvider provider, CancellationToken cancellationToken)
+    public async Task StartAsync(IServiceProvider provider, CancellationToken cancellationToken)
     {
         StartReceiving(provider, cancellationToken);
+
+        User = await Client.GetMeAsync(cancellationToken);
 
         // Register bot itself to recognize when someone mentions it with @
         cachedContext.CacheUser(User);
@@ -57,16 +59,19 @@ public class Bot : IBot
 
         pipe = builder.Build();
 
-        logger.LogInformation("Update handlers: {pipes}", builder.GetPipes().Select(p => p.Type.Name));
+        //logger.LogInformation("Update handlers: {pipes}", builder.GetPipes().Select(p => p.Type.Name));
 
         Client = new(configContext.BotConfiguration.Token);
-
-        User = Client.GetMeAsync(cancellationToken).GetAwaiter().GetResult();
 
         Client.StartReceiving(UpdateHandler, PollingErrorHandler,
         receiverOptions: new ReceiverOptions()
         {
-            AllowedUpdates = new[] { UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember },
+            AllowedUpdates = new[]
+            {
+                UpdateType.Message,
+                UpdateType.ChatMember,
+                UpdateType.MyChatMember
+            },
         },
         cancellationToken: cancellationToken);
     }
