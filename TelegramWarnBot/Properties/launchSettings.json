@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "TelegramWarnBot": {
+      "commandName": "Project",
+      "hotReloadEnabled": true,
+      "remoteDebugEnabled": false
+    }
+  }
+}

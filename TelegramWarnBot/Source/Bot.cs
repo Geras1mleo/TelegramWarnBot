@@ -5,47 +5,48 @@ public interface IBot
     TelegramBotClient Client { get; set; }
     User User { get; set; }
 
-    Bot Start(ILifetimeScope scope, CancellationToken cancellationToken);
+    void Run(IServiceProvider provider, CancellationToken cancellationToken);
 }
 
 public class Bot : IBot
 {
     private readonly ICachedDataContext cachedContext;
-    private readonly IChatHelper chatHelper;
     private readonly IConfigurationContext configContext;
+    private readonly IChatHelper chatHelper;
+    private readonly ILogger<Bot> logger;
     private Func<UpdateContext, Task> pipe;
 
     public Bot(IConfigurationContext configContext,
                ICachedDataContext cachedContext,
-               IChatHelper chatHelper)
+               IChatHelper chatHelper,
+               ILogger<Bot> logger)
     {
         this.configContext = configContext;
         this.cachedContext = cachedContext;
         this.chatHelper = chatHelper;
+        this.logger = logger;
     }
 
     public TelegramBotClient Client { get; set; }
     public User User { get; set; }
 
-    public Bot Start(ILifetimeScope scope, CancellationToken cancellationToken)
+    public void Run(IServiceProvider provider, CancellationToken cancellationToken)
     {
-        StartReceiving(scope, cancellationToken);
+        StartReceiving(provider, cancellationToken);
 
         // Register bot itself to recognize when someone mentions it with @
         cachedContext.CacheUser(User);
         cachedContext.BeginUpdate(configContext.Configuration.UpdateDelay, cancellationToken);
 
-        Tools.WriteColor($"\n\nBot: [{User.GetFullName()}] running...", ConsoleColor.Green, true);
-        Tools.WriteColor($"\n[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
+        logger.LogInformation("Bot {botName} running.", User.GetFullName());
+        logger.LogInformation("Version: {version}", Assembly.GetEntryAssembly().GetName().Version);
 
         Console.Title = User.GetFullName();
-
-        return this;
     }
 
-    private void StartReceiving(ILifetimeScope scope, CancellationToken cancellationToken)
+    private void StartReceiving(IServiceProvider provider, CancellationToken cancellationToken)
     {
-        var builder = new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, scope)
+        var builder = new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, provider)
                              .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
                              .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
                              .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
@@ -55,6 +56,8 @@ public class Bot : IBot
                              .AddPipe<CommandHandler>(c => c.Update.Message.Text.IsValidCommand());
 
         pipe = builder.Build();
+
+        logger.LogInformation("Update handlers: {pipes}", builder.GetPipes().Select(p => p.Type.Name));
 
         Client = new(configContext.BotConfiguration.Token);
 
@@ -106,22 +109,14 @@ public class Bot : IBot
         {
             // Update that raised exception will be saved in Logs.json
             // Bot will skip this message, he wont handle it ever again
-            cachedContext.Logs.Add(new()
-            {
-                Update = update,
-                Time = DateTime.Now,
-                Exception = e.Map()
-            });
-
-            Tools.WriteColor($"[HandlePollingErrorAsync]\n[Message]: {e.Message}\n[StackTrace]: {e.StackTrace}", ConsoleColor.Red, true);
-
+            logger.LogError(e, "HandlePollingErrorAsync {@update}", update);
             return Task.CompletedTask;
         }
     }
 
     private Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
     {
-        Tools.WriteColor("[Some error occured! Restart required!]", ConsoleColor.Red, true);
+        logger.LogCritical(exception, "Restart required!");
         return Task.CompletedTask;
     }
 }

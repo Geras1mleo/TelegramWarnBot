@@ -1,5 +1,3 @@
-using static TelegramWarnBot.Tools;
-
 namespace TelegramWarnBot;
 
 public interface IConsoleCommandHandler
@@ -15,90 +13,93 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
     private readonly IBot bot;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly ILogger<ConsoleCommandHandler> logger;
 
     public ConsoleCommandHandler(IBot bot,
                                  IConfigurationContext configurationContext,
-                                 ICachedDataContext cachedDataContext)
+                                 ICachedDataContext cachedDataContext,
+                                 ILogger<ConsoleCommandHandler> logger)
     {
         this.bot = bot;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
+        this.logger = logger;
     }
 
     public void Start(CancellationToken cancellationToken)
     {
-        // Display registered chats
-        Register(new List<string> { "-l" });
-
-        while (true)
+        Task.Run(() =>
         {
-            var command = Console.ReadLine();
+            // Display registered chats
+            //Register(new List<string> { "-l" });
 
-            if (command is null) continue;
-
-            var parts = Regex.Matches(command, @"[\""].+?[\""]|[^ ]+")
-                             .Cast<Match>()
-                             .Select(m => m.Value)
-                             .ToArray();
-
-            if (parts.Length == 0)
-                continue;
-
-            switch (parts[0])
+            while (true)
             {
-                case "send":
-                    if (!Send(bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
-                        goto default; // if not succeed => show available commands 
-                    break;
+                var command = Console.ReadLine();
 
-                case "register":
-                    if (!Register(parts.Skip(1).ToList()))
-                        goto default;
-                    break;
+                if (command is null) continue;
 
-                case "reload":
-                    configurationContext.ReloadConfiguration();
-                    Tools.WriteColor("[Configuration reloaded successfully!]", ConsoleColor.Green, true);
-                    break;
+                var parts = Regex.Matches(command, @"[\""].+?[\""]|[^ ]+")
+                                    .Cast<Match>()
+                                    .Select(m => m.Value)
+                                    .ToArray();
 
-                case "leave":
-                    if (long.TryParse(parts[1], out var chatId))
-                        try
-                        {
-                            bot.Client.LeaveChatAsync(chatId, cancellationToken: cancellationToken).GetAwaiter().GetResult();
-                        }
-                        catch (Exception e)
-                        {
-                            Tools.WriteColor("[Error]: " + e.Message, ConsoleColor.Red, false);
-                        }
-                    break;
+                if (parts.Length == 0)
+                    continue;
 
-                case "save":
-                    cachedDataContext.SaveData();
-                    break;
-                case "info":
-                    WriteInfo();
-                    break;
-                case "exit":
-                    Environment.Exit(1);
-                    break;
-                case "version":
-                    Tools.WriteColor($"[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
-                    break;
+                switch (parts[0])
+                {
+                    case "send":
+                        if (!Send(bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
+                            goto default; // if not succeed => show available commands 
+                        break;
 
-                case "l": goto case "leave";
-                case "r": goto case "reload";
-                case "s": goto case "save";
-                case "e": goto case "exit";
-                case "i": goto case "info";
-                case "v": goto case "version";
+                    case "register":
+                        if (!Register(parts.Skip(1).ToList()))
+                            goto default;
+                        break;
 
-                default:
-                    WriteColor("Not recognized...", ConsoleColor.Gray, false);
-                    PrintAvailableCommands();
-                    break;
+                    case "reload":
+                        configurationContext.ReloadConfiguration();
+                        WriteColor("[Configuration reloaded successfully!]", ConsoleColor.Green, true);
+                        break;
+
+                    case "leave":
+                        if (long.TryParse(parts[1], out var chatId))
+                            try
+                            {
+                                bot.Client.LeaveChatAsync(chatId, cancellationToken: cancellationToken).GetAwaiter().GetResult();
+                            }
+                            catch (Exception e)
+                            {
+                                WriteColor("[Error]: " + e.Message, ConsoleColor.Red, false);
+                            }
+                        break;
+
+                    case "save":
+                        cachedDataContext.SaveData();
+                        logger.LogTrace("Data saved successfully!");
+                        break;
+                    case "info":
+                        WriteInfo();
+                        break;
+                    case "version":
+                        WriteColor($"[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
+                        break;
+
+                    case "l": goto case "leave";
+                    case "r": goto case "reload";
+                    case "s": goto case "save";
+                    case "i": goto case "info";
+                    case "v": goto case "version";
+
+                    default:
+                        WriteColor("Not recognized...", ConsoleColor.Gray, false);
+                        PrintAvailableCommands();
+                        break;
+                }
             }
-        }
+        }, cancellationToken);
     }
 
     public bool Register(List<string> parameters)
@@ -291,11 +292,41 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
              + "\n\t[-l] => List of registered chats"
              + "\n\t[-rm] => Remove one specific chat\n"
 
-         + "\n[leave]/[l] => Leave a chat"
+         + "\n[leave]/[l] => Leave a chat\n"
          + "\n[reload]/[r] => Reload configurations\n"
          + "\n[save]/[s] \t=> Save last data\n"
          + "\n[info]/[i] \t=> Show info about cached chats and users\n"
-         + "\n[exit]/[e] \t=> Save data and close the application (CTRL + C)\n"
+         + "\n[version]/[v]=> Version of bot"
          , ConsoleColor.Red, false);
+    }
+
+    // https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
+    // usage: WriteColor("This is my [message] with inline [color] changes.", ConsoleColor.Yellow);
+    public static void WriteColor(string message, ConsoleColor color, bool logDateTime)
+    {
+        if (logDateTime)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"[{DateTime.Now}] ");
+            Console.ResetColor();
+        }
+
+        var pieces = Regex.Split(message, @"(\[[^\]]*\])");
+
+        for (int i = 0; i < pieces.Length; i++)
+        {
+            string piece = pieces[i];
+
+            if (piece.StartsWith("[") && piece.EndsWith("]"))
+            {
+                Console.ForegroundColor = color;
+                piece = piece[1..^1];
+            }
+
+            Console.Write(piece);
+            Console.ResetColor();
+        }
+
+        Console.WriteLine();
     }
 }

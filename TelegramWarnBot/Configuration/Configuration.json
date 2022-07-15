@@ -4,7 +4,7 @@
   "DeleteWarnMessage": false,
   "DeleteJoinedLeftMessage": true,
   "DeleteLinksFromNewMembers": true,
-  "AllowAdminWarnings": false,
+  "AllowAdminWarnings": true,
   "Captions": {
     "OnBotJoinedChatMessage": "👋 Hello there!",
     "ChatNotRegistered": "☠️ This chat is not registered...",

@@ -30,7 +30,7 @@
   {
     "Chat": null,
     "Messages": [ "test" ],
-    "Responses": [ "TESTING", "Hi, second..." ],
+    "Responses": [ "TESTING", "Hi there..." ],
     "MatchCase": true,
     "MatchWholeMessage": true
   }

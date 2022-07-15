@@ -69,13 +69,4 @@ public static class Extensions
     {
         return (user.FirstName + " " + user.LastName).Trim();
     }
-
-    public static SerializableException Map(this Exception exception)
-    {
-        return new()
-        {
-            Message = exception.Message,
-            StackTrace = exception.StackTrace
-        };
-    }
 }

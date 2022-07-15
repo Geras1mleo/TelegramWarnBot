@@ -3,7 +3,6 @@
 public interface ICachedDataContext
 {
     List<ChatDTO> Chats { get; }
-    List<BotError> Logs { get; }
     List<UserDTO> Users { get; }
     List<ChatWarnings> Warnings { get; }
     List<MemberDTO> Members { get; }
@@ -12,7 +11,6 @@ public interface ICachedDataContext
     void CacheChat(Chat chat, List<long> admins);
     void CacheUser(User user);
     void SaveData();
-    Task SaveLogsAsync();
     Task SaveRegisteredChatsAsync(List<long> registeredChats);
 }
 
@@ -21,7 +19,6 @@ public class CachedDataContext : IOContext, ICachedDataContext
     private List<ChatWarnings> warnings;
     private List<UserDTO> users;
     private List<ChatDTO> chats;
-    private List<BotError> logs;
     private readonly List<MemberDTO> members = new();
 
     public List<UserDTO> Users
@@ -54,17 +51,6 @@ public class CachedDataContext : IOContext, ICachedDataContext
                 warnings = Deserialize<List<ChatWarnings>>(Path.Combine("Data", "ChatWarnings.json"));
 
             return warnings;
-        }
-    }
-
-    public List<BotError> Logs
-    {
-        get
-        {
-            if (logs is null)
-                logs = Deserialize<List<BotError>>(Path.Combine("Data", "Logs.json"));
-
-            return logs;
         }
     }
 
@@ -103,11 +89,6 @@ public class CachedDataContext : IOContext, ICachedDataContext
     public Task SaveRegisteredChatsAsync(List<long> registeredChats)
     {
         return SerializeAsync(registeredChats, Path.Combine("Configuration", "RegisteredChats.json"));
-    }
-
-    public Task SaveLogsAsync()
-    {
-        return SerializeAsync(Logs, Path.Combine("Data", "Logs.json"));
     }
 
     public void CacheUser(User user)
@@ -164,7 +145,6 @@ public class CachedDataContext : IOContext, ICachedDataContext
 
     public void SaveData()
     {
-        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync(), SaveLogsAsync());
-        Tools.WriteColor("[Data saved successfully!]", ConsoleColor.Green, true);
+        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync());
     }
 }

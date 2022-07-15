@@ -15,14 +15,14 @@ public abstract class Pipe<TContext>
 public class PipeBuilder<TContext>
     where TContext : IContext
 {
-    private readonly ILifetimeScope scope;
+    private readonly IServiceProvider provider;
     private readonly Func<TContext, Task> mainAction;
     private readonly List<PipeContainer> pipes;
 
-    public PipeBuilder(Func<TContext, Task> mainAction, ILifetimeScope scope)
+    public PipeBuilder(Func<TContext, Task> mainAction, IServiceProvider provider)
     {
         this.mainAction = mainAction;
-        this.scope = scope;
+        this.provider = provider;
         pipes = new List<PipeContainer>();
     }
 
@@ -41,6 +41,11 @@ public class PipeBuilder<TContext>
             ExecutionFilter = executionFilter
         });
         return this;
+    }
+
+    public IReadOnlyCollection<PipeContainer> GetPipes()
+    {
+        return new List<PipeContainer>(pipes);
     }
 
     public Func<TContext, Task> Build()
@@ -87,7 +92,7 @@ public class PipeBuilder<TContext>
 
         foreach (var param in ctor.GetParameters().Skip(1))
         {
-            parameters.Add(scope.Resolve(param.ParameterType));
+            parameters.Add(provider.GetService(param.ParameterType));
         }
 
         return parameters.ToArray();

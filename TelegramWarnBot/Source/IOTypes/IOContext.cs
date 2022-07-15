@@ -2,7 +2,7 @@
 
 public class IOContext
 {
-    private static readonly string ExecutablePath = AppDomain.CurrentDomain.BaseDirectory;
+    private static readonly string ExecutablePath = Directory.GetCurrentDirectory();
 
     protected T Deserialize<T>(string path)
     {

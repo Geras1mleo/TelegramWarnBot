@@ -3,14 +3,24 @@ Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 
 var cts = new CancellationTokenSource();
 
-var container = DependenciesContainerConfig.Configure();
+var host = AppConfiguration.Build();
 
-using (var scope = container.BeginLifetimeScope())
-{
-    // Makes sure all data is saved when closing console, also cancelling token and breaks all running requests etc..
-    scope.Resolve<ICloseHandler>().Configure(cts);
+var bot = ActivatorUtilities.GetServiceOrCreateInstance<IBot>(host.Services);
 
-    scope.Resolve<IBot>().Start(scope, cts.Token);
+var consoleHandler = ActivatorUtilities.GetServiceOrCreateInstance<IConsoleCommandHandler>(host.Services);
 
-    scope.Resolve<IConsoleCommandHandler>().Start(cts.Token);
-}
+var logger = ActivatorUtilities.GetServiceOrCreateInstance<ILogger<Program>>(host.Services);
+
+var cachedDataContext = ActivatorUtilities.GetServiceOrCreateInstance<ICachedDataContext>(host.Services);
+
+bot.Run(host.Services, cts.Token);
+
+consoleHandler.Start(cts.Token);
+
+await host.RunAsync(cts.Token);
+
+logger.LogInformation("Saving data...");
+
+cachedDataContext.SaveData();
+
+logger.LogInformation("Data saved successfully!");

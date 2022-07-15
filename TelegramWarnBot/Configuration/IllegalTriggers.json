@@ -2,9 +2,9 @@
   {
     "Chat": null,
     "WarnMember": true,
-    "DeleteMessage": true,
-    "IgnoreAdmins": true,
-    "IllegalWords": [ "fuck admin" ],
+    "DeleteMessage": false,
+    "IgnoreAdmins": false,
+    "IllegalWords": [ "good russians" ],
     "NotifiedAdmins": [ 2005661324 ]
   }
 ]
