@@ -9,19 +9,22 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
     private readonly ICommandService commandService;
+    private readonly ILogger<IllegalTriggersHandler> logger;
 
     public IllegalTriggersHandler(Func<UpdateContext, Task> next,
                                   IConfigurationContext configurationContext,
                                   ICachedDataContext cachedDataContext,
                                   IMessageHelper messageHelper,
                                   IResponseHelper responseHelper,
-                                  ICommandService commandService) : base(next)
+                                  ICommandService commandService,
+                                  ILogger<IllegalTriggersHandler> logger) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.messageHelper = messageHelper;
         this.responseHelper = responseHelper;
         this.commandService = commandService;
+        this.logger = logger;
     }
 
     public override async Task<Task> Handle(UpdateContext context)
@@ -62,23 +65,25 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                     var chat = commandService.ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
                     var user = commandService.ResolveWarnedUser(context.Update.Message.From.Id, chat);
 
-                    var banned = await commandService.Warn(user, chat.ChatId, null, !context.IsSenderAdmin, context.Client, context.CancellationToken);
+                    var banned = await commandService.Warn(user, chat.ChatId, trigger.DeleteMessage ? context.Update.Message.MessageId : null,
+                                                          !context.IsSenderAdmin, context.Client, context.CancellationToken);
 
+                    var userName = context.Update.Message.From.GetFullName();
+
+                    if (banned)
+                        logger.LogInformation("[Auto] Banned user {user} from chat {chat}.",
+                            userName, context.ChatDTO.Name);
+                    else
+                        logger.LogInformation("[Auto] Warned user {user} in chat {chat}. Current: {currentWarns} / {maxWarns}",
+                            userName, context.ChatDTO.Name, user.Warnings, configurationContext.Configuration.MaxWarnings);
 
                     await context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
                                                       responseHelper.ResolveResponseVariables(
                                                                         banned ? configurationContext.Configuration.Captions.IllegalTriggerBanned
                                                                                 : configurationContext.Configuration.Captions.IllegalTriggerWarned,
-                                                                        user, context.Update.Message.From.GetFullName()),
+                                                                        user, userName),
                                                                     cancellationToken: context.CancellationToken,
                                                                     parseMode: ParseMode.Markdown);
-                }
-
-                if (trigger.DeleteMessage)
-                {
-                    return context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id,
-                                                             context.Update.Message.MessageId,
-                                                             context.CancellationToken);
                 }
             }
 

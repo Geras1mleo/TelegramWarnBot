@@ -5,7 +5,6 @@ public interface IWarnController
     Task<BotResponse> Unwarn(UpdateContext context);
     Task<BotResponse> Warn(UpdateContext context);
     Task<BotResponse> WCount(UpdateContext context);
-    //Task<BotResponse> Update(UpdateContext context);
 }
 
 public class WarnController : IWarnController
@@ -15,18 +14,21 @@ public class WarnController : IWarnController
     private readonly IChatHelper chatHelper;
     private readonly IResponseHelper responseHelper;
     private readonly ICommandService commandService;
+    private readonly ILogger<WarnController> logger;
 
     public WarnController(IConfigurationContext configurationContext,
                           ICachedDataContext cachedDataContext,
                           IChatHelper chatHelper,
                           IResponseHelper responseHelper,
-                          ICommandService commandService)
+                          ICommandService commandService,
+                          ILogger<WarnController> logger)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.chatHelper = chatHelper;
         this.responseHelper = responseHelper;
         this.commandService = commandService;
+        this.logger = logger;
     }
 
     public async Task<BotResponse> Warn(UpdateContext context)
@@ -37,15 +39,24 @@ public class WarnController : IWarnController
             return new(resolve.AsT1);
 
         var banned = await commandService.Warn(warnedUser,
-                                            context.Update.Message.Chat.Id,
-                                            configurationContext.Configuration.DeleteWarnMessage ? context.Update.Message.MessageId : null,
-                                            !chatHelper.IsAdmin(context.Update.Message.Chat.Id, warnedUser.Id),
-                                            context.Client, context.CancellationToken);
+                                               context.Update.Message.Chat.Id,
+                                               configurationContext.Configuration.DeleteWarnMessage ? context.Update.Message.MessageId : null,
+                                               !chatHelper.IsAdmin(context.Update.Message.Chat.Id, warnedUser.Id),
+                                               context.Client, context.CancellationToken);
+
+        var warnedUserName = commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name;
+
+        if (banned)
+            logger.LogInformation("[Admin] Banned user {user} from chat {chat}.",
+                warnedUserName, context.ChatDTO.Name);
+        else
+            logger.LogInformation("[Admin] Warned user {user} in chat {chat}. Current: {currentWarns} / {maxWarns}",
+                warnedUserName, context.ChatDTO.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
 
         // Notify in chat that user has been warned or banned
         return new(responseHelper.ResolveResponseVariables(banned ? configurationContext.Configuration.Captions.BannedSuccessfully
                                                                   : configurationContext.Configuration.Captions.WarnedSuccessfully,
-                                                           warnedUser, commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name));
+                                                           warnedUser, warnedUserName));
     }
 
     public async Task<BotResponse> Unwarn(UpdateContext context)
@@ -55,10 +66,12 @@ public class WarnController : IWarnController
         if (!resolve.TryPickT0(out var warnedUser, out _))
             return new(resolve.AsT1);
 
+        string unwarnedUsername = commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name;
+
         if (warnedUser.Warnings == 0)
         {
             return new(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.UnwarnUserNoWarnings,
-                                                               warnedUser, commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name));
+                                                               warnedUser, unwarnedUsername));
         }
 
         warnedUser.Warnings--;
@@ -69,7 +82,7 @@ public class WarnController : IWarnController
         await context.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id, warnedUser.Id, onlyIfBanned: true, cancellationToken: context.CancellationToken);
 
         return new(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.UnwarnedSuccessfully,
-                                                           warnedUser, commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.Name));
+                                                           warnedUser, unwarnedUsername));
     }
 
     public Task<BotResponse> WCount(UpdateContext context)
@@ -123,20 +136,4 @@ public class WarnController : IWarnController
         return Task.FromResult(new BotResponse(responseHelper.ResolveResponseVariables(configurationContext.Configuration.Captions.WCountMessage,
                                                                                         user, count)));
     }
-
-    //public async Task<BotResponse> Update(UpdateContext context)
-    //{
-    //    var chat = cachedDataContext.Chats.Find(c => c.Id == context.Update.Message.Chat.Id);
-
-    //    if (chat?.Admins is null)
-    //    {
-    //        cachedDataContext.CacheChat(context.Update.Message.Chat, await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken));
-    //    }
-    //    else
-    //    {
-    //        chat.Admins = await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken);
-    //    }
-
-    //    return new BotResponse("Admins updated successfully!");
-    //}
 }

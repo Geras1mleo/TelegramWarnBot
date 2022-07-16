@@ -22,7 +22,7 @@
     "UnwarnBotAttempt": "😇 What do you mean? My bot's are already holy...",
     "WarnBotSelfAttempt": "🤬 Who did you raise your hand to?!",
     "UnwarnBotSelfAttempt": "😇 Well, I'm already holy...",
-    "IllegalTriggerWarned": "🤖 {warnedUser}, you typed something wrong and received an automatic warning!\n\nCurrent warnings: *{warnedUser.WarnedCount}*",
+    "IllegalTriggerWarned": "🤖 {warnedUser}, you typed something wrong and received an automatic warning!\n\nCurrent warnings: *{warnedUser.WarnedCount} / {configuration.MaxWarnings}*",
     "IllegalTriggerBanned": "🤖 {warnedUser} has been bannen from this chat by an automatic trigger!",
     "WCountMessage": "🤡 {warnedUser} has *{warnedUser.WarnedCount} out of {configuration.MaxWarnings}* warnings",
     "WCountUserHasNoWarnings": "😑 Well, {warnedUser} has no warnings... Yet...",
