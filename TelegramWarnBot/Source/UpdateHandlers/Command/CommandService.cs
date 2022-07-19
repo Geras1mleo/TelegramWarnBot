@@ -1,11 +1,13 @@
-﻿namespace TelegramWarnBot;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace TelegramWarnBot;
 
 public interface ICommandService
 {
     ChatWarnings ResolveChatWarning(long chatId);
     WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning);
-    OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(UpdateContext context);
-    OneOf<WarnedUser, string> ResolveWarnedRoot(UpdateContext context, bool isWarn);
+    ResolveMentionedUserResult TryResolveMentionedUser(UpdateContext context, out UserDTO userDto);
+    public bool TryResolveWarnedUser(UpdateContext context, bool isWarn, [NotNullWhen(true)] out WarnedUser warnedUser, [NotNullWhen(false)] out string errorMessage);
     Task<bool> Warn(WarnedUser warnedUser, long chatId, bool tryBanUser, UpdateContext context);
 }
 
@@ -40,10 +42,10 @@ public class CommandService : ICommandService
         }
 
         // Max warnings reached
+
         if (tryBanUser)
         {
-            await context.Client.BanChatMemberAsync(chatId,
-                                                    warnedUser.Id,
+            await context.Client.BanChatMemberAsync(chatId, warnedUser.Id,
                                                     cancellationToken: context.CancellationToken);
             return true;
         }
@@ -59,20 +61,29 @@ public class CommandService : ICommandService
     /// <param name="update"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public OneOf<WarnedUser, string> ResolveWarnedRoot(UpdateContext context, bool isWarn)
+    public bool TryResolveWarnedUser(UpdateContext context, bool isWarn, [NotNullWhen(true)] out WarnedUser warnedUser, [NotNullWhen(false)] out string errorMessage)
     {
+        warnedUser = null;
+        errorMessage = null;
+
         if (!context.IsSenderAdmin)
-            return configurationContext.Configuration.Captions.UserNoPermissions;
+        {
+            errorMessage = configurationContext.Configuration.Captions.UserNoPermissions;
+            return false;
+        }
 
         if (!context.IsBotAdmin)
-            return configurationContext.Configuration.Captions.BotHasNoPermissions;
+        {
+            errorMessage = configurationContext.Configuration.Captions.BotHasNoPermissions;
+            return false;
+        }
 
-        var resolve = ResolveMentionedUser(context);
+        var resolveUser = TryResolveMentionedUser(context, out UserDTO mentionedUser);
 
         // Didn't find the user => return reason 
-        if (!resolve.TryPickT0(out UserDTO user, out _))
+        if (resolveUser != ResolveMentionedUserResult.Resolved)
         {
-            return resolve.AsT1 switch
+            errorMessage = resolveUser switch
             {
                 ResolveMentionedUserResult.UserNotMentioned => configurationContext.Configuration.Captions.UserNotSpecified,
                 ResolveMentionedUserResult.UserNotFound => configurationContext.Configuration.Captions.UserNotFound,
@@ -82,20 +93,23 @@ public class CommandService : ICommandService
                                                                     : configurationContext.Configuration.Captions.UnwarnBotSelfAttempt,
                 _ => throw new ArgumentException("ResolveMentionedUserResult"),
             };
+            return false;
         }
 
-        var isAdmin = chatHelper.IsAdmin(context.Update.Message.Chat.Id, user.Id);
+        var mentionedUserIsAdmin = chatHelper.IsAdmin(context.Update.Message.Chat.Id, mentionedUser.Id);
 
         // warn/unwarn admin disabled
-        if (isAdmin && !configurationContext.Configuration.AllowAdminWarnings)
+        if (mentionedUserIsAdmin && !configurationContext.Configuration.AllowAdminWarnings)
         {
-            return isWarn ? configurationContext.Configuration.Captions.WarnAdminAttempt
-                          : configurationContext.Configuration.Captions.UnwarnAdminAttempt;
+            errorMessage = isWarn ? configurationContext.Configuration.Captions.WarnAdminAttempt
+                                  : configurationContext.Configuration.Captions.UnwarnAdminAttempt;
+            return false;
         }
 
         var chatWarnings = ResolveChatWarning(context.Update.Message.Chat.Id);
+        warnedUser = ResolveWarnedUser(mentionedUser.Id, chatWarnings);
 
-        return ResolveWarnedUser(user.Id, chatWarnings);
+        return true;
     }
 
     public WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning)
@@ -128,14 +142,14 @@ public class CommandService : ICommandService
         return chatWarning;
     }
 
-    // todo TryResolveMentionedUser
     /// <summary>
-    /// return user or error message that has to be returned
+    /// return user or error message that has to be responded
     /// </summary>
     /// <param name="update"></param>
     /// <returns></returns>
-    public OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(UpdateContext context)
+    public ResolveMentionedUserResult TryResolveMentionedUser(UpdateContext context, out UserDTO userDto)
     {
+        userDto = null;
         User user = null;
 
         if (context.Update.Message.Entities?.Length >= 2)
@@ -143,12 +157,12 @@ public class CommandService : ICommandService
             if (context.Update.Message.Entities[1].Type == MessageEntityType.Mention
              && context.Update.Message?.EntityValues is not null)
             {
-                var mentionedUser = context.Update.Message.EntityValues.ElementAt(1)[1..];
-                var userDto = cachedDataContext.Users.FirstOrDefault(u => u.Username == mentionedUser);
+                var mentionedUsername = context.Update.Message.EntityValues.ElementAt(1)[1..];
+                var mentionedUserDto = cachedDataContext.Users.FirstOrDefault(u => u.Username == mentionedUsername);
 
-                if (userDto is not null)
+                if (mentionedUserDto is not null)
                 {
-                    user = userDto.Map();
+                    user = mentionedUserDto.Map();
                 }
             }
             else if (context.Update.Message.Entities[1].Type == MessageEntityType.TextMention
@@ -188,6 +202,7 @@ public class CommandService : ICommandService
             return ResolveMentionedUserResult.BotMention;
         }
 
-        return user.Map();
+        userDto = user.Map();
+        return ResolveMentionedUserResult.Resolved;
     }
 }

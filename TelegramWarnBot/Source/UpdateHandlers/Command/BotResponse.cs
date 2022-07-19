@@ -2,6 +2,7 @@
 
 public enum ResolveMentionedUserResult
 {
+    Resolved,
     UserNotMentioned,
     UserNotFound,
     BotMention,

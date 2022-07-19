@@ -33,9 +33,7 @@ public class CommandsController : ICommandsController
 
     public async Task<Task> Warn(UpdateContext context)
     {
-        var resolve = commandService.ResolveWarnedRoot(context, true);
-
-        if (!resolve.TryPickT0(out WarnedUser warnedUser, out string errorMessage))
+        if (!commandService.TryResolveWarnedUser(context, true, out WarnedUser warnedUser, out string errorMessage))
         {
             return responseHelper.SendMessageAsync(new()
             {
@@ -77,14 +75,17 @@ public class CommandsController : ICommandsController
 
     public async Task<Task> Unwarn(UpdateContext context)
     {
-        var resolve = commandService.ResolveWarnedRoot(context, false);
-
-        if (!resolve.TryPickT0(out WarnedUser unwarnedUser, out string errorMessage))
+        if (!commandService.TryResolveWarnedUser(context, true, out WarnedUser unwarnedUser, out string errorMessage))
         {
             return responseHelper.SendMessageAsync(new()
             {
                 Message = errorMessage,
             }, context);
+        }
+
+        if (configurationContext.Configuration.DeleteWarnMessage)
+        {
+            await responseHelper.DeleteMessageAsync(context);
         }
 
         if (unwarnedUser.Warnings == 0)
@@ -97,11 +98,6 @@ public class CommandsController : ICommandsController
         }
 
         unwarnedUser.Warnings--;
-
-        if (configurationContext.Configuration.DeleteWarnMessage)
-        {
-            await responseHelper.DeleteMessageAsync(context);
-        }
 
         await context.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id,
                                                   unwarnedUser.Id,
@@ -117,26 +113,17 @@ public class CommandsController : ICommandsController
 
     public Task WCount(UpdateContext context)
     {
-        var chat = commandService.ResolveChatWarning(context.ChatDTO.Id);
+        var resolveUser = commandService.TryResolveMentionedUser(context, out UserDTO mentionedUser);
 
-        var resolveUser = commandService.ResolveMentionedUser(context);
-
-        UserDTO mentionedUser = resolveUser.Match<UserDTO>(
-        userDto => userDto,
-        result =>
+        if (resolveUser == ResolveMentionedUserResult.UserNotMentioned)
         {
-            return result switch
-            {
-                ResolveMentionedUserResult.UserNotMentioned => context.Update.Message.From.Map(),
-                _ => null,
-            };
-        });
-
-        if (mentionedUser is null)
+            mentionedUser = context.Update.Message.From.Map();
+        }
+        else if (resolveUser != ResolveMentionedUserResult.Resolved)
         {
             var response = new ResponseContext
             {
-                Message = resolveUser.AsT1 switch
+                Message = resolveUser switch
                 {
                     ResolveMentionedUserResult.UserNotFound => configurationContext.Configuration.Captions.UserNotFound,
                     ResolveMentionedUserResult.BotMention => configurationContext.Configuration.Captions.WCountBotAttempt,
@@ -149,7 +136,7 @@ public class CommandsController : ICommandsController
 
         if (!configurationContext.Configuration.AllowAdminWarnings)
         {
-            var mentionedUserIsAdmin = chatHelper.IsAdmin(chat.ChatId, mentionedUser.Id);
+            var mentionedUserIsAdmin = chatHelper.IsAdmin(context.ChatDTO.Id, mentionedUser.Id);
             if (mentionedUserIsAdmin)
             {
                 return responseHelper.SendMessageAsync(new ResponseContext()
@@ -159,7 +146,7 @@ public class CommandsController : ICommandsController
             }
         }
 
-        var warningsCount = cachedDataContext.Warnings.Find(c => c.ChatId == chat.ChatId)?
+        var warningsCount = cachedDataContext.Warnings.Find(c => c.ChatId == context.ChatDTO.Id)?
                                              .WarnedUsers.Find(u => u.Id == mentionedUser.Id)?.Warnings ?? 0;
 
         if (warningsCount == 0)
