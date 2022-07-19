@@ -85,7 +85,7 @@ public class Bot : IBot
         var chatId = update.GetChat().Id;
 
         var chatDto = cachedContext.Chats.Find(c => c.Id == chatId);
-
+        
         var fromUser = update.GetFromUser();
 
         var context = new UpdateContext
@@ -98,9 +98,12 @@ public class Bot : IBot
             IsMessageUpdate = update.Type == UpdateType.Message,
             IsText = update.Message?.Text is not null,
             IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
-                        (update.Message.Type == MessageType.ChatMembersAdded || update.Message.Type == MessageType.ChatMemberLeft),
-            IsAdminsUpdate = (update.Type == UpdateType.ChatMember || update.Type == UpdateType.MyChatMember)
-                     && (update.GetOldMember().Status == ChatMemberStatus.Administrator || update.GetNewMember().Status == ChatMemberStatus.Administrator),
+                                    (update.Message.Type == MessageType.ChatMembersAdded
+                                  || update.Message.Type == MessageType.ChatMemberLeft),
+            IsAdminsUpdate = (update.Type == UpdateType.ChatMember
+                            || update.Type == UpdateType.MyChatMember)
+                          && (update.GetOldMember().Status == ChatMemberStatus.Administrator
+                            || update.GetNewMember().Status == ChatMemberStatus.Administrator),
             IsChatRegistered = chatHelper.IsChatRegistered(chatId),
             IsBotAdmin = chatDto?.Admins.Any(a => a == User.Id) ?? false,
             IsSenderAdmin = chatDto?.Admins.Any(a => a == fromUser.Id) ?? false,

@@ -47,9 +47,7 @@ public class ResponseHelper : IResponseHelper
             configurationContext.Configuration
         };
 
-        var a = formatter.Format(responseContext.Message, arguments);
-
-        return a;
+        return formatter.Format(responseContext.Message, arguments);
     }
 
     private MentionedUserDTO GetUserObject(long chatId, long? userId)

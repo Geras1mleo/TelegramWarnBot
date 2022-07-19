@@ -71,7 +71,7 @@ public class CommandsController : ICommandsController
             logger.LogInformation("[Admin] Banned user {user} from chat {chat}.",
                                    userName, chat.Name);
         else
-            logger.LogInformation("[Admin] Warned user {user} in chat {chat}. Current: {currentWarns} / {maxWarns}",
+            logger.LogInformation("[Admin] Warned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
                                    userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
     }
 

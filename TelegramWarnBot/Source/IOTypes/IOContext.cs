@@ -12,7 +12,7 @@ public abstract class IOContext
     protected T Deserialize<T>(string path)
     {
         var text = System.IO.File.ReadAllText(Path.Combine(hostEnvironment.ContentRootPath, path));
-        return JsonConvert.DeserializeObject<T>(text) ?? throw new Exception($"U fucker changed {path} file...");
+        return JsonConvert.DeserializeObject<T>(text) ?? throw new Exception($"Something went wrong with file {path}");
     }
 
     protected Task SerializeAsync(object value, string path)

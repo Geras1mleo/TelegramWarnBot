@@ -101,7 +101,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             logger.LogInformation("[Auto] Banned user {user} from chat {chat}.",
                                    userName, chat.Name);
         else
-            logger.LogInformation("[Auto] Warned user {user} in chat {chat}. Current: {currentWarns} / {maxWarns}",
+            logger.LogInformation("[Auto] Warned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
                                    userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
     }
 }
