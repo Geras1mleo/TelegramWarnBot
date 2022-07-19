@@ -96,21 +96,26 @@ public static class Extensions
     {
         builder.ConfigureServices(services =>
         {
-            services.AddSingleton(
-                Smart.CreateDefaultSmartFormat(new SmartSettings
+            var formatter = Smart.CreateDefaultSmartFormat(new SmartSettings
+            {
+                CaseSensitivity = CaseSensitivityType.CaseInsensitive,
+                Formatter = new FormatterSettings
                 {
-                    CaseSensitivity = CaseSensitivityType.CaseInsensitive,
-                    Formatter = new FormatterSettings
-                    {
-                        ErrorAction = FormatErrorAction.Ignore,
-                    },
-                    Parser = new ParserSettings
-                    {
-                        ErrorAction = ParseErrorAction.Ignore,
-                    },
+                    ErrorAction = FormatErrorAction.Ignore,
+                },
+                Parser = new ParserSettings
+                {
+                    ErrorAction = ParseErrorAction.Ignore,
+                },
+            });
 
-                }));
-        }); // todo on error
+            formatter.OnFormattingFailure += (sender, e) =>
+            {
+                Log.Error("Variable {placeholder} could not be formatted on index {index}", e.Placeholder, e.ErrorIndex);
+            };
+
+            services.AddSingleton(formatter);
+        });
 
         return builder;
     }
