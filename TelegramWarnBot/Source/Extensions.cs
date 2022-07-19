@@ -65,8 +65,53 @@ public static class Extensions
         return parts.Length > 0 && parts[0].StartsWith('/');
     }
 
-    public static string GetFullName(this User user)
+    public static string GetName(this User user)
     {
-        return (user.FirstName + " " + user.LastName).Trim();
+        return $"{user.FirstName}{user.LastName?.Insert(0, " ")}";
+    }
+
+    public static UserDTO Map(this User user)
+    {
+        return new()
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Username = user.Username,
+        };
+    }
+
+    public static User Map(this UserDTO user)
+    {
+        return new()
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Username = user.Username,
+        };
+    }
+
+    public static IHostBuilder UseSmartFormatter(this IHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            services.AddSingleton(
+                Smart.CreateDefaultSmartFormat(new SmartSettings
+                {
+                    CaseSensitivity = CaseSensitivityType.CaseInsensitive,
+                    Formatter = new FormatterSettings
+                    {
+                        ErrorAction = FormatErrorAction.Ignore,
+                    },
+                    Parser = new ParserSettings
+                    {
+                        ErrorAction = ParseErrorAction.Ignore,
+                    },
+
+                }));
+        });
+
+        return builder;
     }
 }

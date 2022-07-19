@@ -40,10 +40,10 @@ public class Bot : IBot
         cachedContext.CacheUser(User);
         cachedContext.BeginUpdate(configContext.Configuration.UpdateDelay, cancellationToken);
 
-        logger.LogInformation("Bot {botName} running.", User.GetFullName());
+        logger.LogInformation("Bot {botName} running.", User.FirstName);
         logger.LogInformation("Version: {version}", Assembly.GetEntryAssembly().GetName().Version);
 
-        Console.Title = User.GetFullName();
+        Console.Title = User.FirstName;
     }
 
     private void StartReceiving(IServiceProvider provider, CancellationToken cancellationToken)

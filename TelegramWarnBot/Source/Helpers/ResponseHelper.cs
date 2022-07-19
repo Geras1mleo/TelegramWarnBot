@@ -2,38 +2,58 @@
 
 public interface IResponseHelper
 {
-    string ResolveResponseVariables(string response, UserDTO user, int warnedCount);
-    string ResolveResponseVariables(string response, WarnedUser user, string defaultName = "Not Found");
+    string ResolveResponseVariables(UpdateContext context, string response, long? mentionedUserId);
 }
 
 public class ResponseHelper : IResponseHelper
 {
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly SmartFormatter formatter;
 
     public ResponseHelper(IConfigurationContext configurationContext,
-                          ICachedDataContext cachedDataContext)
+                          ICachedDataContext cachedDataContext,
+                          SmartFormatter formatter)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
+        this.formatter = formatter;
     }
 
-    public string ResolveResponseVariables(string response, WarnedUser user, string defaultName = "Not Found")
+    public string ResolveResponseVariables(UpdateContext context, string response, long? mentionedUserId)
     {
-        return response.Replace("{warnedUser.WarnedCount}", user.Warnings.ToString())
-                       .Replace("{warnedUser}", GetMentionString(cachedDataContext.Users.Find(u => u.Id == user.Id)?.Name ?? defaultName, user.Id))
-                       .Replace("{configuration.MaxWarnings}", (configurationContext.Configuration.MaxWarnings).ToString());
+        var obj = new
+        {
+            SenderUser = GetUserObject(context, context.Update.Message.From.Id),
+            MentionedUser = GetUserObject(context, mentionedUserId),
+            configurationContext.Configuration
+        };
+
+        var a = formatter.Format(response, obj);
+
+        return a;
     }
 
-    public string ResolveResponseVariables(string response, UserDTO user, int warnedCount)
+    public MentionedUserDTO GetUserObject(UpdateContext context, long? userId)
     {
-        return response.Replace("{warnedUser.WarnedCount}", warnedCount.ToString())
-                       .Replace("{warnedUser}", GetMentionString(user.Name, user.Id))
-                       .Replace("{configuration.MaxWarnings}", (configurationContext.Configuration.MaxWarnings).ToString());
-    }
+        if (userId is null)
+            return null;
 
-    public static string GetMentionString(string caption, long id)
-    {
-        return $"[{caption}](tg://user?id={id})";
+        UserDTO user = cachedDataContext.Users.Find(u => u.Id == userId);
+
+        if (user is null)
+            return null;
+
+        WarnedUser warnedUser = cachedDataContext.Warnings.Find(c => c.ChatId == context.ChatDTO.Id)?
+                                                 .WarnedUsers.Find(u => u.Id == userId);
+
+        return new()
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Username = user.Username,
+            Warnings = warnedUser?.Warnings
+        };
     }
 }

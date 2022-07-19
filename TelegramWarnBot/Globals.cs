@@ -15,6 +15,8 @@ global using Telegram.Bot.Types.Enums;
 
 global using Newtonsoft.Json;
 global using OneOf;
+global using SmartFormat;
+global using SmartFormat.Core.Settings;
 
 global using Serilog;
 global using Serilog.Formatting.Json;

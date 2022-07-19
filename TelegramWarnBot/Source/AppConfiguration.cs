@@ -23,6 +23,7 @@ public static class AppConfiguration
             })
             .ConfigureServices(ConfigureServices)
             .UseConsoleLifetime()
+            .UseSmartFormatter()
             .UseSerilog()
             .Build();
 

@@ -214,9 +214,9 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
             catch (Exception) { }
         }
 
-        WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow, true);
-
         Task.WhenAll(tasks).GetAwaiter().GetResult();
+
+        WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow, true);
 
         return Task.FromResult(true);
     }
@@ -237,7 +237,7 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
 
                 foreach (var admin in chat.Admins)
                 {
-                    userName = cachedDataContext.Users.Find(u => u.Id == admin)?.Name ?? $"Not found - {admin}";
+                    userName = cachedDataContext.Users.Find(u => u.Id == admin)?.GetName() ?? $"Not found - {admin}";
 
                     WriteColor($"\t\t[{userName}]", ConsoleColor.DarkMagenta, false);
                 }
@@ -269,7 +269,7 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
 
                 foreach (var user in warning.WarnedUsers)
                 {
-                    userName = cachedDataContext.Users.Find(u => u.Id == user.Id)?.Name ?? $"Not found - {user.Id}";
+                    userName = cachedDataContext.Users.Find(u => u.Id == user.Id)?.GetName() ?? $"Not found - {user.Id}";
 
                     WriteColor($"\t\t[{userName}] - [{user.Warnings}]", ConsoleColor.DarkMagenta, false);
                 }

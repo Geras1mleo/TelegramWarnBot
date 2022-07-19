@@ -2,7 +2,7 @@
 
 public interface ICommandService
 {
-    ChatWarnings ResolveChatWarning(long chatId, List<ChatWarnings> warnings);
+    ChatWarnings ResolveChatWarning(long chatId);
     OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(Update update, User bot);
     OneOf<WarnedUser, string> ResolveWarnedRoot(UpdateContext context, bool isWarn);
     WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning);
@@ -93,7 +93,7 @@ public class CommandService : ICommandService
                           : configurationContext.Configuration.Captions.UnwarnAdminAttempt;
         }
 
-        var chat = ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
+        var chat = ResolveChatWarning(context.Update.Message.Chat.Id);
 
         return ResolveWarnedUser(user.Id, chat);
     }
@@ -113,9 +113,9 @@ public class CommandService : ICommandService
         return warnedUser;
     }
 
-    public ChatWarnings ResolveChatWarning(long chatId, List<ChatWarnings> warnings)
+    public ChatWarnings ResolveChatWarning(long chatId)
     {
-        var chat = warnings.FirstOrDefault(c => c.ChatId == chatId);
+        var chat = cachedDataContext.Warnings.FirstOrDefault(c => c.ChatId == chatId);
         if (chat is null)
         {
             chat = new()
@@ -123,7 +123,7 @@ public class CommandService : ICommandService
                 ChatId = chatId,
                 WarnedUsers = new List<WarnedUser>()
             };
-            warnings.Add(chat);
+            cachedDataContext.Warnings.Add(chat);
         }
         return chat;
     }
@@ -142,17 +142,12 @@ public class CommandService : ICommandService
             if (update.Message.Entities[1].Type == MessageEntityType.Mention
              && update.Message?.EntityValues is not null)
             {
-                var mentionedUser = update.Message.EntityValues.ElementAt(1)[1..].ToLower();
+                var mentionedUser = update.Message.EntityValues.ElementAt(1)[1..];
                 var userDto = cachedDataContext.Users.FirstOrDefault(u => u.Username == mentionedUser);
 
                 if (userDto is not null)
                 {
-                    user = new()
-                    {
-                        Id = userDto.Id,
-                        FirstName = userDto.Name,
-                        Username = userDto.Username,
-                    };
+                    user = userDto.Map();
                 }
             }
             else if (update.Message.Entities[1].Type == MessageEntityType.TextMention
@@ -192,11 +187,6 @@ public class CommandService : ICommandService
             return ResolveMentionedUserResult.BotMention;
         }
 
-        return new UserDTO()
-        {
-            Id = user.Id,
-            Name = user.GetFullName(),
-            Username = user.Username,
-        };
+        return user.Map();
     }
 }

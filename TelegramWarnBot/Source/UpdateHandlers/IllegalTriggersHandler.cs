@@ -46,7 +46,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             {
                 await context.Client.SendTextMessageAsync(adminId,
                                                   $"*Illegal message detected!*\nChat: *{context.Update.Message.Chat.Title}*" +
-                                                  $"\nFrom: *{context.Update.Message.From?.GetFullName()}*" +
+                                                  $"\nFrom: *{context.Update.Message.From?.GetName()}*" +
                                                   $"\nSent: {context.Update.Message.Date}" +
                                                   $"\nContent:",
                                                   cancellationToken: context.CancellationToken,
@@ -62,13 +62,13 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             {
                 if (trigger.WarnMember)
                 {
-                    var chat = commandService.ResolveChatWarning(context.Update.Message.Chat.Id, cachedDataContext.Warnings);
+                    var chat = commandService.ResolveChatWarning(context.Update.Message.Chat.Id);
                     var user = commandService.ResolveWarnedUser(context.Update.Message.From.Id, chat);
 
                     var banned = await commandService.Warn(user, chat.ChatId, trigger.DeleteMessage ? context.Update.Message.MessageId : null,
                                                           !context.IsSenderAdmin, context.Client, context.CancellationToken);
 
-                    var userName = context.Update.Message.From.GetFullName();
+                    var userName = context.Update.Message.From.GetName();
 
                     if (banned)
                         logger.LogInformation("[Auto] Banned user {user} from chat {chat}.",
@@ -78,10 +78,10 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                             userName, context.ChatDTO.Name, user.Warnings, configurationContext.Configuration.MaxWarnings);
 
                     await context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
-                                                      responseHelper.ResolveResponseVariables(
+                                                      responseHelper.ResolveResponseVariables(context,
                                                                         banned ? configurationContext.Configuration.Captions.IllegalTriggerBanned
                                                                                 : configurationContext.Configuration.Captions.IllegalTriggerWarned,
-                                                                        user, userName),
+                                                                        user.Id),
                                                                     cancellationToken: context.CancellationToken,
                                                                     parseMode: ParseMode.Markdown);
                 }

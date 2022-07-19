@@ -1,6 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
-public class IOContext
+public abstract class IOContext
 {
     private readonly IHostEnvironment hostEnvironment;
 

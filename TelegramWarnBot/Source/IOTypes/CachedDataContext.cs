@@ -99,19 +99,16 @@ public class CachedDataContext : IOContext, ICachedDataContext
         var userDto = Users.FirstOrDefault(u => u.Id == user.Id);
         if (userDto is null)
         {
-            userDto = new()
-            {
-                Id = user.Id,
-                Username = user.Username?.ToLower(),
-                Name = user.GetFullName(),
-            };
+            userDto = user.Map();
             Users.Add(userDto);
         }
-        else if (userDto.Username != user.Username?.ToLower()
-              || userDto.Name != user.GetFullName())
+        else if (userDto.Username != user.Username
+              || userDto.FirstName != user.FirstName
+              || userDto.LastName != user.LastName)
         {
-            userDto.Username = user.Username?.ToLower();
-            userDto.Name = user.GetFullName();
+            userDto.Username = user.Username;
+            userDto.FirstName = user.FirstName;
+            userDto.LastName = user.LastName;
         }
     }
 
