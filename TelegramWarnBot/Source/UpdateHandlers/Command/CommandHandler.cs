@@ -4,12 +4,12 @@
 public class CommandHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
-    private readonly IWarnController warnController;
+    private readonly ICommandsController warnController;
     private readonly IResponseHelper responseHelper;
 
     public CommandHandler(Func<UpdateContext, Task> next,
                           IConfigurationContext configurationContext,
-                          IWarnController warnController,
+                          ICommandsController warnController,
                           IResponseHelper responseHelper) : base(next)
     {
         this.configurationContext = configurationContext;

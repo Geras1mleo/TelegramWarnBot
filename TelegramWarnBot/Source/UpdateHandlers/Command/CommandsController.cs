@@ -1,13 +1,13 @@
 ﻿namespace TelegramWarnBot;
 
-public interface IWarnController
+public interface ICommandsController
 {
     Task<Task> Unwarn(UpdateContext context);
     Task<Task> Warn(UpdateContext context);
     Task WCount(UpdateContext context);
 }
 
-public class CommandsController : IWarnController
+public class CommandsController : ICommandsController
 {
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
