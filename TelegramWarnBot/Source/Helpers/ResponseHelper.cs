@@ -2,7 +2,9 @@
 
 public interface IResponseHelper
 {
-    string ResolveResponseVariables(UpdateContext context, string response, long? mentionedUserId);
+    string FormatResponseVariables(ResponseContext responseContext, UpdateContext updateContext);
+    Task DeleteMessageAsync(UpdateContext context);
+    Task SendMessageAsync(ResponseContext responseContext, UpdateContext updateContext, int? replyToMessageId = null);
 }
 
 public class ResponseHelper : IResponseHelper
@@ -20,21 +22,37 @@ public class ResponseHelper : IResponseHelper
         this.formatter = formatter;
     }
 
-    public string ResolveResponseVariables(UpdateContext context, string response, long? mentionedUserId)
+    public Task SendMessageAsync(ResponseContext responseContext, UpdateContext updateContext, int? replyToMessageId = null)
     {
-        var obj = new
+        return updateContext.Client.SendTextMessageAsync(updateContext.ChatDTO.Id,
+                                                         FormatResponseVariables(responseContext, updateContext),
+                                                         replyToMessageId: replyToMessageId,
+                                                         parseMode: ParseMode.Markdown,
+                                                         cancellationToken: updateContext.CancellationToken);
+    }
+
+    public Task DeleteMessageAsync(UpdateContext context)
+    {
+        return context.Client.DeleteMessageAsync(context.ChatDTO.Id,
+                                                 context.Update.Message.MessageId,
+                                                 context.CancellationToken);
+    }
+
+    public string FormatResponseVariables(ResponseContext responseContext, UpdateContext updateContext)
+    {
+        var arguments = new
         {
-            SenderUser = GetUserObject(context, context.Update.Message.From.Id),
-            MentionedUser = GetUserObject(context, mentionedUserId),
+            SenderUser = GetUserObject(updateContext.ChatDTO.Id, updateContext.Update.Message.From.Id),
+            MentionedUser = GetUserObject(updateContext.ChatDTO.Id, responseContext.MentionedUserId),
             configurationContext.Configuration
         };
 
-        var a = formatter.Format(response, obj);
+        var a = formatter.Format(responseContext.Message, arguments);
 
         return a;
     }
 
-    public MentionedUserDTO GetUserObject(UpdateContext context, long? userId)
+    private MentionedUserDTO GetUserObject(long chatId, long? userId)
     {
         if (userId is null)
             return null;
@@ -44,7 +62,7 @@ public class ResponseHelper : IResponseHelper
         if (user is null)
             return null;
 
-        WarnedUser warnedUser = cachedDataContext.Warnings.Find(c => c.ChatId == context.ChatDTO.Id)?
+        WarnedUser warnedUser = cachedDataContext.Warnings.Find(c => c.ChatId == chatId)?
                                                  .WarnedUsers.Find(u => u.Id == userId);
 
         return new()

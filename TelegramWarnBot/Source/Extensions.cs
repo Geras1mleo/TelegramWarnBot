@@ -110,7 +110,7 @@ public static class Extensions
                     },
 
                 }));
-        });
+        }); // todo on error
 
         return builder;
     }

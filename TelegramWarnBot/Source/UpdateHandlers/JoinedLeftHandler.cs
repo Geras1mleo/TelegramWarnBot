@@ -5,15 +5,18 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
+    private readonly IResponseHelper responseHelper;
 
     public JoinedLeftHandler(Func<UpdateContext, Task> next,
                              IConfigurationContext configurationContext,
                              ICachedDataContext cachedDataContext,
-                             IChatHelper chatHelper) : base(next)
+                             IChatHelper chatHelper,
+                             IResponseHelper responseHelper) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.chatHelper = chatHelper;
+        this.responseHelper = responseHelper;
     }
 
     public override async Task<Task> Handle(UpdateContext context)
@@ -24,11 +27,12 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
             {
                 cachedDataContext.CacheChat(context.Update.Message.Chat,
-                                           (await chatHelper.GetAdminsAsync(context.Client, context.Update.Message.Chat.Id, context.CancellationToken)).ToList());
+                                            (await chatHelper.GetAdminsAsync(context)).ToList());
 
-                return context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
-                          configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
-                          cancellationToken: context.CancellationToken, parseMode: ParseMode.Markdown);
+                return responseHelper.SendMessageAsync(new()
+                {
+                    Message = configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
+                }, context);
             }
 
             return HandleJoinedAsync(context);
@@ -58,9 +62,9 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
         if (configurationContext.Configuration.DeleteJoinedLeftMessage)
         {
             if (context.IsBotAdmin)
-                await context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id,
-                                                         context.Update.Message.MessageId,
-                                                         context.CancellationToken);
+            {
+                await responseHelper.DeleteMessageAsync(context);
+            }
         }
 
         foreach (var member in context.Update.Message.NewChatMembers)
@@ -86,9 +90,9 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
         else if (configurationContext.Configuration.DeleteJoinedLeftMessage)
         {
             if (context.IsBotAdmin)
-                return context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id,
-                                                         context.Update.Message.MessageId,
-                                                         context.CancellationToken);
+            {
+                return responseHelper.DeleteMessageAsync(context);
+            }
         }
 
         return Task.CompletedTask;

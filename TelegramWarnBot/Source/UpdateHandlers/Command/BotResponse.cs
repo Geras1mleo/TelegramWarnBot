@@ -8,12 +8,8 @@ public enum ResolveMentionedUserResult
     BotSelfMention,
 }
 
-public class BotResponse
+public class ResponseContext
 {
-    public string Data { get; }
-
-    public BotResponse(string data)
-    {
-        Data = data;
-    }
+    public string Message { get; set; }
+    public long? MentionedUserId { get; set; }
 }

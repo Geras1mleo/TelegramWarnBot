@@ -3,10 +3,10 @@
 public interface ICommandService
 {
     ChatWarnings ResolveChatWarning(long chatId);
-    OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(Update update, User bot);
-    OneOf<WarnedUser, string> ResolveWarnedRoot(UpdateContext context, bool isWarn);
     WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning);
-    Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, bool tryBanUser, ITelegramBotClient client, CancellationToken cancellationToken);
+    OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(UpdateContext context);
+    OneOf<WarnedUser, string> ResolveWarnedRoot(UpdateContext context, bool isWarn);
+    Task<bool> Warn(WarnedUser warnedUser, long chatId, bool tryBanUser, UpdateContext context);
 }
 
 public class CommandService : ICommandService
@@ -28,12 +28,10 @@ public class CommandService : ICommandService
     /// WarnedUser should not be an admin
     /// </summary>
     /// <returns>Whether user is banned from chat</returns>
-    public async Task<bool> Warn(WarnedUser warnedUser, long chatId, int? deleteMessageId, bool tryBanUser, ITelegramBotClient client, CancellationToken cancellationToken)
+    public async Task<bool> Warn(WarnedUser warnedUser, long chatId, bool tryBanUser, UpdateContext context)
     {
-        warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0, configurationContext.Configuration.MaxWarnings);
-
-        if (deleteMessageId is not null)
-            await client.DeleteMessageAsync(chatId, deleteMessageId.Value, cancellationToken);
+        warnedUser.Warnings = Math.Clamp(warnedUser.Warnings + 1, 0,
+                                         configurationContext.Configuration.MaxWarnings);
 
         // If not reached max warnings 
         if (warnedUser.Warnings < configurationContext.Configuration.MaxWarnings)
@@ -44,7 +42,9 @@ public class CommandService : ICommandService
         // Max warnings reached
         if (tryBanUser)
         {
-            await client.BanChatMemberAsync(chatId, warnedUser.Id, cancellationToken: cancellationToken);
+            await context.Client.BanChatMemberAsync(chatId,
+                                                    warnedUser.Id,
+                                                    cancellationToken: context.CancellationToken);
             return true;
         }
 
@@ -67,7 +67,7 @@ public class CommandService : ICommandService
         if (!context.IsBotAdmin)
             return configurationContext.Configuration.Captions.BotHasNoPermissions;
 
-        var resolve = ResolveMentionedUser(context.Update, context.Bot);
+        var resolve = ResolveMentionedUser(context);
 
         // Didn't find the user => return reason 
         if (!resolve.TryPickT0(out UserDTO user, out _))
@@ -93,9 +93,9 @@ public class CommandService : ICommandService
                           : configurationContext.Configuration.Captions.UnwarnAdminAttempt;
         }
 
-        var chat = ResolveChatWarning(context.Update.Message.Chat.Id);
+        var chatWarnings = ResolveChatWarning(context.Update.Message.Chat.Id);
 
-        return ResolveWarnedUser(user.Id, chat);
+        return ResolveWarnedUser(user.Id, chatWarnings);
     }
 
     public WarnedUser ResolveWarnedUser(long userId, ChatWarnings chatWarning)
@@ -115,34 +115,35 @@ public class CommandService : ICommandService
 
     public ChatWarnings ResolveChatWarning(long chatId)
     {
-        var chat = cachedDataContext.Warnings.FirstOrDefault(c => c.ChatId == chatId);
-        if (chat is null)
+        var chatWarning = cachedDataContext.Warnings.FirstOrDefault(c => c.ChatId == chatId);
+        if (chatWarning is null)
         {
-            chat = new()
+            chatWarning = new()
             {
                 ChatId = chatId,
                 WarnedUsers = new List<WarnedUser>()
             };
-            cachedDataContext.Warnings.Add(chat);
+            cachedDataContext.Warnings.Add(chatWarning);
         }
-        return chat;
+        return chatWarning;
     }
 
+    // todo TryResolveMentionedUser
     /// <summary>
     /// return user or error message that has to be returned
     /// </summary>
     /// <param name="update"></param>
     /// <returns></returns>
-    public OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(Update update, User bot)
+    public OneOf<UserDTO, ResolveMentionedUserResult> ResolveMentionedUser(UpdateContext context)
     {
         User user = null;
 
-        if (update.Message.Entities?.Length >= 2)
+        if (context.Update.Message.Entities?.Length >= 2)
         {
-            if (update.Message.Entities[1].Type == MessageEntityType.Mention
-             && update.Message?.EntityValues is not null)
+            if (context.Update.Message.Entities[1].Type == MessageEntityType.Mention
+             && context.Update.Message?.EntityValues is not null)
             {
-                var mentionedUser = update.Message.EntityValues.ElementAt(1)[1..];
+                var mentionedUser = context.Update.Message.EntityValues.ElementAt(1)[1..];
                 var userDto = cachedDataContext.Users.FirstOrDefault(u => u.Username == mentionedUser);
 
                 if (userDto is not null)
@@ -150,19 +151,19 @@ public class CommandService : ICommandService
                     user = userDto.Map();
                 }
             }
-            else if (update.Message.Entities[1].Type == MessageEntityType.TextMention
-                  && update.Message.Entities[1].User is not null)
+            else if (context.Update.Message.Entities[1].Type == MessageEntityType.TextMention
+                  && context.Update.Message.Entities[1].User is not null)
             {
-                user = update.Message.Entities[1].User;
+                user = context.Update.Message.Entities[1].User;
             }
             // Second entity must be a mention
             else
                 return ResolveMentionedUserResult.UserNotMentioned;
         }
         // If didn't mention user in message => look into replied message
-        else if (update.Message.ReplyToMessage?.From is not null)
+        else if (context.Update.Message.ReplyToMessage?.From is not null)
         {
-            user = update.Message.ReplyToMessage?.From;
+            user = context.Update.Message.ReplyToMessage?.From;
         }
         // Didn't mention and didn't replied
         else
@@ -176,7 +177,7 @@ public class CommandService : ICommandService
         }
 
         // Mentioned bot itself
-        if (user.Id == bot.Id)
+        if (user.Id == context.Bot.Id)
         {
             return ResolveMentionedUserResult.BotSelfMention;
         }

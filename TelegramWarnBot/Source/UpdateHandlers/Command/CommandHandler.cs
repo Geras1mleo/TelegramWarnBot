@@ -5,13 +5,16 @@ public class CommandHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
     private readonly IWarnController warnController;
+    private readonly IResponseHelper responseHelper;
 
     public CommandHandler(Func<UpdateContext, Task> next,
                           IConfigurationContext configurationContext,
-                          IWarnController warnController) : base(next)
+                          IWarnController warnController,
+                          IResponseHelper responseHelper) : base(next)
     {
         this.configurationContext = configurationContext;
         this.warnController = warnController;
+        this.responseHelper = responseHelper;
     }
 
     public override async Task<Task> Handle(UpdateContext context)
@@ -22,25 +25,13 @@ public class CommandHandler : Pipe<UpdateContext>
         {
             if (!context.IsChatRegistered)
             {
-                return context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
-                                                           configurationContext.Configuration.Captions.ChatNotRegistered,
-                                                           cancellationToken: context.CancellationToken,
-                                                           parseMode: ParseMode.Markdown);
+                return responseHelper.SendMessageAsync(new()
+                {
+                    Message = configurationContext.Configuration.Captions.ChatNotRegistered
+                }, context);
             }
 
-            BotResponse response = ((Task<BotResponse>)(method.Invoke(warnController, new object[] { context })))
-                                            .GetAwaiter()
-                                            .GetResult();
-
-            // If response provided
-            if (response is not null)
-            {
-                await context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
-                                                        response.Data,
-                                                        cancellationToken: context.CancellationToken,
-                                                        parseMode: ParseMode.Markdown);
-
-            }
+            await (Task<Task>)method.Invoke(warnController, new object[] { context });
         }
 
         return next(context);

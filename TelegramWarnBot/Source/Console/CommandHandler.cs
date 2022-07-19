@@ -207,7 +207,10 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
             {
                 if (chats[i].Id != 0)
                 {
-                    tasks.Add(client.SendTextMessageAsync(chats[i].Id, message, cancellationToken: cancellationToken, parseMode: ParseMode.Markdown));
+                    tasks.Add(client.SendTextMessageAsync(chats[i].Id,
+                                                          message,
+                                                          cancellationToken: cancellationToken,
+                                                          parseMode: ParseMode.Markdown));
                     sentCount++;
                 }
             }

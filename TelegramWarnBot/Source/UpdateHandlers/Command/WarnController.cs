@@ -2,26 +2,26 @@
 
 public interface IWarnController
 {
-    Task<BotResponse> Unwarn(UpdateContext context);
-    Task<BotResponse> Warn(UpdateContext context);
-    Task<BotResponse> WCount(UpdateContext context);
+    Task<Task> Unwarn(UpdateContext context);
+    Task<Task> Warn(UpdateContext context);
+    Task WCount(UpdateContext context);
 }
 
-public class WarnController : IWarnController
+public class CommandsController : IWarnController
 {
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
     private readonly IResponseHelper responseHelper;
     private readonly ICommandService commandService;
-    private readonly ILogger<WarnController> logger;
+    private readonly ILogger<CommandsController> logger;
 
-    public WarnController(IConfigurationContext configurationContext,
+    public CommandsController(IConfigurationContext configurationContext,
                           ICachedDataContext cachedDataContext,
                           IChatHelper chatHelper,
                           IResponseHelper responseHelper,
                           ICommandService commandService,
-                          ILogger<WarnController> logger)
+                          ILogger<CommandsController> logger)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
@@ -31,67 +31,97 @@ public class WarnController : IWarnController
         this.logger = logger;
     }
 
-    public async Task<BotResponse> Warn(UpdateContext context)
+    public async Task<Task> Warn(UpdateContext context)
     {
         var resolve = commandService.ResolveWarnedRoot(context, true);
 
-        if (!resolve.TryPickT0(out WarnedUser warnedUser, out _))
-            return new(resolve.AsT1);
+        if (!resolve.TryPickT0(out WarnedUser warnedUser, out string errorMessage))
+        {
+            return responseHelper.SendMessageAsync(new()
+            {
+                Message = errorMessage,
+            }, context);
+        }
 
-        var banned = await commandService.Warn(warnedUser,
-                                               context.Update.Message.Chat.Id,
-                                               configurationContext.Configuration.DeleteWarnMessage ? context.Update.Message.MessageId : null,
+        var banned = await commandService.Warn(warnedUser, context.ChatDTO.Id,
                                                !chatHelper.IsAdmin(context.Update.Message.Chat.Id, warnedUser.Id),
-                                               context.Client, context.CancellationToken);
+                                               context);
 
-        var warnedUserName = commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.GetName();
+        if (configurationContext.Configuration.DeleteWarnMessage)
+        {
+            await responseHelper.DeleteMessageAsync(context);
+        }
+
+        LogWarned(banned, context.ChatDTO, warnedUser);
+
+        // Notify in chat that user has been warned or banned
+        return responseHelper.SendMessageAsync(new()
+        {
+            Message = banned ? configurationContext.Configuration.Captions.BannedSuccessfully
+                             : configurationContext.Configuration.Captions.WarnedSuccessfully,
+            MentionedUserId = warnedUser.Id
+        }, context);
+    }
+
+    private void LogWarned(bool banned, ChatDTO chat, WarnedUser warnedUser)
+    {
+        var userName = cachedDataContext.Users.Find(u => u.Id == warnedUser.Id).GetName();
 
         if (banned)
             logger.LogInformation("[Admin] Banned user {user} from chat {chat}.",
-                warnedUserName, context.ChatDTO.Name);
+                                   userName, chat.Name);
         else
             logger.LogInformation("[Admin] Warned user {user} in chat {chat}. Current: {currentWarns} / {maxWarns}",
-                warnedUserName, context.ChatDTO.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
-
-        // Notify in chat that user has been warned or banned
-        return new(responseHelper.ResolveResponseVariables(context, banned ? configurationContext.Configuration.Captions.BannedSuccessfully
-                                                                           : configurationContext.Configuration.Captions.WarnedSuccessfully,
-                                                           warnedUser.Id));
+                                   userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
     }
 
-    public async Task<BotResponse> Unwarn(UpdateContext context)
+    public async Task<Task> Unwarn(UpdateContext context)
     {
         var resolve = commandService.ResolveWarnedRoot(context, false);
 
-        if (!resolve.TryPickT0(out var warnedUser, out _))
-            return new(resolve.AsT1);
-
-        string unwarnedUsername = commandService.ResolveMentionedUser(context.Update, context.Bot).AsT0.GetName();
-
-        if (warnedUser.Warnings == 0)
+        if (!resolve.TryPickT0(out WarnedUser unwarnedUser, out string errorMessage))
         {
-            return new(responseHelper.ResolveResponseVariables(context, configurationContext.Configuration.Captions.UnwarnUserNoWarnings,
-                                                               warnedUser.Id));
+            return responseHelper.SendMessageAsync(new()
+            {
+                Message = errorMessage,
+            }, context);
         }
 
-        warnedUser.Warnings--;
+        if (unwarnedUser.Warnings == 0)
+        {
+            return responseHelper.SendMessageAsync(new()
+            {
+                Message = configurationContext.Configuration.Captions.UnwarnUserNoWarnings,
+                MentionedUserId = unwarnedUser.Id
+            }, context);
+        }
+
+        unwarnedUser.Warnings--;
 
         if (configurationContext.Configuration.DeleteWarnMessage)
-            await context.Client.DeleteMessageAsync(context.Update.Message.Chat.Id, context.Update.Message.MessageId, context.CancellationToken);
+        {
+            await responseHelper.DeleteMessageAsync(context);
+        }
 
-        await context.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id, warnedUser.Id, onlyIfBanned: true, cancellationToken: context.CancellationToken);
+        await context.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id,
+                                                  unwarnedUser.Id,
+                                                  onlyIfBanned: true,
+                                                  cancellationToken: context.CancellationToken);
 
-        return new(responseHelper.ResolveResponseVariables(context, configurationContext.Configuration.Captions.UnwarnedSuccessfully,
-                                                           warnedUser.Id));
+        return responseHelper.SendMessageAsync(new()
+        {
+            Message = configurationContext.Configuration.Captions.UnwarnedSuccessfully,
+            MentionedUserId = unwarnedUser.Id
+        }, context);
     }
 
-    public Task<BotResponse> WCount(UpdateContext context)
+    public Task WCount(UpdateContext context)
     {
-        var chat = commandService.ResolveChatWarning(context.Update.Message.Chat.Id);
+        var chat = commandService.ResolveChatWarning(context.ChatDTO.Id);
 
-        var resolveUser = commandService.ResolveMentionedUser(context.Update, context.Bot);
+        var resolveUser = commandService.ResolveMentionedUser(context);
 
-        UserDTO user = resolveUser.Match<UserDTO>(
+        UserDTO mentionedUser = resolveUser.Match<UserDTO>(
         userDto => userDto,
         result =>
         {
@@ -102,33 +132,49 @@ public class WarnController : IWarnController
             };
         });
 
-        if (user is null)
+        if (mentionedUser is null)
         {
-            return resolveUser.AsT1 switch
+            var response = new ResponseContext
             {
-                ResolveMentionedUserResult.UserNotFound => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.UserNotFound)),
-                ResolveMentionedUserResult.BotMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WCountBotAttempt)),
-                ResolveMentionedUserResult.BotSelfMention => Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WCountBotSelfAttempt)),
-                _ => throw new ArgumentException("ResolveMentionedUserResult")
+                Message = resolveUser.AsT1 switch
+                {
+                    ResolveMentionedUserResult.UserNotFound => configurationContext.Configuration.Captions.UserNotFound,
+                    ResolveMentionedUserResult.BotMention => configurationContext.Configuration.Captions.WCountBotAttempt,
+                    ResolveMentionedUserResult.BotSelfMention => configurationContext.Configuration.Captions.WCountBotSelfAttempt,
+                    _ => throw new ArgumentException("ResolveMentionedUserResult")
+                }
             };
+            return responseHelper.SendMessageAsync(response, context);
         }
 
         if (!configurationContext.Configuration.AllowAdminWarnings)
         {
-            var isAdmin = chatHelper.IsAdmin(chat.ChatId, user.Id);
-            if (isAdmin)
-                return Task.FromResult(new BotResponse(configurationContext.Configuration.Captions.WCountAdminAttempt));
+            var mentionedUserIsAdmin = chatHelper.IsAdmin(chat.ChatId, mentionedUser.Id);
+            if (mentionedUserIsAdmin)
+            {
+                return responseHelper.SendMessageAsync(new ResponseContext()
+                {
+                    Message = configurationContext.Configuration.Captions.WCountAdminAttempt
+                }, context);
+            }
         }
 
-        var count = cachedDataContext.Warnings.Find(c => c.ChatId == chat.ChatId)?.WarnedUsers.Find(u => u.Id == user.Id)?.Warnings ?? 0;
+        var warningsCount = cachedDataContext.Warnings.Find(c => c.ChatId == chat.ChatId)?
+                                             .WarnedUsers.Find(u => u.Id == mentionedUser.Id)?.Warnings ?? 0;
 
-        if (count == 0)
+        if (warningsCount == 0)
         {
-            return Task.FromResult(new BotResponse(
-                responseHelper.ResolveResponseVariables(context, configurationContext.Configuration.Captions.WCountUserHasNoWarnings, user.Id)));
+            return responseHelper.SendMessageAsync(new ResponseContext()
+            {
+                Message = configurationContext.Configuration.Captions.WCountUserHasNoWarnings,
+                MentionedUserId = mentionedUser.Id
+            }, context);
         }
 
-        return Task.FromResult(new BotResponse(
-            responseHelper.ResolveResponseVariables(context, configurationContext.Configuration.Captions.WCountMessage, user.Id)));
+        return responseHelper.SendMessageAsync(new ResponseContext()
+        {
+            Message = configurationContext.Configuration.Captions.WCountMessage,
+            MentionedUserId = mentionedUser.Id
+        }, context);
     }
 }

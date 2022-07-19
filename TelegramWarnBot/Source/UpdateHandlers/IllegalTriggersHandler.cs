@@ -45,16 +45,16 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             foreach (var adminId in trigger.NotifiedAdmins)
             {
                 await context.Client.SendTextMessageAsync(adminId,
-                                                  $"*Illegal message detected!*\nChat: *{context.Update.Message.Chat.Title}*" +
-                                                  $"\nFrom: *{context.Update.Message.From?.GetName()}*" +
-                                                  $"\nSent: {context.Update.Message.Date}" +
-                                                  $"\nContent:",
-                                                  cancellationToken: context.CancellationToken,
-                                                  parseMode: ParseMode.Markdown);
+                                                          $"*Illegal message detected!*\nChat: *{context.Update.Message.Chat.Title}*" +
+                                                          $"\nFrom: *{context.Update.Message.From?.GetName()}*" +
+                                                          $"\nSent: {context.Update.Message.Date}" +
+                                                          $"\nContent:",
+                                                          cancellationToken: context.CancellationToken,
+                                                          parseMode: ParseMode.Markdown);
 
                 await context.Client.ForwardMessageAsync(adminId, context.Update.Message.Chat.Id,
-                                                 context.Update.Message.MessageId,
-                                                 cancellationToken: context.CancellationToken);
+                                                         context.Update.Message.MessageId,
+                                                         cancellationToken: context.CancellationToken);
             }
 
             // Notify but don't warn admins and dont delete message if not allowed in config
@@ -62,28 +62,27 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             {
                 if (trigger.WarnMember)
                 {
-                    var chat = commandService.ResolveChatWarning(context.Update.Message.Chat.Id);
-                    var user = commandService.ResolveWarnedUser(context.Update.Message.From.Id, chat);
+                    var chatWarning = commandService.ResolveChatWarning(context.ChatDTO.Id);
+                    var warnedUser = commandService.ResolveWarnedUser(context.Update.Message.From.Id, chatWarning);
 
-                    var banned = await commandService.Warn(user, chat.ChatId, trigger.DeleteMessage ? context.Update.Message.MessageId : null,
-                                                          !context.IsSenderAdmin, context.Client, context.CancellationToken);
+                    var banned = await commandService.Warn(warnedUser,
+                                                           chatWarning.ChatId,
+                                                           !context.IsSenderAdmin,
+                                                           context);
 
-                    var userName = context.Update.Message.From.GetName();
+                    if (trigger.DeleteMessage)
+                    {
+                        await responseHelper.DeleteMessageAsync(context);
+                    }
 
-                    if (banned)
-                        logger.LogInformation("[Auto] Banned user {user} from chat {chat}.",
-                            userName, context.ChatDTO.Name);
-                    else
-                        logger.LogInformation("[Auto] Warned user {user} in chat {chat}. Current: {currentWarns} / {maxWarns}",
-                            userName, context.ChatDTO.Name, user.Warnings, configurationContext.Configuration.MaxWarnings);
+                    LogWarned(banned, context.ChatDTO, warnedUser);
 
-                    await context.Client.SendTextMessageAsync(context.Update.Message.Chat.Id,
-                                                      responseHelper.ResolveResponseVariables(context,
-                                                                        banned ? configurationContext.Configuration.Captions.IllegalTriggerBanned
-                                                                                : configurationContext.Configuration.Captions.IllegalTriggerWarned,
-                                                                        user.Id),
-                                                                    cancellationToken: context.CancellationToken,
-                                                                    parseMode: ParseMode.Markdown);
+                    return responseHelper.SendMessageAsync(new()
+                    {
+                        Message = banned ? configurationContext.Configuration.Captions.IllegalTriggerBanned
+                                         : configurationContext.Configuration.Captions.IllegalTriggerWarned,
+                        MentionedUserId = warnedUser.Id
+                    }, context);
                 }
             }
 
@@ -92,5 +91,17 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
         }
 
         return next(context);
+    }
+
+    private void LogWarned(bool banned, ChatDTO chat, WarnedUser warnedUser)
+    {
+        var userName = cachedDataContext.Users.Find(u => u.Id == warnedUser.Id).GetName();
+
+        if (banned)
+            logger.LogInformation("[Auto] Banned user {user} from chat {chat}.",
+                                   userName, chat.Name);
+        else
+            logger.LogInformation("[Auto] Warned user {user} in chat {chat}. Current: {currentWarns} / {maxWarns}",
+                                   userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
     }
 }

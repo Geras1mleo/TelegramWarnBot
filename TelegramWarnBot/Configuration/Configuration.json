@@ -25,7 +25,7 @@
     "IllegalTriggerWarned": "🤖 {MentionedUser}, you typed something wrong and received an automatic warning!\n\nCurrent warnings: *{MentionedUser.Warnings} / {Configuration.MaxWarnings}*",
     "IllegalTriggerBanned": "🤖 {MentionedUser} has been bannen from this chat by an automatic trigger!",
     "WCountMessage": "🤡 {MentionedUser} has *{MentionedUser.Warnings} out of {Configuration.MaxWarnings}* warnings",
-    "WCountUserHasNoWarnings": "😑 Well, {MentionedUser} has no warnings... Yet...",
+    "WCountUserHasNoWarnings": "😑 Looks like {MentionedUser} is holy...",
     "WCountAdminAttempt": "😇 The admins of this chat are holy men...",
     "WCountBotAttempt": "😇 What do you mean? My bot's are holy!",
     "WCountBotSelfAttempt": "😇 Well, I'm holy!"

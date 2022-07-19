@@ -56,7 +56,7 @@ public static class AppConfiguration
 
         services.AddTransient<IConsoleCommandHandler, ConsoleCommandHandler>();
 
-        services.AddTransient<IWarnController, WarnController>();
+        services.AddTransient<IWarnController, CommandsController>();
         services.AddTransient<IMessageHelper, MessageHelper>();
         services.AddTransient<IChatHelper, ChatHelper>();
         services.AddTransient<ICommandService, CommandService>();

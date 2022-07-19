@@ -29,9 +29,9 @@
   },
   {
     "Chat": null,
-    "Messages": [ "test" ],
-    "Responses": [ "TESTING", "Hi there..." ],
-    "MatchCase": true,
+    "Messages": [ "pidor" ],
+    "Responses": [ "{SenderUser} is gay" ],
+    "MatchCase": false,
     "MatchWholeMessage": true
   }
 ]

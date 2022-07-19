@@ -4,7 +4,7 @@ public interface IChatHelper
 {
     bool IsChatRegistered(long chatId);
     bool IsAdmin(long chatId, long userId);
-    Task<List<long>> GetAdminsAsync(ITelegramBotClient client, long chatId, CancellationToken cancellationToken);
+    Task<List<long>> GetAdminsAsync(UpdateContext context);
 }
 
 public class ChatHelper : IChatHelper
@@ -29,8 +29,8 @@ public class ChatHelper : IChatHelper
         return cachedDataContext.Chats.Find(c => c.Id == chatId)?.Admins.Any(a => a == userId) ?? false;
     }
 
-    public async Task<List<long>> GetAdminsAsync(ITelegramBotClient client, long chatId, CancellationToken cancellationToken)
+    public async Task<List<long>> GetAdminsAsync(UpdateContext context)
     {
-        return (await client.GetChatAdministratorsAsync(chatId, cancellationToken)).Select(c => c.User.Id).ToList();
+        return (await context.Client.GetChatAdministratorsAsync(context.ChatDTO.Id, context.CancellationToken)).Select(c => c.User.Id).ToList();
     }
 }
