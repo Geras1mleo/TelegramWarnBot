@@ -14,7 +14,7 @@ public class CachingHandler : Pipe<UpdateContext>
     public override Task Handle(UpdateContext context)
     {
         // To update nickname (etc.) of each user
-        cachedDataContext.CacheUser(context.Update.Message.From);
+        context.UserDTO = cachedDataContext.CacheUser(context.Update.Message.From);
 
         return next(context);
     }

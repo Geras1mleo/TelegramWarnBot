@@ -3,7 +3,7 @@
 public interface IBot
 {
     TelegramBotClient Client { get; set; }
-    User User { get; set; }
+    User BotUser { get; set; }
 
     Task StartAsync(IServiceProvider provider, CancellationToken cancellationToken);
 }
@@ -28,22 +28,22 @@ public class Bot : IBot
     }
 
     public TelegramBotClient Client { get; set; }
-    public User User { get; set; }
+    public User BotUser { get; set; }
 
     public async Task StartAsync(IServiceProvider provider, CancellationToken cancellationToken)
     {
         StartReceiving(provider, cancellationToken);
 
-        User = await Client.GetMeAsync(cancellationToken);
+        BotUser = await Client.GetMeAsync(cancellationToken);
 
         // Register bot itself to recognize when someone mentions it with @
-        cachedContext.CacheUser(User);
+        cachedContext.CacheUser(BotUser);
         cachedContext.BeginUpdate(configContext.Configuration.UpdateDelay, cancellationToken);
 
-        logger.LogInformation("Bot {botName} running.", User.FirstName);
+        logger.LogInformation("Bot {botName} running.", BotUser.FirstName);
         logger.LogInformation("Version: {version}", Assembly.GetEntryAssembly().GetName().Version);
 
-        Console.Title = User.FirstName;
+        Console.Title = BotUser.FirstName;
     }
 
     private void StartReceiving(IServiceProvider provider, CancellationToken cancellationToken)
@@ -88,13 +88,16 @@ public class Bot : IBot
         
         var fromUser = update.GetFromUser();
 
+        var userDto = cachedContext.Users.Find(u => u.Id == fromUser.Id);
+
         var context = new UpdateContext
         {
             Client = Client,
             Update = update,
             CancellationToken = cancellationToken,
-            Bot = User,
+            Bot = BotUser,
             ChatDTO = chatDto,
+            UserDTO = userDto,
             IsMessageUpdate = update.Type == UpdateType.Message,
             IsText = update.Message?.Text is not null,
             IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
@@ -105,7 +108,7 @@ public class Bot : IBot
                           && (update.GetOldMember().Status == ChatMemberStatus.Administrator
                             || update.GetNewMember().Status == ChatMemberStatus.Administrator),
             IsChatRegistered = chatHelper.IsChatRegistered(chatId),
-            IsBotAdmin = chatDto?.Admins.Any(a => a == User.Id) ?? false,
+            IsBotAdmin = chatDto?.Admins.Any(a => a == BotUser.Id) ?? false,
             IsSenderAdmin = chatDto?.Admins.Any(a => a == fromUser.Id) ?? false,
         };
 

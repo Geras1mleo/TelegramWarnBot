@@ -13,6 +13,7 @@ public class UpdateContext : IContext
     public CancellationToken CancellationToken { get; set; }
     public User Bot { get; set; }
     public ChatDTO ChatDTO { get; set; }
+    public UserDTO UserDTO { get; set; }
     public bool IsMessageUpdate { get; set; }
     public bool IsText { get; set; }
     public bool IsJoinedLeftUpdate { get; set; }

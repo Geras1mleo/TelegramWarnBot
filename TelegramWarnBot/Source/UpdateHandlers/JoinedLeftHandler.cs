@@ -26,7 +26,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             // If bot self has been added to new chat => greeting message
             if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
             {
-                cachedDataContext.CacheChat(context.Update.Message.Chat,
+                context.ChatDTO = cachedDataContext.CacheChat(context.Update.Message.Chat,
                                             (await chatHelper.GetAdminsAsync(context)).ToList());
 
                 return responseHelper.SendMessageAsync(new()
@@ -71,7 +71,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
         {
             if (!member.IsBot)
             {
-                cachedDataContext.CacheUser(member);
+                context.UserDTO = cachedDataContext.CacheUser(member);
                 cachedDataContext.Members.Add(new()
                 {
                     ChatId = context.Update.Message.Chat.Id,

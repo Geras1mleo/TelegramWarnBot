@@ -117,7 +117,7 @@ public class CommandsController : ICommandsController
 
         if (resolveUser == ResolveMentionedUserResult.UserNotMentioned)
         {
-            mentionedUser = context.Update.Message.From.Map();
+            mentionedUser = context.UserDTO;
         }
         else if (resolveUser != ResolveMentionedUserResult.Resolved)
         {

@@ -63,7 +63,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                 if (trigger.WarnMember)
                 {
                     var chatWarning = commandService.ResolveChatWarning(context.ChatDTO.Id);
-                    var warnedUser = commandService.ResolveWarnedUser(context.Update.Message.From.Id, chatWarning);
+                    var warnedUser = commandService.ResolveWarnedUser(context.UserDTO.Id, chatWarning);
 
                     var banned = await commandService.Warn(warnedUser,
                                                            chatWarning.ChatId,

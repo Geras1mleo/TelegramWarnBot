@@ -8,8 +8,8 @@ public interface ICachedDataContext
     List<MemberDTO> Members { get; }
 
     void BeginUpdate(int delaySeconds, CancellationToken cancellationToken);
-    void CacheChat(Chat chat, List<long> admins);
-    void CacheUser(User user);
+    ChatDTO CacheChat(Chat chat, List<long> admins);
+    UserDTO CacheUser(User user);
     void SaveData();
     Task SaveRegisteredChatsAsync(List<long> registeredChats);
 }
@@ -93,7 +93,7 @@ public class CachedDataContext : IOContext, ICachedDataContext
         return SerializeAsync(registeredChats, Path.Combine("Configuration", "RegisteredChats.json"));
     }
 
-    public void CacheUser(User user)
+    public UserDTO CacheUser(User user)
     {
         // Adding client to list if not exist
         var userDto = Users.FirstOrDefault(u => u.Id == user.Id);
@@ -110,9 +110,10 @@ public class CachedDataContext : IOContext, ICachedDataContext
             userDto.FirstName = user.FirstName;
             userDto.LastName = user.LastName;
         }
+        return userDto;
     }
 
-    public void CacheChat(Chat chat, List<long> admins)
+    public ChatDTO CacheChat(Chat chat, List<long> admins)
     {
         // Adding chat to list if not exist
         var chatDto = Chats.FirstOrDefault(c => c.Id == chat.Id);
@@ -126,6 +127,7 @@ public class CachedDataContext : IOContext, ICachedDataContext
             };
             Chats.Add(chatDto);
         }
+        return chatDto;
     }
 
     public void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
