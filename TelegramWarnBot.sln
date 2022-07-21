@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramWarnBot", "TelegramWarnBot\TelegramWarnBot.csproj", "{931EA344-4F2C-4211-AF0E-23E5C853DA2F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelegramWarnBot", "TelegramWarnBot\TelegramWarnBot.csproj", "{931EA344-4F2C-4211-AF0E-23E5C853DA2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramWarnBot.Tests", "TelegramWarnBot.Tests\TelegramWarnBot.Tests.csproj", "{32053AB4-F63A-4A92-B16A-E9D015D5133B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{931EA344-4F2C-4211-AF0E-23E5C853DA2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{931EA344-4F2C-4211-AF0E-23E5C853DA2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{931EA344-4F2C-4211-AF0E-23E5C853DA2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32053AB4-F63A-4A92-B16A-E9D015D5133B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32053AB4-F63A-4A92-B16A-E9D015D5133B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32053AB4-F63A-4A92-B16A-E9D015D5133B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32053AB4-F63A-4A92-B16A-E9D015D5133B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
