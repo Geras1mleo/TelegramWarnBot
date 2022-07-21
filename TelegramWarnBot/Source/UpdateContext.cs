@@ -8,18 +8,18 @@ public interface IContext
 
 public class UpdateContext : IContext
 {
-    public ITelegramBotClient Client { get; init; }
-    public Update Update { get; init; }
-    public CancellationToken CancellationToken { get; init; }
-    public User Bot { get; init; }
-    public ChatDTO ChatDTO { get; init; }
-    public bool IsMessageUpdate { get; init; }
-    public bool IsText { get; init; }
-    public bool IsJoinedLeftUpdate { get; init; }
-    public bool IsAdminsUpdate { get; init; }
-    public bool IsChatRegistered { get; init; }
-    public bool IsBotAdmin { get; init; }
-    public bool IsSenderAdmin { get; init; }
+    public ITelegramBotClient Client { get; set; }
+    public Update Update { get; set; }
+    public CancellationToken CancellationToken { get; set; }
+    public User Bot { get; set; }
+    public ChatDTO ChatDTO { get; set; }
+    public bool IsMessageUpdate { get; set; }
+    public bool IsText { get; set; }
+    public bool IsJoinedLeftUpdate { get; set; }
+    public bool IsAdminsUpdate { get; set; }
+    public bool IsChatRegistered { get; set; }
+    public bool IsBotAdmin { get; set; }
+    public bool IsSenderAdmin { get; set; }
 
     public bool ResolveAttributes(Type type)
     {

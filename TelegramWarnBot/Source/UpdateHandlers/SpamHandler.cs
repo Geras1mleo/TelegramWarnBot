@@ -20,11 +20,9 @@ public class SpamHandler : Pipe<UpdateContext>
 
     public override Task Handle(UpdateContext context)
     {
-        if ((context.Update.Message.Entities?.Any(e => e.Type == MessageEntityType.Url || e.Type == MessageEntityType.TextLink
-                                              || e.Type == MessageEntityType.TextMention || e.Type == MessageEntityType.Mention) ?? false)
-           || messageHelper.MatchCardNumber(context.Update.Message.Text))
+        if (messageHelper.MatchLinkMessage(context.Update.Message) || messageHelper.MatchCardNumber(context.Update.Message.Text))
         {
-            var member = cachedDataContext.Members.FirstOrDefault(m => m.ChatId == context.ChatDTO.Id 
+            var member = cachedDataContext.Members.FirstOrDefault(m => m.ChatId == context.ChatDTO.Id
                                                                     && m.UserId == context.Update.Message.From.Id);
 
             // Member joined less than 24 hours ago

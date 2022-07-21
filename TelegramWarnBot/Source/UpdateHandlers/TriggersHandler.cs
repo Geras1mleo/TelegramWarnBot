@@ -22,7 +22,7 @@ public class TriggersHandler : Pipe<UpdateContext>
     {
         foreach (var trigger in configurationContext.Triggers)
         {
-            if (trigger.Chat is not null && trigger.Chat != context.Update.Message.Chat.Id)
+            if (trigger.Chat is not null && trigger.Chat != context.ChatDTO.Id)
                 continue;
 
             if (messageHelper.MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, context.Update.Message.Text))
