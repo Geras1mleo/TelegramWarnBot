@@ -8,15 +8,16 @@ public class TriggersHandlerTests
 {
     private readonly TriggersHandler _sut;
 
+    private readonly IFixture fixture = new Fixture();
+
     private readonly IConfigurationContext configurationContext = new MockedConfigurationContext();
     private readonly ICachedDataContext cachedDataContext = new MockedCachedContext();
 
-    private readonly IMessageHelper messageHelper = Substitute.For<IMessageHelper>();
-    private readonly IResponseHelper responseHelper = Substitute.For<IResponseHelper>();
+    private readonly IMessageHelper messageHelper = new MessageHelper();
 
     private readonly UpdateContextBuilder updateContextBuilder;
 
-    private readonly IFixture fixture = new Fixture();
+    private readonly IResponseHelper responseHelper = Substitute.For<IResponseHelper>();
 
     public TriggersHandlerTests()
     {
@@ -51,7 +52,6 @@ public class TriggersHandlerTests
                             .With(u => u.Message, fixture.BuildMessage(message))
                             .Create();
 
-
         var context = updateContextBuilder.Build(null, update, fixture.Build<User>().Create(), CancellationToken.None);
 
         responseHelper.SendMessageAsync(Arg.Any<ResponseContext>(),
@@ -61,6 +61,9 @@ public class TriggersHandlerTests
 
         await _sut.Handle(context);
 
-        responseHelper.Received(triggered ? 1 : 0);
+        await responseHelper.Received(triggered ? 1 : 0)
+                            .SendMessageAsync(Arg.Any<ResponseContext>(),
+                                              Arg.Any<UpdateContext>(),
+                                              Arg.Is(context.Update.Message.MessageId));
     }
 }
