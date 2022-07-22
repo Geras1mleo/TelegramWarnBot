@@ -1,7 +1,10 @@
-global using TelegramWarnBot.Tests;
+﻿global using TelegramWarnBot.Tests;
 
 global using Xunit;
-global using Moq;
+global using NSubstitute;
+global using AutoFixture;
+global using AutoFixture.Kernel;
+
 global using TelegramWarnBot;
 
 global using Telegram;
