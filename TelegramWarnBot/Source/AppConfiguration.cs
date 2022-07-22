@@ -11,16 +11,7 @@ public static class AppConfiguration
         Log.Logger.Information("Configuring and building host...");
 
         var host = Host.CreateDefaultBuilder()
-            .ConfigureAppConfiguration((context, builder) =>
-            {
-                // To use dotnet watch/run and not corrupt Data\ files in project
-                var env = context.HostingEnvironment;
-                if (env.IsDevelopment()
-                 && env.ContentRootPath.EndsWith(env.ApplicationName))
-                {
-                    env.ContentRootPath += @"\bin\Debug\net6.0";
-                }
-            })
+            .ConfigureAppConfiguration(ConfigureAppConfiguration)
             .ConfigureServices(ConfigureServices)
             .UseConsoleLifetime()
             .UseSmartFormatter()
@@ -49,6 +40,16 @@ public static class AppConfiguration
         return host;
     }
 
+    private static void ConfigureAppConfiguration(HostBuilderContext context, IConfigurationBuilder builder)
+    {
+        // To use dotnet watch/run and not corrupt Data\ files in project
+        var env = context.HostingEnvironment;
+        if (env.IsDevelopment() && env.ContentRootPath.EndsWith(env.ApplicationName))
+        {
+            env.ContentRootPath += @"\bin\Debug\net6.0";
+        }
+    }
+
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.AddSingleton<IBot, Bot>();
@@ -57,6 +58,7 @@ public static class AppConfiguration
         services.AddSingleton<ICachedDataContext, CachedDataContext>();
 
         services.AddTransient<IConsoleCommandHandler, ConsoleCommandHandler>();
+        services.AddTransient<IUpdateContextBuilder, UpdateContextBuilder>();
 
         services.AddTransient<ICommandsController, CommandsController>();
         services.AddTransient<IMessageHelper, MessageHelper>();

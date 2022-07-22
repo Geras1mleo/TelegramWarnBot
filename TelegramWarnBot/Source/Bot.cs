@@ -11,19 +11,19 @@ public interface IBot
 public class Bot : IBot
 {
     private readonly ICachedDataContext cachedContext;
+    private readonly IUpdateContextBuilder updateContextBuilder;
     private readonly IConfigurationContext configContext;
-    private readonly IChatHelper chatHelper;
     private readonly ILogger<Bot> logger;
     private Func<UpdateContext, Task> pipe;
 
     public Bot(IConfigurationContext configContext,
                ICachedDataContext cachedContext,
-               IChatHelper chatHelper,
+               IUpdateContextBuilder updateContextBuilder,
                ILogger<Bot> logger)
     {
         this.configContext = configContext;
         this.cachedContext = cachedContext;
-        this.chatHelper = chatHelper;
+        this.updateContextBuilder = updateContextBuilder;
         this.logger = logger;
     }
 
@@ -82,35 +82,7 @@ public class Bot : IBot
         if (!update.Validate())
             return Task.CompletedTask;
 
-        var chatId = update.GetChat().Id;
-
-        var chatDto = cachedContext.Chats.Find(c => c.Id == chatId);
-        
-        var fromUser = update.GetFromUser();
-
-        var userDto = cachedContext.Users.Find(u => u.Id == fromUser.Id);
-
-        var context = new UpdateContext
-        {
-            Client = Client,
-            Update = update,
-            CancellationToken = cancellationToken,
-            Bot = BotUser,
-            ChatDTO = chatDto,
-            UserDTO = userDto,
-            IsMessageUpdate = update.Type == UpdateType.Message,
-            IsText = update.Message?.Text is not null,
-            IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
-                                    (update.Message.Type == MessageType.ChatMembersAdded
-                                  || update.Message.Type == MessageType.ChatMemberLeft),
-            IsAdminsUpdate = (update.Type == UpdateType.ChatMember
-                            || update.Type == UpdateType.MyChatMember)
-                          && (update.GetOldMember().Status == ChatMemberStatus.Administrator
-                            || update.GetNewMember().Status == ChatMemberStatus.Administrator),
-            IsChatRegistered = chatHelper.IsChatRegistered(chatId),
-            IsBotAdmin = chatDto?.Admins.Any(a => a == BotUser.Id) ?? false,
-            IsSenderAdmin = chatDto?.Admins.Any(a => a == fromUser.Id) ?? false,
-        };
+        var context = updateContextBuilder.Build(client, update, BotUser, cancellationToken);
 
         try
         {

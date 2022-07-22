@@ -96,27 +96,34 @@ public static class Extensions
     {
         builder.ConfigureServices(services =>
         {
-            var formatter = Smart.CreateDefaultSmartFormat(new SmartSettings
-            {
-                CaseSensitivity = CaseSensitivityType.CaseInsensitive,
-                Formatter = new FormatterSettings
-                {
-                    ErrorAction = FormatErrorAction.Ignore,
-                },
-                Parser = new ParserSettings
-                {
-                    ErrorAction = ParseErrorAction.Ignore,
-                },
-            });
+            ISmartFormatterProvider provider = CreateSmartFormatterProvider();
 
-            formatter.OnFormattingFailure += (sender, e) =>
-            {
-                Log.Error("Variable {placeholder} could not be formatted on index {index}", e.Placeholder, e.ErrorIndex);
-            };
-
-            services.AddSingleton(formatter);
+            services.AddSingleton<ISmartFormatterProvider>(provider);
         });
 
         return builder;
+    }
+
+    private static ISmartFormatterProvider CreateSmartFormatterProvider()
+    {
+        var formatter = Smart.CreateDefaultSmartFormat(new SmartSettings
+        {
+            CaseSensitivity = CaseSensitivityType.CaseInsensitive,
+            Formatter = new FormatterSettings
+            {
+                ErrorAction = FormatErrorAction.Ignore,
+            },
+            Parser = new ParserSettings
+            {
+                ErrorAction = ParseErrorAction.Ignore,
+            },
+        });
+
+        formatter.OnFormattingFailure += (sender, e) =>
+        {
+            Log.Error("Variable {placeholder} could not be formatted on index {index}", e.Placeholder, e.ErrorIndex);
+        };
+
+        return new SmartFormatterProvider(formatter);
     }
 }

@@ -11,15 +11,15 @@ public class ResponseHelper : IResponseHelper
 {
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
-    private readonly SmartFormatter formatter;
+    private readonly ISmartFormatterProvider formatterProvider;
 
     public ResponseHelper(IConfigurationContext configurationContext,
                           ICachedDataContext cachedDataContext,
-                          SmartFormatter formatter)
+                          ISmartFormatterProvider formatterProvider)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
-        this.formatter = formatter;
+        this.formatterProvider = formatterProvider;
     }
 
     public Task SendMessageAsync(ResponseContext responseContext, UpdateContext updateContext, int? replyToMessageId = null)
@@ -47,7 +47,7 @@ public class ResponseHelper : IResponseHelper
             configurationContext.Configuration
         };
 
-        return formatter.Format(responseContext.Message, arguments);
+        return formatterProvider.Formatter.Format(responseContext.Message, arguments);
     }
 
     private MentionedUserDTO GetUserObject(long chatId, long? userId)
