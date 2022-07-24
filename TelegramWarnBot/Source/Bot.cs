@@ -10,19 +10,19 @@ public interface IBot
 
 public class Bot : IBot
 {
-    private readonly ICachedDataContext cachedContext;
+    private readonly ICachedDataContext cachedDataContext;
     private readonly IUpdateContextBuilder updateContextBuilder;
-    private readonly IConfigurationContext configContext;
+    private readonly IConfigurationContext configurationContext;
     private readonly ILogger<Bot> logger;
     private Func<UpdateContext, Task> pipe;
 
-    public Bot(IConfigurationContext configContext,
-               ICachedDataContext cachedContext,
+    public Bot(IConfigurationContext configurationContext,
+               ICachedDataContext cachedDataContext,
                IUpdateContextBuilder updateContextBuilder,
                ILogger<Bot> logger)
     {
-        this.configContext = configContext;
-        this.cachedContext = cachedContext;
+        this.configurationContext = configurationContext;
+        this.cachedDataContext = cachedDataContext;
         this.updateContextBuilder = updateContextBuilder;
         this.logger = logger;
     }
@@ -37,8 +37,8 @@ public class Bot : IBot
         BotUser = await Client.GetMeAsync(cancellationToken);
 
         // Register bot itself to recognize when someone mentions it with @
-        cachedContext.CacheUser(BotUser);
-        cachedContext.BeginUpdate(configContext.Configuration.UpdateDelay, cancellationToken);
+        cachedDataContext.CacheUser(BotUser);
+        cachedDataContext.BeginUpdate(configurationContext.Configuration.UpdateDelay, cancellationToken);
 
         logger.LogInformation("Bot {botName} running.", BotUser.FirstName);
         logger.LogInformation("Version: {version}", Assembly.GetEntryAssembly().GetName().Version);
@@ -48,20 +48,9 @@ public class Bot : IBot
 
     private void StartReceiving(IServiceProvider provider, CancellationToken cancellationToken)
     {
-        var builder = new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, provider)
-                             .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
-                             .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
-                             .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
-                             .AddPipe<SpamHandler>(c => c.IsBotAdmin && !c.IsSenderAdmin && configContext.Configuration.DeleteLinksFromNewMembers)
-                             .AddPipe<TriggersHandler>()
-                             .AddPipe<IllegalTriggersHandler>(c => c.IsBotAdmin)
-                             .AddPipe<CommandHandler>(c => c.Update.Message.Text.IsValidCommand());
+        pipe = AppConfiguration.GetPipeBuilder(provider).Build();
 
-        pipe = builder.Build();
-
-        //logger.LogInformation("Update handlers: {pipes}", builder.GetPipes().Select(p => p.Type.Name));
-
-        Client = new(configContext.BotConfiguration.Token);
+        Client = new(configurationContext.BotConfiguration.Token);
 
         Client.StartReceiving(UpdateHandler, PollingErrorHandler,
         receiverOptions: new ReceiverOptions()

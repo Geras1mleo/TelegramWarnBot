@@ -60,10 +60,24 @@ public static class AppConfiguration
         services.AddTransient<IConsoleCommandHandler, ConsoleCommandHandler>();
         services.AddTransient<IUpdateContextBuilder, UpdateContextBuilder>();
 
+        services.AddTransient<IDateTimeProvider, DateTimeProvider>();
         services.AddTransient<ICommandsController, CommandsController>();
         services.AddTransient<IMessageHelper, MessageHelper>();
         services.AddTransient<IChatHelper, ChatHelper>();
         services.AddTransient<ICommandService, CommandService>();
         services.AddTransient<IResponseHelper, ResponseHelper>();
+    }
+
+    public static PipeBuilder<UpdateContext> GetPipeBuilder(IServiceProvider provider)
+    {
+        return new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, provider)
+                    .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
+                    .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
+                    .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
+                    .AddPipe<SpamHandler>(c => c.IsBotAdmin && !c.IsSenderAdmin 
+                                            && provider.GetService<ConfigurationContext>().Configuration.DeleteLinksFromNewMembers)
+                    .AddPipe<TriggersHandler>()
+                    .AddPipe<IllegalTriggersHandler>(c => c.IsBotAdmin)
+                    .AddPipe<CommandHandler>(c => c.Update.Message.Text.IsValidCommand());
     }
 }

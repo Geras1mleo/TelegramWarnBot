@@ -61,7 +61,7 @@ public static class Extensions
 
     public static bool IsValidCommand(this string message)
     {
-        var parts = message.Split(' ');
+        var parts = message.Split(' ', '\n');
         return parts.Length > 0 && parts[0].StartsWith('/');
     }
 

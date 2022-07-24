@@ -121,7 +121,7 @@ public class CommandsController : ICommandsController
         }
         else if (resolveUser != ResolveMentionedUserResult.Resolved)
         {
-            var response = new ResponseContext
+            var errorResponse = new ResponseContext
             {
                 Message = resolveUser switch
                 {
@@ -131,7 +131,7 @@ public class CommandsController : ICommandsController
                     _ => throw new ArgumentException("ResolveMentionedUserResult")
                 }
             };
-            return responseHelper.SendMessageAsync(response, context);
+            return responseHelper.SendMessageAsync(errorResponse, context);
         }
 
         if (!configurationContext.Configuration.AllowAdminWarnings)
@@ -149,19 +149,42 @@ public class CommandsController : ICommandsController
         var warningsCount = cachedDataContext.Warnings.Find(c => c.ChatId == context.ChatDTO.Id)?
                                              .WarnedUsers.Find(u => u.Id == mentionedUser.Id)?.Warnings ?? 0;
 
+        string response;
+
         if (warningsCount == 0)
         {
-            return responseHelper.SendMessageAsync(new ResponseContext()
-            {
-                Message = configurationContext.Configuration.Captions.WCountUserHasNoWarnings,
-                MentionedUserId = mentionedUser.Id
-            }, context);
+            response = configurationContext.Configuration.Captions.WCountUserHasNoWarnings;
+        }
+        else
+        {
+            response = configurationContext.Configuration.Captions.WCountMessage;
         }
 
         return responseHelper.SendMessageAsync(new ResponseContext()
         {
-            Message = configurationContext.Configuration.Captions.WCountMessage,
+            Message = response,
             MentionedUserId = mentionedUser.Id
+        }, context);
+    }
+
+    public Task Random(UpdateContext context)
+    {
+        var lines = context.Update.Message.Text.Split('\n').ToArray();
+
+        string response;
+
+        if (lines.Length < 2)
+        {
+            response = configurationContext.Configuration.Captions.InvalidOperation;
+        }
+        else
+        {
+            response = lines[System.Random.Shared.Next(1, lines.Length)];
+        }
+
+        return responseHelper.SendMessageAsync(new ResponseContext()
+        {
+            Message = response,
         }, context);
     }
 }

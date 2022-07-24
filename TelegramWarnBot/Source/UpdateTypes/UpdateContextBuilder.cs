@@ -2,7 +2,7 @@
 
 public interface IUpdateContextBuilder
 {
-    UpdateContext Build(ITelegramBotClient client, Update update, User BotUser, CancellationToken cancellationToken);
+    UpdateContext Build(ITelegramBotClient client, Update update, User botUser, CancellationToken cancellationToken);
 }
 
 public class UpdateContextBuilder : IUpdateContextBuilder

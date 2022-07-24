@@ -19,7 +19,7 @@ public class CommandHandler : Pipe<UpdateContext>
 
     public override async Task<Task> Handle(UpdateContext context)
     {
-        var method = Tools.ResolveMethod(warnController.GetType(), context.Update.Message.Text.Split(' ')[0][1..]);
+        var method = Tools.ResolveMethod(warnController.GetType(), context.Update.Message.Text.Split(' ', '\n')[0][1..]);
 
         if (method is not null)
         {
