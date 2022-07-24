@@ -2,6 +2,13 @@
 
 public class MockedCachedContext : ICachedDataContext
 {
+    public static MockedCachedContext Shared { get; }
+
+    static MockedCachedContext()
+    {
+        Shared = new();
+    }
+
     public List<ChatDTO> Chats => new()
     {
         new ChatDTO()
@@ -29,7 +36,9 @@ public class MockedCachedContext : ICachedDataContext
 
     public List<ChatWarnings> Warnings => throw new NotImplementedException();
 
-    public List<MemberDTO> Members => throw new NotImplementedException();
+
+    private List<MemberDTO> members = new();
+    public List<MemberDTO> Members => members;
 
     public void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
     {

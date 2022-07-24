@@ -28,12 +28,4 @@
     <ProjectReference Include="..\TelegramWarnBot\TelegramWarnBot.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EditorConfigFiles Remove="C:\Users\geras\source\repos\TelegramWarnBot\TelegramWarnBot.Tests\.editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="C:\Users\geras\source\repos\TelegramWarnBot\TelegramWarnBot.Tests\.editorconfig" />
-  </ItemGroup>
-
 </Project>

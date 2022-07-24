@@ -2,6 +2,13 @@
 
 public class MockedConfigurationContext : IConfigurationContext
 {
+    public static MockedConfigurationContext Shared { get; }
+
+    static MockedConfigurationContext()
+    {
+        Shared = new();
+    }
+
     public BotConfiguration BotConfiguration => new()
     {
         RegisteredChats = new List<long>() { 69 },
