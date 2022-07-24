@@ -85,7 +85,7 @@ public class CommandService : ICommandService
         {
             errorMessage = resolveUser switch
             {
-                ResolveMentionedUserResult.UserNotMentioned => configurationContext.Configuration.Captions.UserNotSpecified,
+                ResolveMentionedUserResult.UserNotMentioned => configurationContext.Configuration.Captions.InvalidOperation,
                 ResolveMentionedUserResult.UserNotFound => configurationContext.Configuration.Captions.UserNotFound,
                 ResolveMentionedUserResult.BotMention => isWarn ? configurationContext.Configuration.Captions.WarnBotAttempt
                                                                 : configurationContext.Configuration.Captions.UnwarnBotAttempt,

@@ -6,7 +6,7 @@ public class Captions
     public string ChatNotRegistered { get; set; }
     public string UserNoPermissions { get; set; }
     public string BotHasNoPermissions { get; set; }
-    public string UserNotSpecified { get; set; }
+    public string InvalidOperation { get; set; }
     public string UserNotFound { get; set; }
     public string WarnedSuccessfully { get; set; }
     public string UnwarnedSuccessfully { get; set; }

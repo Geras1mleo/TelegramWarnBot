@@ -10,7 +10,7 @@
     "ChatNotRegistered": "☠️ This chat is not registered... {SenderUser}, please dial @robin\\\\_thicke for tech support...",
     "UserNoPermissions": "🤐 I do not acknowledge your powers...",
     "BotHasNoPermissions": "😪 This chat is beneath my powers...",
-    "UserNotSpecified": "💀 I' ll call the admin now and tell him that you don't know how to use it!",
+    "InvalidOperation": "💀 I' ll call the admin now and tell him that you don't know how to use it!",
     "UserNotFound": "🧐 Is he real?",
     "WarnedSuccessfully": "*🎁 Time for presents!*\n\n{MentionedUser}, you have received *{MentionedUser.Warnings} out of {Configuration.MaxWarnings}* warnings from the group administration.\n\nYou have probably broken the rules of the chat or shown unacceptable behaviour. If you collect all the warnings, your stay in this group will be forcibly terminated. 😶",
     "UnwarnedSuccessfully": "🥺 {MentionedUser}, your warning has been cancelled, the gift has been confiscated.\n\nCurrent warnings: *{MentionedUser.Warnings}*",
