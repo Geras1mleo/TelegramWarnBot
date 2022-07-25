@@ -55,7 +55,7 @@ You can change them at runtime and then use `reload` in console to reload new co
   - [ChatNotRegistered](TelegramWarnBot/Configuration/Configuration.json#L10): When the bot is being used in a chat, it is not intended to be a member of.
   - [UserNoPermissions](TelegramWarnBot/Configuration/Configuration.json#L11): Non-admin user attempts to warn chat member.
   - [BotHasNoPermissions](TelegramWarnBot/Configuration/Configuration.json#L12): Bot require admin rights to warn and ban members.
-  - [UserNotSpecified](TelegramWarnBot/Configuration/Configuration.json#L13): Use of command (*/warn* or */unwarn*) without mentioning the user or replying to some (suspicious) message.
+  - [InvalidOperation](TelegramWarnBot/Configuration/Configuration.json#L13): Use of command (*/warn* or */unwarn*) without mentioning the user or replying to some (suspicious) message.
   - [UserNotFound](TelegramWarnBot/Configuration/Configuration.json#L14): Mentioned user has been not found in this chat.
   - [WarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L15): Post */warn* message that will mention warned user and his current amount of warnings.
   - [UnwarnedSuccessfully](TelegramWarnBot/Configuration/Configuration.json#L16): Post */unwarn* message that will mention unwarned user and his current amount of warnings.
