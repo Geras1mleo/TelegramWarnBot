@@ -5,17 +5,20 @@
 public class SpamHandler : Pipe<UpdateContext>
 {
     private readonly ICachedDataContext cachedDataContext;
+    private readonly IConfigurationContext configurationContext;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
     private readonly IDateTimeProvider dateTimeProvider;
 
     public SpamHandler(Func<UpdateContext, Task> next,
                        ICachedDataContext cachedDataContext,
+                       IConfigurationContext configurationContext,
                        IMessageHelper messageHelper,
                        IResponseHelper responseHelper,
                        IDateTimeProvider dateTimeProvider) : base(next)
     {
         this.cachedDataContext = cachedDataContext;
+        this.configurationContext = configurationContext;
         this.messageHelper = messageHelper;
         this.responseHelper = responseHelper;
         this.dateTimeProvider = dateTimeProvider;
@@ -23,6 +26,9 @@ public class SpamHandler : Pipe<UpdateContext>
 
     public override Task Handle(UpdateContext context)
     {
+        if (!configurationContext.Configuration.DeleteLinksFromNewMembers)
+            return next(context);
+
         if (messageHelper.MatchLinkMessage(context.Update.Message) || messageHelper.MatchCardNumber(context.Update.Message.Text))
         {
             var member = cachedDataContext.Members.FirstOrDefault(m => m.ChatId == context.ChatDTO.Id

@@ -113,7 +113,7 @@ public static class Extensions
             {
                 ErrorAction = FormatErrorAction.Ignore,
             },
-            Parser = new ParserSettings
+            Parser = new SmartFormat.Core.Settings.ParserSettings
             {
                 ErrorAction = ParseErrorAction.Ignore,
             },

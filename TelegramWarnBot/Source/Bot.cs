@@ -14,6 +14,7 @@ public class Bot : IBot
     private readonly IUpdateContextBuilder updateContextBuilder;
     private readonly IConfigurationContext configurationContext;
     private readonly ILogger<Bot> logger;
+
     private Func<UpdateContext, Task> pipe;
 
     public Bot(IConfigurationContext configurationContext,

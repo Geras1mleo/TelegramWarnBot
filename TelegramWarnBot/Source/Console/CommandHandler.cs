@@ -11,16 +11,19 @@ public interface IConsoleCommandHandler
 public class ConsoleCommandHandler : IConsoleCommandHandler
 {
     private readonly IBot bot;
+    private readonly IServiceProvider serviceProvider;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly ILogger<ConsoleCommandHandler> logger;
 
     public ConsoleCommandHandler(IBot bot,
+                                 IServiceProvider serviceProvider,
                                  IConfigurationContext configurationContext,
                                  ICachedDataContext cachedDataContext,
                                  ILogger<ConsoleCommandHandler> logger)
     {
         this.bot = bot;
+        this.serviceProvider = serviceProvider;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.logger = logger;
@@ -30,76 +33,89 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
     {
         Task.Run(() =>
         {
-            // Display registered chats
-            //Register(new List<string> { "-l" });
-
-            while (true)
+            var console = new CommandLineApplicationWithDI(serviceProvider)
             {
-                var command = Console.ReadLine();
+                UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue
+            };
 
-                if (command is null) continue;
-
-                var parts = Regex.Matches(command, @"[\""].+?[\""]|[^ ]+")
-                                    .Cast<Match>()
-                                    .Select(m => m.Value)
-                                    .ToArray();
-
-                if (parts.Length == 0)
-                    continue;
-
-                switch (parts[0])
-                {
-                    case "send":
-                        if (!Send(bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
-                            goto default; // if not succeed => show available commands 
-                        break;
-
-                    case "register":
-                        if (!Register(parts.Skip(1).ToList()))
-                            goto default;
-                        break;
-
-                    case "reload":
-                        configurationContext.ReloadConfiguration();
-                        WriteColor("[Configuration reloaded successfully!]", ConsoleColor.Green, true);
-                        break;
-
-                    case "leave":
-                        if (long.TryParse(parts[1], out var chatId))
-                            try
-                            {
-                                bot.Client.LeaveChatAsync(chatId, cancellationToken: cancellationToken).GetAwaiter().GetResult();
-                            }
-                            catch (Exception e)
-                            {
-                                WriteColor("[Error]: " + e.Message, ConsoleColor.Red, false);
-                            }
-                        break;
-
-                    case "save":
-                        cachedDataContext.SaveData();
-                        logger.LogInformation("Data saved successfully!");
-                        break;
-                    case "info":
-                        WriteInfo();
-                        break;
-                    case "version":
-                        WriteColor($"[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
-                        break;
-
-                    case "l": goto case "leave";
-                    case "r": goto case "reload";
-                    case "s": goto case "save";
-                    case "i": goto case "info";
-                    case "v": goto case "version";
-
-                    default:
-                        WriteColor("Not recognized...", ConsoleColor.Gray, false);
-                        PrintAvailableCommands();
-                        break;
-                }
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                console.Execute(Console.ReadLine().Split(" "));
             }
         }, cancellationToken);
+
+        //Task.Run(() =>
+        //{
+        //    // Display registered chats
+        //    //Register(new List<string> { "-l" });
+
+        //    while (true)
+        //    {
+        //        var command = Console.ReadLine();
+
+        //        if (command is null) continue;
+
+        //        var parts = Regex.Matches(command, @"[\""].+?[\""]|[^ ]+")
+        //                            .Cast<Match>()
+        //                            .Select(m => m.Value)
+        //                            .ToArray();
+
+        //        if (parts.Length == 0)
+        //            continue;
+
+        //        switch (parts[0])
+        //        {
+        //            case "send":
+        //                if (!Send(bot.Client, parts.Skip(1).ToList(), cancellationToken).GetAwaiter().GetResult())
+        //                    goto default; // if not succeed => show available commands 
+        //                break;
+
+        //            case "register":
+        //                if (!Register(parts.Skip(1).ToList()))
+        //                    goto default;
+        //                break;
+
+        //            case "reload":
+        //                configurationContext.ReloadConfiguration();
+        //                WriteColor("[Configuration reloaded successfully!]", ConsoleColor.Green, true);
+        //                break;
+
+        //            case "leave":
+        //                if (long.TryParse(parts[1], out var chatId))
+        //                    try
+        //                    {
+        //                        bot.Client.LeaveChatAsync(chatId, cancellationToken: cancellationToken).GetAwaiter().GetResult();
+        //                    }
+        //                    catch (Exception e)
+        //                    {
+        //                        WriteColor("[Error]: " + e.Message, ConsoleColor.Red, false);
+        //                    }
+        //                break;
+
+        //            case "save":
+        //                cachedDataContext.SaveData();
+        //                logger.LogInformation("Data saved successfully!");
+        //                break;
+        //            case "info":
+        //                WriteInfo();
+        //                break;
+        //            case "version":
+        //                WriteColor($"[Version: {Assembly.GetEntryAssembly().GetName().Version}]", ConsoleColor.Yellow, false);
+        //                break;
+
+        //            case "l": goto case "leave";
+        //            case "r": goto case "reload";
+        //            case "s": goto case "save";
+        //            case "i": goto case "info";
+        //            case "v": goto case "version";
+
+        //            default:
+        //                WriteColor("Not recognized...", ConsoleColor.Gray, false);
+        //                PrintAvailableCommands();
+        //                break;
+        //        }
+        //    }
+        //}, cancellationToken);
     }
 
     public bool Register(List<string> parameters)

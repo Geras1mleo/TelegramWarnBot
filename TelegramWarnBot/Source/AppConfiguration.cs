@@ -58,6 +58,8 @@ public static class AppConfiguration
         services.AddSingleton<ICachedDataContext, CachedDataContext>();
 
         services.AddTransient<IConsoleCommandHandler, ConsoleCommandHandler>();
+        services.AddTransient<ICommand, RegisterCommand>();
+
         services.AddTransient<IUpdateContextBuilder, UpdateContextBuilder>();
 
         services.AddTransient<IDateTimeProvider, DateTimeProvider>();
@@ -74,8 +76,7 @@ public static class AppConfiguration
                     .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
                     .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
                     .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
-                    .AddPipe<SpamHandler>(c => c.IsBotAdmin && !c.IsSenderAdmin 
-                                            && provider.GetService<ConfigurationContext>().Configuration.DeleteLinksFromNewMembers)
+                    .AddPipe<SpamHandler>(c => c.IsBotAdmin && !c.IsSenderAdmin)
                     .AddPipe<TriggersHandler>()
                     .AddPipe<IllegalTriggersHandler>(c => c.IsBotAdmin)
                     .AddPipe<CommandHandler>(c => c.Update.Message.Text.IsValidCommand());

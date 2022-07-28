@@ -61,6 +61,7 @@
 
 
   <ItemGroup>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0-preview.6.22324.4" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.1-dev-00337" />

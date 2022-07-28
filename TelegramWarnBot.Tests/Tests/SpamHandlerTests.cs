@@ -17,6 +17,7 @@ public class SpamHandlerTests
     {
         _sut = new SpamHandler(c => Task.CompletedTask,
                                MockedCachedContext.Shared,
+                               MockedConfigurationContext.Shared,
                                MessageHelperProvider.MessageHelper,
                                responseHelper,
                                dateTimeProvider);
