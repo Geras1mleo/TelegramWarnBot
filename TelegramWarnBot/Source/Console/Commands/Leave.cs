@@ -19,7 +19,7 @@ public class LeaveCommand : CommandLineApplication, ICommand
         Name = "leave";
         Description = "Leave a specific chat";
 
-        chatArgument = Argument("Chat Id", "Chat to that bot will leave",
+        chatArgument = Argument("Chat Id", "Chat that bot will leave",
             c => c.Accepts().RegularExpression("^\\\"?\\-?\\d+\"?$", "Not valid chat id"))
                   .IsRequired();
     }

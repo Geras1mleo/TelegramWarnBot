@@ -12,7 +12,7 @@ public class SaveCommand : CommandLineApplication, ICommand
         this.logger = logger;
 
         Name = "save";
-        Description = "Save last cached data to json files (See: /Data/)";
+        Description = "Save last cached data to json files (See: Users, Chats and ChatWarnings)";
     }
 
     public int OnExecute()

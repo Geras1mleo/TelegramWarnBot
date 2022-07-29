@@ -12,7 +12,7 @@ public class ReloadCommand : CommandLineApplication, ICommand
         this.logger = logger;
 
         Name = "reload";
-        Description = "Reload configurations";
+        Description = "Reload configurations (See: Configuration, Triggers and IllegalTriggers)";
     }
 
     public int OnExecute()

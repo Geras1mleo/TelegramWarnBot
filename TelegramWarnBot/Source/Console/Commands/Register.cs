@@ -25,11 +25,11 @@ public class RegisterCommand : CommandLineApplication, ICommand
         this.logger = logger;
 
         Name = "register";
-        Description = "Manipulate with registered chats";
+        Description = "Manipulate registered chats";
 
         listOption = Option("-l | --list", "Show the list of registered chats", CommandOptionType.NoValue);
-        removeOption = Option("-r | --remove", "Remove option for a specific chat", CommandOptionType.NoValue);
-        chatArgument = Argument("Chat Id", "Chat to add/remove",
+        removeOption = Option("-r | --remove", "Remove one specific chat from list", CommandOptionType.NoValue);
+        chatArgument = Argument("Chat Id", "Chat to (add to / remove from) the list",
             c => c.Accepts().RegularExpression("^\\\"?\\-?\\d+\"?$", "Not valid chat id"));
     }
 

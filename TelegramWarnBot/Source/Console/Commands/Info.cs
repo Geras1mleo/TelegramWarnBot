@@ -9,7 +9,7 @@ public class InfoCommand : CommandLineApplication, ICommand
         this.cachedDataContext = cachedDataContext;
 
         Name = "info";
-        Description = "Show info about cached chats and users";
+        Description = "Show info about cached chats, users and warnings";
     }
 
     // todo with options
