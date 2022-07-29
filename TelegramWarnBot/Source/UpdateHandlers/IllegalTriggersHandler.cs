@@ -1,5 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
+// todo bot is admin attribute
 [RegisteredChat]
 [TextMessageUpdate]
 public class IllegalTriggersHandler : Pipe<UpdateContext>
@@ -36,7 +37,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                 continue;
 
             // Applicapble in specific chat
-            if (trigger.Chat is not null && trigger.Chat != context.Update.Message.Chat.Id)
+            if (trigger.Chat is not null && trigger.Chat != context.Update.Message.Chat.Id) // todo chotdto
                 continue;
 
             if (!messageHelper.MatchMessage(trigger.IllegalWords, false, false, context.Update.Message.Text))
@@ -57,10 +58,15 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                                                          cancellationToken: context.CancellationToken);
             }
 
-            // Notify but don't warn admins and dont delete message if not allowed in config
-            if (!context.IsSenderAdmin || configurationContext.Configuration.AllowAdminWarnings)
+            if (trigger.DeleteMessage)
             {
-                if (trigger.WarnMember)
+                await responseHelper.DeleteMessageAsync(context);
+            }
+
+            // Notify but don't warn admins and dont delete message if not allowed in config
+            if (trigger.WarnMember)
+            {
+                if (!context.IsSenderAdmin || configurationContext.Configuration.AllowAdminWarnings)
                 {
                     var chatWarning = commandService.ResolveChatWarning(context.ChatDTO.Id);
                     var warnedUser = commandService.ResolveWarnedUser(context.UserDTO.Id, chatWarning);
@@ -70,10 +76,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                                                            !context.IsSenderAdmin,
                                                            context);
 
-                    if (trigger.DeleteMessage)
-                    {
-                        await responseHelper.DeleteMessageAsync(context);
-                    }
+
 
                     LogWarned(banned, context.ChatDTO, warnedUser);
 
