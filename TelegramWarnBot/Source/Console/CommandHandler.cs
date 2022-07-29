@@ -34,12 +34,13 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
 
                     if (commandInput is null) continue;
 
-                    var parts = Regex.Matches(commandInput, @"[\""].+?[\""]|[^ ]+") // todo from tools
-                                        .Cast<Match>()
-                                        .Select(m => m.Value)
-                                        .ToArray();
+                    var parts = Tools.ConsoleCommandRegex.Matches(commandInput)
+                                                         .Cast<Match>()
+                                                         .Select(m => m.Value)
+                                                         .ToArray();
 
                     if (parts.Length > 0)
+                    {
                         parts[0] = parts[0] switch
                         {
                             "l" => "leave",
@@ -49,6 +50,7 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
                             "v" => "version",
                             _ => parts[0]
                         };
+                    }
 
                     console.Execute(parts);
                 }
