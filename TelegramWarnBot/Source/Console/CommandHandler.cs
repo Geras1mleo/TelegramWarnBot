@@ -21,38 +21,41 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
     {
         Task.Run(() =>
         {
-            var console = new CommandLineApplicationWithDI(serviceProvider)
-            {
-                UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue,
-            };
+            string commandInput;
+            string[] commandArgs;
 
             while (!cancellationToken.IsCancellationRequested)
             {
+                // Creating every time new object bc of some bugs...
+                var console = new CommandLineApplicationWithDI(serviceProvider)
+                {
+                    UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue,
+                };
+                commandInput = Console.ReadLine();
+
+                if (commandInput is null) continue;
+
+                commandArgs = Tools.ConsoleCommandRegex.Matches(commandInput)
+                                                       .Cast<Match>()
+                                                       .Select(m => m.Value)
+                                                       .ToArray();
+
+                if (commandArgs.Length > 0)
+                {
+                    commandArgs[0] = commandArgs[0] switch
+                    {
+                        "l" => "leave",
+                        "r" => "reload",
+                        "s" => "save",
+                        "i" => "info",
+                        "v" => "version",
+                        _ => commandArgs[0]
+                    };
+                }
+
                 try
                 {
-                    var commandInput = Console.ReadLine();
-
-                    if (commandInput is null) continue;
-
-                    var parts = Tools.ConsoleCommandRegex.Matches(commandInput)
-                                                         .Cast<Match>()
-                                                         .Select(m => m.Value)
-                                                         .ToArray();
-
-                    if (parts.Length > 0)
-                    {
-                        parts[0] = parts[0] switch
-                        {
-                            "l" => "leave",
-                            "r" => "reload",
-                            "s" => "save",
-                            "i" => "info",
-                            "v" => "version",
-                            _ => parts[0]
-                        };
-                    }
-
-                    console.Execute(parts);
+                    console.Execute(commandArgs);
                 }
                 catch (Exception e)
                 {
@@ -60,27 +63,5 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
                 }
             }
         }, cancellationToken);
-    }
-
-    public void PrintAvailableCommands()
-    {
-        Tools.WriteColor(
-         "\nAvailable commands:\n"
-
-         + "\n[send] \t=> Send message:"
-             + "\n\t[-c] => Chat with according chat ID. Use . to send to all chats"
-             + "\n\t[-m] => Message to send. Please use \"\" to indicate message. Markdown formatting allowed"
-         + "\nExample: send -c 123456 -m \"Example message\"\n"
-
-         + "\n[register] => Register new chat:"
-             + "\n\t[-l] => List of registered chats"
-             + "\n\t[-rm] => Remove one specific chat\n"
-
-         + "\n[leave]/[l] => Leave a chat\n"
-         + "\n[reload]/[r] => Reload configurations\n"
-         + "\n[save]/[s] \t=> Save last data\n"
-         + "\n[info]/[i] \t=> Show info about cached chats and users\n"
-         + "\n[version]/[v]=> Version of bot"
-         , ConsoleColor.Red, false);
     }
 }
