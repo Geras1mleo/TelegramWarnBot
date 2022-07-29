@@ -6,17 +6,20 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
     private readonly IResponseHelper responseHelper;
+    private readonly ILogger<JoinedLeftHandler> logger;
 
     public JoinedLeftHandler(Func<UpdateContext, Task> next,
                              IConfigurationContext configurationContext,
                              ICachedDataContext cachedDataContext,
                              IChatHelper chatHelper,
-                             IResponseHelper responseHelper) : base(next)
+                             IResponseHelper responseHelper,
+                             ILogger<JoinedLeftHandler> logger) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.chatHelper = chatHelper;
         this.responseHelper = responseHelper;
+        this.logger = logger;
     }
 
     public override async Task<Task> Handle(UpdateContext context)
@@ -31,10 +34,14 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
                                                                              context.Update.Message.Chat.Id,
                                                                              context.CancellationToken)).ToList());
 
-                return responseHelper.SendMessageAsync(new()
+                await responseHelper.SendMessageAsync(new()
                 {
                     Message = configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
                 }, context);
+
+                logger.LogWarning("Bot has been added to chat {chat}...", context.ChatDTO.Name);
+
+                return Task.CompletedTask;
             }
 
             return HandleJoinedAsync(context);
@@ -44,8 +51,10 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             // If bot left chat / kicked from chat => clear data
             if (context.Update.Message.LeftChatMember.Id == context.Bot.Id)
             {
-                cachedDataContext.Warnings.RemoveAll(w => w.ChatId == context.Update.Message.Chat.Id);
-                cachedDataContext.Chats.RemoveAll(c => c.Id == context.Update.Message.Chat.Id);
+                //cachedDataContext.Warnings.RemoveAll(w => w.ChatId == context.ChatDTO.Id);
+                //cachedDataContext.Chats.RemoveAll(c => c.Id == context.ChatDTO.Id);
+
+                logger.LogWarning("Bot has been kicked from chat {chat}...", context.ChatDTO.Name);
 
                 return Task.CompletedTask;
             }
@@ -66,6 +75,8 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (context.IsBotAdmin)
             {
                 await responseHelper.DeleteMessageAsync(context);
+
+                logger.LogInformation("Deleted joined message in chat {chat} successfully!", context.ChatDTO.Name);
             }
         }
 
@@ -84,19 +95,19 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
         }
     }
 
-    private Task HandleLeftAsync(UpdateContext context)
+    private async Task HandleLeftAsync(UpdateContext context)
     {
         if (!context.IsChatRegistered)
-            return Task.CompletedTask;
+            return;
 
-        else if (configurationContext.Configuration.DeleteJoinedLeftMessage)
+        if (configurationContext.Configuration.DeleteJoinedLeftMessage)
         {
             if (context.IsBotAdmin)
             {
-                return responseHelper.DeleteMessageAsync(context);
+                await responseHelper.DeleteMessageAsync(context);
+
+                logger.LogInformation("Deleted left message in chat {chat} successfully!", context.ChatDTO.Name);
             }
         }
-
-        return Task.CompletedTask;
     }
 }

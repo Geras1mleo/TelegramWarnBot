@@ -11,6 +11,8 @@ public class SpamHandlerTests
 
     private readonly IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
 
+    private readonly ILogger<SpamHandler> logger = Substitute.For<ILogger<SpamHandler>>();
+
     private readonly IFixture fixture = FixtureProvider.Fixture;
 
     public SpamHandlerTests()
@@ -20,7 +22,8 @@ public class SpamHandlerTests
                                MockedConfigurationContext.Shared,
                                MessageHelperProvider.MessageHelper,
                                responseHelper,
-                               dateTimeProvider);
+                               dateTimeProvider,
+                               logger);
     }
 
     [Theory]

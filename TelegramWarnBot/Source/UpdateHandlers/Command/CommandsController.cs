@@ -41,7 +41,7 @@ public class CommandsController : ICommandsController
             }, context);
         }
 
-        var banned = await commandService.Warn(warnedUser, context.ChatDTO.Id,
+        var isBanned = await commandService.Warn(warnedUser, context.ChatDTO.Id,
                                                !chatHelper.IsAdmin(context.Update.Message.Chat.Id, warnedUser.Id),
                                                context);
 
@@ -50,32 +50,32 @@ public class CommandsController : ICommandsController
             await responseHelper.DeleteMessageAsync(context);
         }
 
-        LogWarned(banned, context.ChatDTO, warnedUser);
+        LogWarned(isBanned, context.ChatDTO, context.UserDTO, warnedUser);
 
         // Notify in chat that user has been warned or banned
         return responseHelper.SendMessageAsync(new()
         {
-            Message = banned ? configurationContext.Configuration.Captions.BannedSuccessfully
-                             : configurationContext.Configuration.Captions.WarnedSuccessfully,
+            Message = isBanned ? configurationContext.Configuration.Captions.BannedSuccessfully
+                               : configurationContext.Configuration.Captions.WarnedSuccessfully,
             MentionedUserId = warnedUser.Id
         }, context);
     }
 
-    private void LogWarned(bool banned, ChatDTO chat, WarnedUser warnedUser)
+    private void LogWarned(bool banned, ChatDTO chat, UserDTO admin, WarnedUser warnedUser)
     {
         var userName = cachedDataContext.Users.Find(u => u.Id == warnedUser.Id).GetName();
 
         if (banned)
-            logger.LogInformation("[Admin] Banned user {user} from chat {chat}.",
-                                   userName, chat.Name);
+            logger.LogInformation("[Admin] {admin} banned user by giving a warning {user} from chat {chat}.",
+                                  admin.GetName(), userName, chat.Name);
         else
-            logger.LogInformation("[Admin] Warned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
-                                   userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
+            logger.LogInformation("[Admin] {admin} warned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
+                                  admin.GetName(), userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
     }
 
     public async Task<Task> Unwarn(UpdateContext context)
     {
-        if (!commandService.TryResolveWarnedUser(context, true, out WarnedUser unwarnedUser, out string errorMessage))
+        if (!commandService.TryResolveWarnedUser(context, false, out WarnedUser unwarnedUser, out string errorMessage))
         {
             return responseHelper.SendMessageAsync(new()
             {
@@ -103,6 +103,13 @@ public class CommandsController : ICommandsController
                                                   unwarnedUser.Id,
                                                   onlyIfBanned: true,
                                                   cancellationToken: context.CancellationToken);
+
+        logger.LogInformation("[Admin] {admin} unwarned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
+                              context.UserDTO.GetName(),
+                              cachedDataContext.Users.Find(u => u.Id == unwarnedUser.Id).GetName(),
+                              context.ChatDTO.Name,
+                              unwarnedUser.Warnings,
+                              configurationContext.Configuration.MaxWarnings);
 
         return responseHelper.SendMessageAsync(new()
         {

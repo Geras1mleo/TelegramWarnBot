@@ -65,6 +65,11 @@ public static class Extensions
         return parts.Length > 0 && parts[0].StartsWith('/');
     }
 
+    public static string Truncate(this string str, int maxLength)
+    {
+        return str?[0..Math.Min(str.Length, maxLength)] + (str.Length > maxLength ? "..." : "");
+    }
+
     public static string GetName(this User user)
     {
         return $"{user.FirstName}{user.LastName?.Insert(0, " ")}";

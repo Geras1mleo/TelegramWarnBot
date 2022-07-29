@@ -8,16 +8,15 @@ public static class Tools
 
     // Cached methods
     private static readonly Dictionary<Type, MethodInfo[]> methodsDict = new();
-    public static MethodInfo ResolveMethod(Type type, string prefix)
+    public static MethodInfo ResolveMethod(Type type, string name)
     {
         if (!methodsDict.TryGetValue(type, out var cachedMethods))
         {
-            var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-            methodsDict.Add(type, methods);
-            return methods.FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
+            cachedMethods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+            methodsDict.Add(type, cachedMethods);
         }
 
-        return cachedMethods.FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
+        return cachedMethods.FirstOrDefault(m => m.Name.ToLower().Equals(name));
     }
 
     /// <summary>

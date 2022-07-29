@@ -7,15 +7,18 @@ public class TriggersHandler : Pipe<UpdateContext>
     private readonly IConfigurationContext configurationContext;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
+    private readonly ILogger<TriggersHandler> logger;
 
     public TriggersHandler(Func<UpdateContext, Task> next,
                            IConfigurationContext configurationContext,
                            IMessageHelper messageHelper,
-                           IResponseHelper responseHelper) : base(next)
+                           IResponseHelper responseHelper,
+                           ILogger<TriggersHandler> logger) : base(next)
     {
         this.configurationContext = configurationContext;
         this.messageHelper = messageHelper;
         this.responseHelper = responseHelper;
+        this.logger = logger;
     }
 
     public override async Task<Task> Handle(UpdateContext context)
@@ -34,6 +37,12 @@ public class TriggersHandler : Pipe<UpdateContext>
                 {
                     Message = response
                 }, context, context.Update.Message.MessageId);
+
+                logger.LogInformation("Message \"{message}\" from {user} in chat {chat} triggered a Trigger. Bot responded with:\"{response}\"",
+                                      context.Update.Message.Text.Truncate(50),
+                                      context.UserDTO.GetName(),
+                                      context.ChatDTO.Name,
+                                      response.Truncate(50));
 
                 // Match only 1 trigger
                 return next(context);

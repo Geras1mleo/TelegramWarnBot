@@ -4,14 +4,17 @@
 public class AdminsHandler : Pipe<UpdateContext>
 {
     private readonly IChatHelper chatHelper;
+    private readonly ILogger<AdminsHandler> logger;
 
     public AdminsHandler(Func<UpdateContext, Task> next,
-                         IChatHelper chatHelper) : base(next)
+                         IChatHelper chatHelper,
+                         ILogger<AdminsHandler> logger) : base(next)
     {
         this.chatHelper = chatHelper;
+        this.logger = logger;
     }
 
-    public override Task Handle(UpdateContext context)
+    public override async Task<Task> Handle(UpdateContext context)
     {
         if (context.Update.Type == UpdateType.ChatMember)
         {
@@ -19,7 +22,12 @@ public class AdminsHandler : Pipe<UpdateContext>
         }
         else if (context.Update.Type == UpdateType.MyChatMember)
         {
-            return BotRightsChanged(context);
+            var isAdmin = await BotRightsChanged(context);
+
+            logger.LogInformation("Bot rights in chat {chat} have been updated. Bot is admin: {isAdmin}",
+                                  context.ChatDTO.Name, isAdmin);
+
+            return Task.CompletedTask;
         }
 
         return next(context);
@@ -29,17 +37,17 @@ public class AdminsHandler : Pipe<UpdateContext>
     {
         if (context.Update.ChatMember.NewChatMember.Status == ChatMemberStatus.Administrator)
         {
-            context.ChatDTO?.Admins.Add(context.Update.ChatMember.NewChatMember.User.Id);
+            context.ChatDTO.Admins.Add(context.Update.ChatMember.NewChatMember.User.Id);
         }
         else
         {
-            context.ChatDTO?.Admins.Remove(context.Update.ChatMember.NewChatMember.User.Id);
+            context.ChatDTO.Admins.Remove(context.Update.ChatMember.NewChatMember.User.Id);
         }
 
         return Task.CompletedTask;
     }
 
-    private async Task BotRightsChanged(UpdateContext context)
+    private async Task<bool> BotRightsChanged(UpdateContext context)
     {
         if (context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Administrator)
         {
@@ -50,11 +58,13 @@ public class AdminsHandler : Pipe<UpdateContext>
                     context.ChatDTO.Admins = await chatHelper.GetAdminsAsync(context.Client,
                                                                              context.ChatDTO.Id,
                                                                              context.CancellationToken);
-                    return;
+                    return true;
                 }
             }
         }
 
-        context.ChatDTO?.Admins.Remove(context.Update.MyChatMember.NewChatMember.User.Id);
+        context.ChatDTO.Admins.Remove(context.Update.MyChatMember.NewChatMember.User.Id);
+
+        return false;
     }
 }

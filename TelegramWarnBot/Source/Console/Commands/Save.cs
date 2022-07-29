@@ -18,7 +18,7 @@ public class SaveCommand : CommandLineApplication, ICommand
     public int OnExecute()
     {
         cachedDataContext.SaveData();
-        logger.LogInformation("Data saved successfully!");
+        logger.LogInformation("Cached data saved successfully!");
         return 1;
     }
 }

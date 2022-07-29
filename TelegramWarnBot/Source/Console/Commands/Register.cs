@@ -2,18 +2,27 @@
 
 public class RegisterCommand : CommandLineApplication, ICommand
 {
+    private readonly IBot bot;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly IChatHelper chatHelper;
+    private readonly ILogger<RegisterCommand> logger;
 
     private readonly CommandOption listOption;
     private readonly CommandOption removeOption;
     private readonly CommandArgument chatArgument;
 
-    public RegisterCommand(IConfigurationContext configurationContext,
-                           ICachedDataContext cachedDataContext)
+    public RegisterCommand(IBot bot,
+                           IConfigurationContext configurationContext,
+                           ICachedDataContext cachedDataContext,
+                           IChatHelper chatHelper,
+                           ILogger<RegisterCommand> logger)
     {
+        this.bot = bot;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
+        this.chatHelper = chatHelper;
+        this.logger = logger;
 
         Name = "register";
         Description = "Manipulate with registered chats";
@@ -33,17 +42,29 @@ public class RegisterCommand : CommandLineApplication, ICommand
             if (!removeOption.HasValue())
             {
                 configurationContext.BotConfiguration.RegisteredChats.Add(chatId);
-                Tools.WriteColor("[Chat registered successfully]", ConsoleColor.Green, true);
+
+                var chat = cachedDataContext.Chats.Find(c => c.Id == chatId);
+
+                logger.LogInformation("Chat {chat} registered successfully!",
+                                      $"{chat?.Name}: {chatId}");
+
+                // Admins list hasn't been updated if chat wasn't registered
+                chat.Admins = chatHelper.GetAdminsAsync(bot.Client,
+                                                        chat.Id,
+                                                        CancellationToken.None)
+                                        .GetAwaiter().GetResult();
             }
             else
             {
                 if (configurationContext.BotConfiguration.RegisteredChats.Remove(chatId))
                 {
-                    Tools.WriteColor("[Chat removed successfully]", ConsoleColor.Green, true);
+                    logger.LogInformation("Chat {chat} removed from registered list successfully!",
+                                          $"{cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name}: {chatId}"); //todo with function getchatbyid
                 }
                 else
                 {
-                    Tools.WriteColor("[Chat not found...]", ConsoleColor.Red, true);
+                    logger.LogWarning("Chat {chatId} has been not registered yet...",
+                                      $"{cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name}: {chatId}");
                 }
             }
 
@@ -57,6 +78,7 @@ public class RegisterCommand : CommandLineApplication, ICommand
 
             foreach (var chatId in configurationContext.BotConfiguration.RegisteredChats)
             {
+
                 Tools.WriteColor("\t[" + (cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId,
                                  ConsoleColor.Blue, false);
             }

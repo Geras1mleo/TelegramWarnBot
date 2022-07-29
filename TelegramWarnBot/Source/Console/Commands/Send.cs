@@ -4,15 +4,18 @@ public class SendCommand : CommandLineApplication, ICommand
 {
     private readonly IBot bot;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly ILogger<SendCommand> logger;
 
     private readonly CommandOption chatOption;
     private readonly CommandArgument messageArgument;
 
     public SendCommand(IBot bot,
-                       ICachedDataContext cachedDataContext)
+                       ICachedDataContext cachedDataContext,
+                       ILogger<SendCommand> logger)
     {
         this.bot = bot;
         this.cachedDataContext = cachedDataContext;
+        this.logger = logger;
 
         Name = "send";
         Description = "Sending message into one specific chat or all cached chats";
@@ -39,22 +42,26 @@ public class SendCommand : CommandLineApplication, ICommand
                 chats.Add(chat);
         }
 
-        var tasks = new List<Task>();
-
-        int sentCount = 0;
         for (int i = 0; i < chats.Count; i++)
         {
             if (chats[i].Id != 0)
             {
-                tasks.Add(bot.Client.SendTextMessageAsync(chats[i].Id, message,
-                                                          parseMode: ParseMode.Markdown));
-                sentCount++;
+                try
+                {
+                    bot.Client.SendTextMessageAsync(chats[i].Id, message,
+                                                    parseMode: ParseMode.Markdown)
+                              .GetAwaiter().GetResult();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError("Error occured while sending message into chat: {chat}. \nError message: {error}", chats[i].Name, e.Message);
+                }
             }
         }
 
-        Task.WhenAll(tasks).GetAwaiter().GetResult();
-
-        Tools.WriteColor($"[Messages sent: {sentCount}]", ConsoleColor.Yellow, true);
+        logger.LogInformation("Message \"{message}\" sent into chats: {@chats}",
+                              message.Truncate(50),
+                              chats.Select(c => c.Name + ": " + c.Id));
 
         return 1;
     }
