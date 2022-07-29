@@ -83,9 +83,9 @@ public static class AppConfiguration
                     .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
                     .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
                     .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
-                    .AddPipe<SpamHandler>(c => c.IsBotAdmin && !c.IsSenderAdmin)
+                    .AddPipe<SpamHandler>(c => !c.IsSenderAdmin)
                     .AddPipe<TriggersHandler>()
-                    .AddPipe<IllegalTriggersHandler>(c => c.IsBotAdmin)
-                    .AddPipe<CommandHandler>(c => c.Update.Message.Text.IsValidCommand());
+                    .AddPipe<IllegalTriggersHandler>()
+                    .AddPipe<CommandHandler>(c => c.IsCommandUpdate);
     }
 }

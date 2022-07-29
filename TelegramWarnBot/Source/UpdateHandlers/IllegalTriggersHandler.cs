@@ -1,8 +1,8 @@
 ﻿namespace TelegramWarnBot;
 
-// todo bot is admin attribute
 [RegisteredChat]
 [TextMessageUpdate]
+[BotAdmin]
 public class IllegalTriggersHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
@@ -37,7 +37,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                 continue;
 
             // Applicapble in specific chat
-            if (trigger.Chat is not null && trigger.Chat != context.ChatDTO.Id) // todo chotdto
+            if (trigger.Chat is not null && trigger.Chat != context.ChatDTO.Id)
                 continue;
 
             if (!messageHelper.MatchMessage(trigger.IllegalWords, false, false, context.Update.Message.Text))

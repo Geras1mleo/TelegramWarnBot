@@ -6,6 +6,7 @@ public static class Tools
 
     public static readonly Regex ConsoleCommandRegex = new(@"[\""].+?[\""]|[^ ]+", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
 
+    // Cached methods
     private static readonly Dictionary<Type, MethodInfo[]> methodsDict = new();
     public static MethodInfo ResolveMethod(Type type, string prefix)
     {
@@ -19,8 +20,13 @@ public static class Tools
         return cachedMethods.FirstOrDefault(m => m.Name.ToLower().Equals(prefix));
     }
 
-    // https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
-    // usage: WriteColor("This is my [message] with inline [color] changes.", ConsoleColor.Yellow);
+    /// <summary>
+    /// Usage: WriteColor("This is my [message] with inline [color] changes.", ConsoleColor.Yellow);
+    /// https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="color"></param>
+    /// <param name="logDateTime"></param>
     public static void WriteColor(string message, ConsoleColor color, bool logDateTime)
     {
         if (logDateTime)

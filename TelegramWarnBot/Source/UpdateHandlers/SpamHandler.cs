@@ -2,6 +2,7 @@
 
 [RegisteredChat]
 [TextMessageUpdate]
+[BotAdmin]
 public class SpamHandler : Pipe<UpdateContext>
 {
     private readonly ICachedDataContext cachedDataContext;
