@@ -35,8 +35,10 @@ public class SpamHandler : Pipe<UpdateContext>
             var member = cachedDataContext.Members.FirstOrDefault(m => m.ChatId == context.ChatDTO.Id
                                                                     && m.UserId == context.UserDTO.Id);
 
-            // Member joined less than 24 hours ago
-            if (dateTimeProvider.DateTimeNow - (member?.JoinedDate ?? DateTime.MinValue) < TimeSpan.FromHours(24))
+            // Member joined less than 24 (or other value from config) hours ago
+            var joinedTime = dateTimeProvider.DateTimeNow - (member?.JoinedDate ?? DateTime.MinValue);
+
+            if (joinedTime < TimeSpan.FromHours(configurationContext.Configuration.NewMemberStatusFromHours))
             {
                 return responseHelper.DeleteMessageAsync(context);
             }

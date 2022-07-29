@@ -4,6 +4,7 @@
   "DeleteWarnMessage": false,
   "DeleteJoinedLeftMessage": true,
   "DeleteLinksFromNewMembers": true,
+  "NewMemberStatusFromHours": 24,
   "AllowAdminWarnings": true,
   "Captions": {
     "OnBotJoinedChatMessage": "👋 Hello there!",
