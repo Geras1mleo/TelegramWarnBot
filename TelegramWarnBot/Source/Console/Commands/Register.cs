@@ -20,19 +20,15 @@ public class RegisterCommand : CommandLineApplication, ICommand
 
         listOption = Option("-l | --list", "Show the list of registered chats", CommandOptionType.NoValue);
         removeOption = Option("-r | --remove", "Remove option for a specific chat", CommandOptionType.NoValue);
-        chatArgument = Argument("Chat Id", "Chat to add/remove", c =>
-        {
-            c.Accepts().Values(cachedDataContext.Chats
-                                      .Select(chat => "\"" + chat.Id.ToString() + "\"")
-                                      .ToArray());
-        }, false);
+        chatArgument = Argument("Chat Id", "Chat to add/remove",
+            c => c.Accepts().RegularExpression("^\\\"?\\-?\\d+\"?$", "Not valid chat id"));
     }
 
     public int OnExecute()
     {
         if (chatArgument.HasValue)
         {
-            var chatId = long.Parse(chatArgument.Value[1..^1]);
+            var chatId = long.Parse(chatArgument.Value.Trim('\"'));
 
             if (!removeOption.HasValue())
             {
@@ -81,6 +77,8 @@ public class RegisterCommand : CommandLineApplication, ICommand
 
             return 1;
         }
+
+        ShowHelp();
 
         return 0;
     }

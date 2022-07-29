@@ -59,6 +59,13 @@ public static class AppConfiguration
 
         services.AddTransient<IConsoleCommandHandler, ConsoleCommandHandler>();
         services.AddTransient<ICommand, RegisterCommand>();
+        services.AddTransient<ICommand, SendCommand>();
+        services.AddTransient<ICommand, InfoCommand>();
+        services.AddTransient<ICommand, ReloadCommand>();
+        services.AddTransient<ICommand, LeaveCommand>();
+        services.AddTransient<ICommand, SaveCommand>();
+        services.AddTransient<ICommand, VersionCommand>();
+        services.AddTransient<ICommand, ClearCommand>();
 
         services.AddTransient<IUpdateContextBuilder, UpdateContextBuilder>();
 

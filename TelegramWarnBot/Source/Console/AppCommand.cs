@@ -12,6 +12,7 @@ public class CommandLineApplicationWithDI : CommandLineApplication
     public CommandLineApplicationWithDI(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
+        HelpOption("-? | -h | --help");
         RegisterCommands();
     }
 
@@ -25,7 +26,8 @@ public class CommandLineApplicationWithDI : CommandLineApplication
             }
 
             commandLineApp.HelpOption("-? | -h | --help");
-            commandLineApp.OnExecute((commandLineApp as ICommand).OnExecute);
+
+            commandLineApp.OnExecute(command.OnExecute);
 
             AddSubcommand(commandLineApp);
         }
