@@ -37,7 +37,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                 continue;
 
             // Applicapble in specific chat
-            if (trigger.Chat is not null && trigger.Chat != context.Update.Message.Chat.Id) // todo chotdto
+            if (trigger.Chat is not null && trigger.Chat != context.ChatDTO.Id) // todo chotdto
                 continue;
 
             if (!messageHelper.MatchMessage(trigger.IllegalWords, false, false, context.Update.Message.Text))

@@ -47,7 +47,9 @@ public class AdminsHandler : Pipe<UpdateContext>
             {
                 if (administrator.CanDeleteMessages && administrator.CanRestrictMembers)
                 {
-                    context.ChatDTO.Admins = await chatHelper.GetAdminsAsync(context);
+                    context.ChatDTO.Admins = await chatHelper.GetAdminsAsync(context.Client,
+                                                                             context.ChatDTO.Id,
+                                                                             context.CancellationToken);
                     return;
                 }
             }

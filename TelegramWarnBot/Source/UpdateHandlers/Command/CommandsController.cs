@@ -185,6 +185,6 @@ public class CommandsController : ICommandsController
         return responseHelper.SendMessageAsync(new ResponseContext()
         {
             Message = response,
-        }, context);
+        }, context, replyToMessageId: context.Update.Message.MessageId);
     }
 }
