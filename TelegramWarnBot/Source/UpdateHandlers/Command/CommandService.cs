@@ -177,7 +177,7 @@ public class CommandService : ICommandService
         // If didn't mention user in message => look into replied message
         else if (context.Update.Message.ReplyToMessage?.From is not null)
         {
-            user = context.Update.Message.ReplyToMessage?.From;
+            user = context.Update.Message.ReplyToMessage.From;
         }
         // Didn't mention and didn't replied
         else
@@ -203,6 +203,7 @@ public class CommandService : ICommandService
         }
 
         userDto = user.Map();
+
         return ResolveMentionedUserResult.Resolved;
     }
 }

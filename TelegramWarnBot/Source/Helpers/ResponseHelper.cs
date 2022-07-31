@@ -42,7 +42,7 @@ public class ResponseHelper : IResponseHelper
     {
         var arguments = new
         {
-            SenderUser = GetUserObject(updateContext.ChatDTO.Id, updateContext.UserDTO.Id),
+            SenderUser = GetUserObject(updateContext.ChatDTO.Id, updateContext.UserDTO?.Id),
             MentionedUser = GetUserObject(updateContext.ChatDTO.Id, responseContext.MentionedUserId),
             configurationContext.Configuration
         };

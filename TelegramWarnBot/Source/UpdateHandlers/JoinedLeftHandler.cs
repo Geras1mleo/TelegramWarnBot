@@ -105,7 +105,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (context.IsBotAdmin)
             {
                 await responseHelper.DeleteMessageAsync(context);
-
+                
                 logger.LogInformation("Deleted left message in chat {chat} successfully!", context.ChatDTO.Name);
             }
         }

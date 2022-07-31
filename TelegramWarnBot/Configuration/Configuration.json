@@ -8,7 +8,7 @@
   "AllowAdminWarnings": true,
   "Captions": {
     "OnBotJoinedChatMessage": "👋 Hello there!",
-    "ChatNotRegistered": "☠️ This chat is not registered... {SenderUser}, please dial @robin\\\\_thicke for tech support...",
+    "ChatNotRegistered": "☠️ This chat is not registered... Please dial @robin\\\\_thicke for tech support...",
     "UserNoPermissions": "🤐 I do not acknowledge your powers...",
     "BotHasNoPermissions": "😪 This chat is beneath my powers...",
     "InvalidOperation": "💀 I' ll call the admin now and tell him that you don't know how to use it!",
