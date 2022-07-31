@@ -68,18 +68,22 @@ public class Bot : IBot
 
     private Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        // Update must be a valid message with a From-user
-        if (!update.Validate())
-            return Task.CompletedTask;
-
-        var context = updateContextBuilder.Build(client, update, BotUser, cancellationToken);
-
         try
         {
+            // Update must be a valid message with a From-user
+            if (!update.Validate())
+                return Task.CompletedTask;
+
+            var context = updateContextBuilder.Build(client, update, BotUser, cancellationToken);
+
             return pipe(context);
         }
         catch (Exception e)
         {
+            // todo from config
+            client.SendTextMessageAsync(713766114, "Fatal error occured... Restart required!\n" + e.Message, cancellationToken: cancellationToken);
+            client.SendTextMessageAsync(402649130, "Fatal error occured... Restart required!\n" + e.Message, cancellationToken: cancellationToken);
+
             // Update that raised exception will be saved in Logs.json
             // Bot will skip this message, he wont handle it ever again
             logger.LogError(e, "HandlePollingErrorAsync {@update}", update);
@@ -87,9 +91,12 @@ public class Bot : IBot
         }
     }
 
-    private Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
+    private async Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
     {
+        // todo from config
+        await client.SendTextMessageAsync(713766114, "Fatal error occured... Restart required!\n" + exception.Message, cancellationToken: cancellationToken);
+        await client.SendTextMessageAsync(402649130, "Fatal error occured... Restart required!\n" + exception.Message, cancellationToken: cancellationToken);
+
         logger.LogCritical(exception, "Restart required!");
-        return Task.CompletedTask;
     }
 }
