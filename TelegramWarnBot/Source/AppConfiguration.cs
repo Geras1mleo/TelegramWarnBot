@@ -30,6 +30,7 @@ public static class AppConfiguration
             .ReadFrom.Configuration(builder.Build())
             .Enrich.FromLogContext()
             .WriteTo.Console()
+            .WriteTo.TelegramSink(host.Services.GetService<IBot>())
             .WriteTo.File(new JsonFormatter(),
                           Path.Combine(env.ContentRootPath, "Data", "Logs.json"),
                           restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error)

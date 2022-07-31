@@ -78,25 +78,17 @@ public class Bot : IBot
 
             return pipe(context);
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            // todo from config
-            client.SendTextMessageAsync(713766114, "Fatal error occured... Restart required!\n" + e.Message, cancellationToken: cancellationToken);
-            client.SendTextMessageAsync(402649130, "Fatal error occured... Restart required!\n" + e.Message, cancellationToken: cancellationToken);
-
-            // Update that raised exception will be saved in Logs.json
-            // Bot will skip this message, he wont handle it ever again
-            logger.LogError(e, "HandlePollingErrorAsync {@update}", update);
+            // Update that raised exception will be saved in Logs.json (and sent to tech support in private messages)
+            logger.LogError(exception, "Handler error on update: {@update}", update);
             return Task.CompletedTask;
         }
     }
 
-    private async Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
+    private Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
     {
-        // todo from config
-        await client.SendTextMessageAsync(713766114, "Fatal error occured... Restart required!\n" + exception.Message, cancellationToken: cancellationToken);
-        await client.SendTextMessageAsync(402649130, "Fatal error occured... Restart required!\n" + exception.Message, cancellationToken: cancellationToken);
-
-        logger.LogCritical(exception, "Restart required!");
+        logger.LogCritical(exception, "Fatal error occured... Restart required!");
+        return Task.CompletedTask;
     }
 }
