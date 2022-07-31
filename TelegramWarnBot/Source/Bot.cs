@@ -10,6 +10,8 @@ public interface IBot
 
 public class Bot : IBot
 {
+    public static Bot Shared; // Only for TelegramSink logging
+
     private readonly ICachedDataContext cachedDataContext;
     private readonly IUpdateContextBuilder updateContextBuilder;
     private readonly IConfigurationContext configurationContext;
@@ -26,6 +28,8 @@ public class Bot : IBot
         this.cachedDataContext = cachedDataContext;
         this.updateContextBuilder = updateContextBuilder;
         this.logger = logger;
+
+        Shared = this;
     }
 
     public TelegramBotClient Client { get; set; }
