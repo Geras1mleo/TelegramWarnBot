@@ -80,8 +80,8 @@ public static class AppConfiguration
     public static PipeBuilder<UpdateContext> GetPipeBuilder(IServiceProvider provider)
     {
         return new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, provider)
-                    .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
                     .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
+                    .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
                     .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
                     .AddPipe<SpamHandler>(c => !c.IsSenderAdmin)
                     .AddPipe<TriggersHandler>()
