@@ -15,6 +15,13 @@
   },
   {
     "Chat": null,
+    "Messages": [ "москалі" ],
+    "Responses": [ "Можна навіть шміраки!" ],
+    "MatchCase": false,
+    "MatchWholeMessage": false
+  },
+  {
+    "Chat": null,
     "Messages": [ "our russophobia", "western russophobia" ],
     "Responses": [ "Is not enough!" ],
     "MatchCase": false,

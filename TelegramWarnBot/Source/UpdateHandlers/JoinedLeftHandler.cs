@@ -4,6 +4,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
     private readonly IChatHelper chatHelper;
     private readonly IResponseHelper responseHelper;
     private readonly ILogger<JoinedLeftHandler> logger;
@@ -11,12 +12,14 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
     public JoinedLeftHandler(Func<UpdateContext, Task> next,
                              IConfigurationContext configurationContext,
                              ICachedDataContext cachedDataContext,
+                             IInMemoryCachedDataContext inMemoryCachedDataContext,
                              IChatHelper chatHelper,
                              IResponseHelper responseHelper,
                              ILogger<JoinedLeftHandler> logger) : base(next)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
+        this.inMemoryCachedDataContext = inMemoryCachedDataContext;
         this.chatHelper = chatHelper;
         this.responseHelper = responseHelper;
         this.logger = logger;
@@ -84,7 +87,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (!member.IsBot)
             {
                 context.UserDTO = cachedDataContext.CacheUser(member);
-                cachedDataContext.Members.Add(new()
+                inMemoryCachedDataContext.Members.Add(new()
                 {
                     ChatId = context.Update.Message.Chat.Id,
                     UserId = member.Id,
@@ -104,7 +107,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (context.IsBotAdmin)
             {
                 await responseHelper.DeleteMessageAsync(context);
-                
+
                 logger.LogInformation("Deleted left message in chat {chat} successfully!", context.ChatDTO.Name);
             }
         }

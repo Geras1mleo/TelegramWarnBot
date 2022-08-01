@@ -5,7 +5,6 @@ public interface ICachedDataContext
     List<ChatDTO> Chats { get; }
     List<UserDTO> Users { get; }
     List<ChatWarnings> Warnings { get; }
-    List<MemberDTO> Members { get; }
 
     void BeginUpdate(int delaySeconds, CancellationToken cancellationToken);
     ChatDTO CacheChat(Chat chat, List<long> admins);
@@ -23,7 +22,6 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
     private List<ChatWarnings> warnings;
     private List<UserDTO> users;
     private List<ChatDTO> chats;
-    private readonly List<MemberDTO> members = new();
 
     public CachedDataContext(IHostEnvironment hostEnvironment) : base(hostEnvironment) { }
 
@@ -59,8 +57,6 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
             return warnings;
         }
     }
-
-    public List<MemberDTO> Members => members;
 
     private Task SaveWarningsAsync()
     {

@@ -56,6 +56,7 @@ public static class AppConfiguration
 
         services.AddSingleton<IConfigurationContext, ConfigurationContext>();
         services.AddSingleton<ICachedDataContext, CachedDataContext>();
+        services.AddSingleton<IInMemoryCachedDataContext, InMemoryCachedDataContext>();
 
         services.AddTransient<IConsoleCommandHandler, ConsoleCommandHandler>();
         services.AddTransient<ICommand, RegisterCommand>();

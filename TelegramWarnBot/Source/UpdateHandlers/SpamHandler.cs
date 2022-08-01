@@ -5,7 +5,7 @@
 [BotAdmin]
 public class SpamHandler : Pipe<UpdateContext>
 {
-    private readonly ICachedDataContext cachedDataContext;
+    private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
     private readonly IConfigurationContext configurationContext;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
@@ -13,14 +13,14 @@ public class SpamHandler : Pipe<UpdateContext>
     private readonly ILogger<SpamHandler> logger;
 
     public SpamHandler(Func<UpdateContext, Task> next,
-                       ICachedDataContext cachedDataContext,
+                       IInMemoryCachedDataContext inMemoryCachedDataContext,
                        IConfigurationContext configurationContext,
                        IMessageHelper messageHelper,
                        IResponseHelper responseHelper,
                        IDateTimeProvider dateTimeProvider,
                        ILogger<SpamHandler> logger) : base(next)
     {
-        this.cachedDataContext = cachedDataContext;
+        this.inMemoryCachedDataContext = inMemoryCachedDataContext;
         this.configurationContext = configurationContext;
         this.messageHelper = messageHelper;
         this.responseHelper = responseHelper;
@@ -35,7 +35,7 @@ public class SpamHandler : Pipe<UpdateContext>
 
         if (messageHelper.MatchLinkMessage(context.Update.Message) || messageHelper.MatchCardNumber(context.Update.Message.Text))
         {
-            var member = cachedDataContext.Members.LastOrDefault(m => m.ChatId == context.ChatDTO.Id
+            var member = inMemoryCachedDataContext.Members.LastOrDefault(m => m.ChatId == context.ChatDTO.Id
                                                                    && m.UserId == context.UserDTO.Id);
 
             // Member joined less than 24 (or other value from config) hours ago
