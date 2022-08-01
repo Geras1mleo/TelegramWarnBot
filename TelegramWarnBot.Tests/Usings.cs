@@ -14,3 +14,6 @@ global using Telegram.Bot.Types;
 global using Telegram.Bot.Types.Enums;
 
 global using Microsoft.Extensions.Logging;
+
+global using SmartFormat;
+global using SmartFormat.Core.Settings;

@@ -19,7 +19,8 @@ public class TriggersHandlerTests
         _sut = new TriggersHandler(c => Task.CompletedTask,
                                    MockedConfigurationContext.Shared,
                                    MessageHelperProvider.MessageHelper,
-                                   responseHelper);
+                                   responseHelper,
+                                   Substitute.For<ILogger<TriggersHandler>>());
     }
 
     [Theory]

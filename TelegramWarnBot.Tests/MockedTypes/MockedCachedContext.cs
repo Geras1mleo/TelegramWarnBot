@@ -31,11 +31,42 @@ public class MockedCachedContext : ICachedDataContext
             FirstName = "Robert",
             LastName = "Johnson",
             Username = "robert_johnson"
+        },
+        new UserDTO()
+        {
+            Id = 510,
+            FirstName = "Hugh",
+            LastName = "Jackman",
+            Username = null,
         }
     };
 
-    public List<ChatWarnings> Warnings => throw new NotImplementedException();
-
+    public List<ChatWarnings> Warnings
+    {
+        get
+        {
+            return new List<ChatWarnings>()
+            {
+                new ChatWarnings()
+                {
+                    ChatId = 69,
+                    WarnedUsers =new List<WarnedUser>()
+                    {
+                        new WarnedUser()
+                        {
+                            Id = 510,
+                            Warnings = 1,
+                        },
+                        new WarnedUser()
+                        {
+                            Id = 420,
+                            Warnings = 2,
+                        }
+                    }
+                }
+            };
+        }
+    }
 
     private List<MemberDTO> members = new();
     public List<MemberDTO> Members => members;
@@ -63,5 +94,20 @@ public class MockedCachedContext : ICachedDataContext
     public Task SaveRegisteredChatsAsync(List<long> registeredChats)
     {
         throw new NotImplementedException();
+    }
+
+    public ChatDTO FindChatById(long id)
+    {
+        return Chats.Find(c => c.Id == id);
+    }
+
+    public UserDTO FindUserById(long id)
+    {
+        return Users.Find(u => u.Id == id);
+    }
+
+    public ChatWarnings FindWarningByChatId(long chatId)
+    {
+        return Warnings.Find(w => w.ChatId == chatId);
     }
 }

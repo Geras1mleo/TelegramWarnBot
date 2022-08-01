@@ -12,9 +12,26 @@ public class MockedConfigurationContext : IConfigurationContext
     public BotConfiguration BotConfiguration => new()
     {
         RegisteredChats = new List<long>() { 69 },
+        Token = "token"
     };
 
-    public Configuration Configuration => new Fixture().Create<Configuration>();
+    public Configuration Configuration
+    {
+        get
+        {
+            return new()
+            {
+                AllowAdminWarnings = true,
+                UpdateDelay = 60,
+                MaxWarnings = 3,
+                DeleteJoinedLeftMessage = true,
+                DeleteLinksFromNewMembers = true,
+                DeleteWarnMessage = true,
+                NewMemberStatusFromHours = 24,
+                //Captions = new Fixture().Create<Captions>()
+            };
+        }
+    }
 
     public IllegalTrigger[] IllegalTriggers => new Fixture().CreateMany<IllegalTrigger>().ToArray();
 

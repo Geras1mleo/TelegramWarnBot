@@ -11,8 +11,6 @@ public class SpamHandlerTests
 
     private readonly IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
 
-    private readonly ILogger<SpamHandler> logger = Substitute.For<ILogger<SpamHandler>>();
-
     private readonly IFixture fixture = FixtureProvider.Fixture;
 
     public SpamHandlerTests()
@@ -23,7 +21,7 @@ public class SpamHandlerTests
                                MessageHelperProvider.MessageHelper,
                                responseHelper,
                                dateTimeProvider,
-                               logger);
+                               Substitute.For<ILogger<SpamHandler>>());
     }
 
     [Theory]
@@ -32,6 +30,7 @@ public class SpamHandlerTests
     [InlineData(MessageEntityType.Mention, 20, true)]
     [InlineData(MessageEntityType.TextMention, 20, true)]
     [InlineData(MessageEntityType.Url, 25, false)]
+    [InlineData(MessageEntityType.TextMention, 30, false)]
     [InlineData(MessageEntityType.BotCommand, 20, false)]
     [InlineData(MessageEntityType.Spoiler, 20, false)]
     public async Task Handle_ShouldDeleteMessage_WhenJoinedLessThan24HoursAgo(MessageEntityType type, int hoursAgoJoined, bool deleted)

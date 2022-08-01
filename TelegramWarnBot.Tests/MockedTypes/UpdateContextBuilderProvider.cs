@@ -6,18 +6,21 @@ public class MockedUpdateContextBuilder : IUpdateContextBuilder
 
     static MockedUpdateContextBuilder()
     {
-        Shared = new UpdateContextBuilder(MockedCachedContext.Shared,
-                                          new ChatHelper(MockedCachedContext.Shared,
-                                                          MockedConfigurationContext.Shared));
-    }
+        var chatHelper = Substitute.For<IChatHelper>();
 
-    public UpdateContext Build(ITelegramBotClient client, Update update, User botUser, CancellationToken cancellationToken)
-    {
-        return Shared.Build(client, update, botUser, cancellationToken);
+        chatHelper.IsChatRegistered(Arg.Any<long>()).Returns(true);
+
+        Shared = new UpdateContextBuilder(MockedCachedContext.Shared,
+                                          chatHelper);
     }
 
     public UpdateContext BuildMocked(Update update)
     {
-        return Shared.Build(null, update, FixtureProvider.Fixture.BuildUser(123), CancellationToken.None);
+        return Shared.Build(update, FixtureProvider.Fixture.BuildUser(123), CancellationToken.None);
+    }
+
+    public UpdateContext Build(Update update, User botUser, CancellationToken cancellationToken)
+    {
+        return Shared.Build(update, botUser, cancellationToken);
     }
 }
