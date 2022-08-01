@@ -28,7 +28,7 @@ public class MockedConfigurationContext : IConfigurationContext
                 DeleteLinksFromNewMembers = true,
                 DeleteWarnMessage = true,
                 NewMemberStatusFromHours = 24,
-                //Captions = new Fixture().Create<Captions>()
+                Captions = new Fixture().Create<Captions>()
             };
         }
     }

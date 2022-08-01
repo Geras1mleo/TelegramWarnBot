@@ -68,9 +68,6 @@ public class MockedCachedContext : ICachedDataContext
         }
     }
 
-    private List<MemberDTO> members = new();
-    public List<MemberDTO> Members => members;
-
     public void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();

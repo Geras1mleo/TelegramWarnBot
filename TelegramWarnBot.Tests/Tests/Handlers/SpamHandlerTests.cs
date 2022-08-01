@@ -6,9 +6,7 @@ public class SpamHandlerTests
     private readonly SpamHandler _sut;
 
     private readonly MockedUpdateContextBuilder updateContextBuilder = new MockedUpdateContextBuilder();
-
     private readonly IResponseHelper responseHelper = Substitute.For<IResponseHelper>();
-
     private readonly IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
 
     private readonly IFixture fixture = FixtureProvider.Fixture;
@@ -48,8 +46,8 @@ public class SpamHandlerTests
 
         var context = updateContextBuilder.BuildMocked(update);
 
-        MockedCachedContext.Shared.Members.Clear();
-        MockedCachedContext.Shared.Members.Add(new()
+        MockedInMemoryCachedContext.Shared.Members.Clear();
+        MockedInMemoryCachedContext.Shared.Members.Add(new()
         {
             ChatId = 69,
             UserId = 420,
