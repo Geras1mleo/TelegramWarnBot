@@ -58,12 +58,12 @@ public class ResponseHelper : IResponseHelper
         if (userId is null)
             return null;
 
-        UserDTO user = cachedDataContext.Users.Find(u => u.Id == userId);
+        UserDTO user = cachedDataContext.FindUserById(userId.Value);
 
         if (user is null)
             return null;
 
-        WarnedUser warnedUser = cachedDataContext.Warnings.Find(c => c.ChatId == chatId)?
+        WarnedUser warnedUser = cachedDataContext.FindWarningByChatId(chatId)?
                                                  .WarnedUsers.Find(u => u.Id == userId);
 
         return new()

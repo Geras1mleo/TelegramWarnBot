@@ -10,7 +10,7 @@ public interface IConfigurationContext
     void ReloadConfiguration();
 }
 
-public class ConfigurationContext : IOContext, IConfigurationContext
+public class ConfigurationContext : IOContextBase, IConfigurationContext
 {
     private BotConfiguration botConfiguration;
     private Configuration configuration;

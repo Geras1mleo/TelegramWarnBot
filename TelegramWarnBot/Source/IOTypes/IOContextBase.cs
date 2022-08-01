@@ -1,10 +1,10 @@
 ﻿namespace TelegramWarnBot;
 
-public abstract class IOContext
+public abstract class IOContextBase
 {
     private readonly IHostEnvironment hostEnvironment;
 
-    public IOContext(IHostEnvironment hostEnvironment)
+    public IOContextBase(IHostEnvironment hostEnvironment)
     {
         this.hostEnvironment = hostEnvironment;
     }

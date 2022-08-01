@@ -31,7 +31,7 @@ public class LeaveCommand : CommandLineApplication, ICommand
         telegramBotClientProvider.Client.LeaveChatAsync(chatId).GetAwaiter().GetResult();
 
         logger.LogInformation("Chat {chat} left successfully!",
-                              $"{cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name}: {chatId}"); //todo with function getchatbyid
+                              $"{cachedDataContext.FindChatById(chatId)?.Name}: {chatId}");
 
         return 1;
     }

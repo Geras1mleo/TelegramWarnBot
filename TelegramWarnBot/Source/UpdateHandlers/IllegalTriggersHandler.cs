@@ -110,7 +110,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
 
     private void LogWarned(bool banned, ChatDTO chat, WarnedUser warnedUser)
     {
-        var userName = cachedDataContext.Users.Find(u => u.Id == warnedUser.Id).GetName();
+        var userName = cachedDataContext.FindUserById(warnedUser.Id).GetName();
 
         if (banned)
             logger.LogInformation("[Auto] Banned user {user} from chat {chat}.",

@@ -29,7 +29,7 @@ public class ChatHelper : IChatHelper
 
     public bool IsAdmin(long chatId, long userId)
     {
-        return cachedDataContext.Chats.Find(c => c.Id == chatId)?.Admins.Any(a => a == userId) ?? false;
+        return cachedDataContext.FindChatById(chatId)?.Admins.Any(a => a == userId) ?? false;
     }
 
     public async Task<List<long>> GetAdminsAsync(long chatId, CancellationToken cancellationToken)

@@ -40,7 +40,7 @@ public class RegisterCommand : CommandLineApplication, ICommand
             {
                 configurationContext.BotConfiguration.RegisteredChats.Add(chatId);
 
-                var chat = cachedDataContext.Chats.Find(c => c.Id == chatId);
+                var chat = cachedDataContext.FindChatById(chatId);
 
                 logger.LogInformation("Chat {chat} registered successfully!",
                                       $"{chat?.Name}: {chatId}");
@@ -54,12 +54,12 @@ public class RegisterCommand : CommandLineApplication, ICommand
                 if (configurationContext.BotConfiguration.RegisteredChats.Remove(chatId))
                 {
                     logger.LogInformation("Chat {chat} removed from registered list successfully!",
-                                          $"{cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name}: {chatId}"); //todo with function getchatbyid
+                                          $"{cachedDataContext.FindChatById(chatId)?.Name}: {chatId}");
                 }
                 else
                 {
                     logger.LogWarning("Chat {chatId} has been not registered yet",
-                                      $"{cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name}: {chatId}");
+                                      $"{cachedDataContext.FindChatById(chatId)?.Name}: {chatId}");
                 }
             }
 
@@ -74,11 +74,14 @@ public class RegisterCommand : CommandLineApplication, ICommand
             foreach (var chatId in configurationContext.BotConfiguration.RegisteredChats)
             {
 
-                Tools.WriteColor("\t[" + (cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId,
+                Tools.WriteColor("\t[" + (cachedDataContext.FindChatById(chatId)?.Name ?? "Chat not cached yet") + "]: " + chatId,
                                  ConsoleColor.Blue, false);
             }
 
-            var notRegisteredChats = cachedDataContext.Chats.Where(cached => !configurationContext.BotConfiguration.RegisteredChats.Contains(cached.Id));
+            var notRegisteredChats = cachedDataContext.Chats.Where(cachedChat =>
+            {
+                return !configurationContext.BotConfiguration.RegisteredChats.Contains(cachedChat.Id);
+            });
 
             if (!notRegisteredChats.Any())
             {

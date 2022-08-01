@@ -36,7 +36,7 @@ public class SendCommand : CommandLineApplication, ICommand
         }
         else
         {
-            var chat = cachedDataContext.Chats.Find(c => c.Id == chatId);
+            var chat = cachedDataContext.FindChatById(chatId);
 
             if (chat is not null)
                 chats.Add(chat);

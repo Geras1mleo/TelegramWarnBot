@@ -132,7 +132,7 @@ public class CommandService : ICommandService
 
     public ChatWarnings ResolveChatWarning(long chatId)
     {
-        var chatWarning = cachedDataContext.Warnings.FirstOrDefault(c => c.ChatId == chatId);
+        var chatWarning = cachedDataContext.FindWarningByChatId(chatId);
         if (chatWarning is null)
         {
             chatWarning = new()
@@ -161,7 +161,7 @@ public class CommandService : ICommandService
              && context.Update.Message?.EntityValues is not null)
             {
                 var mentionedUsername = context.Update.Message.EntityValues.ElementAt(1)[1..];
-                var mentionedUserDto = cachedDataContext.Users.FirstOrDefault(u => u.Username == mentionedUsername);
+                var mentionedUserDto = cachedDataContext.Users.Find(u => u.Username == mentionedUsername);
 
                 if (mentionedUserDto is not null)
                 {

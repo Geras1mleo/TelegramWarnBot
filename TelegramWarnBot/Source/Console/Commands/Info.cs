@@ -28,9 +28,9 @@ public class InfoCommand : CommandLineApplication, ICommand
 
                 Tools.WriteColor($"\tAdmins: [{chat.Admins.Count}]", ConsoleColor.DarkYellow, false);
 
-                foreach (var admin in chat.Admins)
+                foreach (var adminId in chat.Admins)
                 {
-                    userName = cachedDataContext.Users.Find(u => u.Id == admin)?.GetName() ?? $"Not found - {admin}";
+                    userName = cachedDataContext.FindUserById(adminId)?.GetName() ?? $"Not found - {adminId}";
 
                     Tools.WriteColor($"\t\t[{userName}]", ConsoleColor.DarkMagenta, false);
                 }
@@ -56,13 +56,13 @@ public class InfoCommand : CommandLineApplication, ICommand
 
             foreach (var warning in cachedDataContext.Warnings)
             {
-                chatName = cachedDataContext.Chats.Find(c => c.Id == warning.ChatId)?.Name ?? $"Not found - {warning.ChatId}";
+                chatName = cachedDataContext.FindChatById(warning.ChatId)?.Name ?? $"Not found - {warning.ChatId}";
 
                 Tools.WriteColor($"\t[{chatName}]:", ConsoleColor.DarkMagenta, false);
 
                 foreach (var user in warning.WarnedUsers)
                 {
-                    userName = cachedDataContext.Users.Find(u => u.Id == user.Id)?.GetName() ?? $"Not found - {user.Id}";
+                    userName = cachedDataContext.FindUserById(user.Id)?.GetName() ?? $"Not found - {user.Id}";
 
                     Tools.WriteColor($"\t\t[{userName}] - [{user.Warnings}]", ConsoleColor.DarkMagenta, false);
                 }

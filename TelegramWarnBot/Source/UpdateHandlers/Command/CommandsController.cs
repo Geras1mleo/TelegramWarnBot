@@ -66,7 +66,7 @@ public class CommandsController : ICommandsController
 
     private void LogWarned(bool banned, ChatDTO chat, UserDTO admin, WarnedUser warnedUser)
     {
-        var userName = cachedDataContext.Users.Find(u => u.Id == warnedUser.Id).GetName();
+        var userName = cachedDataContext.FindUserById(warnedUser.Id).GetName();
 
         if (banned)
             logger.LogInformation("[Admin] {admin} banned user by giving a warning {user} from chat {chat}.",
@@ -109,7 +109,7 @@ public class CommandsController : ICommandsController
 
         logger.LogInformation("[Admin] {admin} unwarned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
                               context.UserDTO.GetName(),
-                              cachedDataContext.Users.Find(u => u.Id == unwarnedUser.Id).GetName(),
+                              cachedDataContext.FindUserById(unwarnedUser.Id).GetName(),
                               context.ChatDTO.Name,
                               unwarnedUser.Warnings,
                               configurationContext.Configuration.MaxWarnings);
@@ -156,7 +156,7 @@ public class CommandsController : ICommandsController
             }
         }
 
-        var warningsCount = cachedDataContext.Warnings.Find(c => c.ChatId == context.ChatDTO.Id)?
+        var warningsCount = cachedDataContext.FindWarningByChatId(context.ChatDTO.Id)?
                                              .WarnedUsers.Find(u => u.Id == mentionedUser.Id)?.Warnings ?? 0;
 
         string response;

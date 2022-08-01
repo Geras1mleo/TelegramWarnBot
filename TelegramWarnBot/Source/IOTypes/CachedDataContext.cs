@@ -12,9 +12,13 @@ public interface ICachedDataContext
     UserDTO CacheUser(User user);
     void SaveData();
     Task SaveRegisteredChatsAsync(List<long> registeredChats);
+
+    ChatDTO FindChatById(long id);
+    UserDTO FindUserById(long id);
+    ChatWarnings FindWarningByChatId(long chatId);
 }
 
-public class CachedDataContext : IOContext, ICachedDataContext
+public class CachedDataContext : IOContextBase, ICachedDataContext
 {
     private List<ChatWarnings> warnings;
     private List<UserDTO> users;
@@ -96,7 +100,7 @@ public class CachedDataContext : IOContext, ICachedDataContext
     public UserDTO CacheUser(User user)
     {
         // Adding client to list if not exist
-        var userDto = Users.FirstOrDefault(u => u.Id == user.Id);
+        var userDto = FindUserById(user.Id);
         if (userDto is null)
         {
             userDto = user.Map();
@@ -116,7 +120,7 @@ public class CachedDataContext : IOContext, ICachedDataContext
     public ChatDTO CacheChat(Chat chat, List<long> admins)
     {
         // Adding chat to list if not exist
-        var chatDto = Chats.FirstOrDefault(c => c.Id == chat.Id);
+        var chatDto = FindChatById(chat.Id);
         if (chatDto is null)
         {
             chatDto = new()
@@ -147,5 +151,20 @@ public class CachedDataContext : IOContext, ICachedDataContext
     public void SaveData()
     {
         Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync());
+    }
+
+    public ChatDTO FindChatById(long id)
+    {
+        return Chats.Find(c => c.Id == id);
+    }
+
+    public UserDTO FindUserById(long id)
+    {
+        return Users.Find(u => u.Id == id);
+    }
+
+    public ChatWarnings FindWarningByChatId(long chatId)
+    {
+        return Warnings.Find(w => w.ChatId == chatId);
     }
 }

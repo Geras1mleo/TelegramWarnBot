@@ -21,11 +21,11 @@ public class UpdateContextBuilder : IUpdateContextBuilder
     {
         var chatId = update.GetChat().Id;
 
-        var chatDto = cachedDataContext.Chats.Find(c => c.Id == chatId);
+        var chatDto = cachedDataContext.FindChatById(chatId);
 
         var fromUser = update.GetFromUser();
 
-        var userDto = cachedDataContext.Users.Find(u => u.Id == fromUser.Id);
+        var userDto = cachedDataContext.FindUserById(fromUser.Id);
 
         return new UpdateContext
         {
