@@ -58,7 +58,7 @@ public class RegisterCommand : CommandLineApplication, ICommand
                 }
                 else
                 {
-                    logger.LogWarning("Chat {chatId} has been not registered yet...",
+                    logger.LogWarning("Chat {chatId} has been not registered yet",
                                       $"{cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name}: {chatId}");
                 }
             }

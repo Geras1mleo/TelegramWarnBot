@@ -45,7 +45,7 @@ public class SpamHandler : Pipe<UpdateContext>
             {
                 var deletingTask = responseHelper.DeleteMessageAsync(context);
 
-                logger.LogInformation("Message \"{message}\" from {user} in chat {chat} has been considered as spam and deleted...",
+                logger.LogInformation("Message \"{message}\" from {user} in chat {chat} has been considered as spam and deleted",
                                       context.Update.Message.Text.Truncate(50),
                                       context.UserDTO.GetName(),
                                       context.ChatDTO.Name);

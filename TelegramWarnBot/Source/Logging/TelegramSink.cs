@@ -6,7 +6,6 @@ public class TelegramSink : ILogEventSink
 
     public TelegramSink(long[] notifyBotOwners)
     {
-        // g: 402649130 todo
         this.notifyBotOwners = notifyBotOwners;
     }
 
@@ -15,11 +14,16 @@ public class TelegramSink : ILogEventSink
         if (notifyBotOwners is null)
             return;
 
+        logEvent.RemovePropertyIfPresent("update");
+
+        string message = logEvent.RenderMessage();
+
         try
         {
             foreach (var userId in notifyBotOwners)
             {
-                TelegramBotClientProvider.Shared.Client.SendTextMessageAsync(userId, $"{logEvent.Level}: " + logEvent.Exception.Message).GetAwaiter().GetResult();
+                TelegramBotClientProvider.Shared.Client.SendTextMessageAsync(userId, $"{logEvent.Level}: " + message)
+                                                       .GetAwaiter().GetResult();
             }
         }
         catch (Exception) { }
@@ -28,7 +32,8 @@ public class TelegramSink : ILogEventSink
 
 public static class TelegramSinkExtensions
 {
-    public static LoggerConfiguration TelegramSink(this LoggerSinkConfiguration loggerConfiguration,
+    public static LoggerConfiguration TelegramSink(
+        this LoggerSinkConfiguration loggerConfiguration,
         long[] notifyBotOwners = null,
         LogEventLevel restrictedToMinimumLevel = LogEventLevel.Warning)
     {

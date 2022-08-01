@@ -38,7 +38,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
                     Message = configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
                 }, context);
 
-                logger.LogWarning("Bot has been added to chat {chat}...", context.ChatDTO.Name);
+                logger.LogWarning("Bot has been added to chat {chat}", $"{context.ChatDTO?.Name}: {context.ChatDTO.Id}");
 
                 return Task.CompletedTask;
             }
@@ -53,7 +53,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
                 //cachedDataContext.Warnings.RemoveAll(w => w.ChatId == context.ChatDTO.Id);
                 //cachedDataContext.Chats.RemoveAll(c => c.Id == context.ChatDTO.Id);
 
-                logger.LogWarning("Bot has been kicked from chat {chat}...", context.ChatDTO.Name);
+                logger.LogWarning("Bot has been kicked from chat {chat}", $"{context.ChatDTO?.Name}: {context.ChatDTO.Id}");
 
                 return Task.CompletedTask;
             }

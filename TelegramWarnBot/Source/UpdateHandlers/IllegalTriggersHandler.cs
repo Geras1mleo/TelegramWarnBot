@@ -46,7 +46,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             if (!messageHelper.MatchMessage(trigger.IllegalWords, false, false, context.Update.Message.Text))
                 continue;
 
-            logger.LogInformation("Message \"{message}\" from {user} in chat {chat} triggered a IllegalTrigger...",
+            logger.LogInformation("Message \"{message}\" from {user} in chat {chat} triggered a IllegalTrigger",
                                   context.Update.Message.Text.Truncate(50),
                                   context.UserDTO.GetName(),
                                   context.ChatDTO.Name);

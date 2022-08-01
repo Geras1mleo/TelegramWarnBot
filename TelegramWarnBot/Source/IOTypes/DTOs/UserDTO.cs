@@ -14,7 +14,7 @@ public class UserDTO
             // It is a only way to find it...
 
             if (string.IsNullOrEmpty(value))
-                throw new ArgumentException("Clearing name of user...");
+                throw new ArgumentException("Clearing name of user");
 
             firstName = value;
         }

@@ -55,6 +55,8 @@ public class Bot : IBot
     {
         pipe = AppConfiguration.GetPipeBuilder(serviceProvider).Build();
 
+        logger.LogInformation("Starting receiving updates");
+
         telegramBotClientProvider.Client.StartReceiving(UpdateHandler, PollingErrorHandler,
         receiverOptions: new ReceiverOptions()
         {
@@ -83,14 +85,14 @@ public class Bot : IBot
         catch (Exception exception)
         {
             // Update that raised exception will be saved in Logs.json (and sent to tech support in private messages)
-            logger.LogError(exception, "Handler error on update: {@update}", update);
+            logger.LogError(exception, "Handler error on update {@update} in chat {chat}", update, update.GetChat()?.Title);
             return Task.CompletedTask;
         }
     }
 
     private Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
     {
-        logger.LogCritical(exception, "Fatal error occured... Restart required!");
+        logger.LogCritical(exception, "Fatal error occured. Restart required!");
         return Task.CompletedTask;
     }
 }
