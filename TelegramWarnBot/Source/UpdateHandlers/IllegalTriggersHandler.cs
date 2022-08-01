@@ -54,16 +54,17 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             foreach (var adminId in trigger.NotifiedAdmins)
             {
                 await telegramBotClientProvider.Client.SendTextMessageAsync(adminId,
-                                                          $"*Illegal message detected!*\nChat: *{context.Update.Message.Chat.Title}*" +
-                                                          $"\nFrom: *{context.Update.Message.From?.GetName()}*" +
+                                                          $"*Illegal message detected!*" +
+                                                          $"\nChat: *{context.ChatDTO.Name}*" +
+                                                          $"\nFrom: *{context.UserDTO}*" +
                                                           $"\nSent: {context.Update.Message.Date}" +
                                                           $"\nContent:",
                                                           cancellationToken: context.CancellationToken,
                                                           parseMode: ParseMode.Markdown);
 
-                await telegramBotClientProvider.Client.ForwardMessageAsync(adminId, context.Update.Message.Chat.Id,
-                                                         context.Update.Message.MessageId,
-                                                         cancellationToken: context.CancellationToken);
+                await telegramBotClientProvider.Client.ForwardMessageAsync(adminId, context.ChatDTO.Id,
+                                                                           context.Update.Message.MessageId,
+                                                                           cancellationToken: context.CancellationToken);
             }
 
             if (trigger.NotifiedAdmins.Length > 0)
