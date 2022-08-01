@@ -19,21 +19,19 @@ public static class AppConfiguration
             .Build();
 
         var env = host.Services.GetService<IHostEnvironment>();
+        var envPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "Linux" : "Windows";
+
+        Log.Logger.Information("Hosting platform: {platform}", envPlatform);
 
         var builder = new ConfigurationBuilder()
             .SetBasePath(env.ContentRootPath)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+            .AddJsonFile($"appsettings.{envPlatform}.json", optional: false, reloadOnChange: true)
             .AddEnvironmentVariables();
 
+        // Configuring logger again with provided appsettings
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(builder.Build())
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .WriteTo.TelegramSink()
-            .WriteTo.File(new JsonFormatter(),
-                          Path.Combine(env.ContentRootPath, "Data", "Logs.json"),
-                          LogEventLevel.Error)
             .CreateLogger();
 
         Log.Logger.Information("Configured successfully!");
@@ -54,6 +52,7 @@ public static class AppConfiguration
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.AddSingleton<IBot, Bot>();
+        services.AddSingleton<ITelegramBotClientProvider, TelegramBotClientProvider>();
 
         services.AddSingleton<IConfigurationContext, ConfigurationContext>();
         services.AddSingleton<ICachedDataContext, CachedDataContext>();

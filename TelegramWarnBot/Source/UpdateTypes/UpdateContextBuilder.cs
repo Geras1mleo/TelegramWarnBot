@@ -2,7 +2,7 @@
 
 public interface IUpdateContextBuilder
 {
-    UpdateContext Build(ITelegramBotClient client, Update update, User botUser, CancellationToken cancellationToken);
+    UpdateContext Build(Update update, User botUser, CancellationToken cancellationToken);
 }
 
 public class UpdateContextBuilder : IUpdateContextBuilder
@@ -17,7 +17,7 @@ public class UpdateContextBuilder : IUpdateContextBuilder
         this.chatHelper = chatHelper;
     }
 
-    public UpdateContext Build(ITelegramBotClient client, Update update, User botUser, CancellationToken cancellationToken)
+    public UpdateContext Build(Update update, User botUser, CancellationToken cancellationToken)
     {
         var chatId = update.GetChat().Id;
 
@@ -29,7 +29,6 @@ public class UpdateContextBuilder : IUpdateContextBuilder
 
         return new UpdateContext
         {
-            Client = client,
             Update = update,
             CancellationToken = cancellationToken,
             Bot = botUser,

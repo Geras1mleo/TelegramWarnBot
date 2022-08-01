@@ -13,14 +13,17 @@ public interface ICommandService
 
 public class CommandService : ICommandService
 {
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
 
-    public CommandService(IConfigurationContext configurationContext,
+    public CommandService(ITelegramBotClientProvider telegramBotClientProvider,
+                          IConfigurationContext configurationContext,
                           ICachedDataContext cachedDataContext,
                           IChatHelper chatHelper)
     {
+        this.telegramBotClientProvider = telegramBotClientProvider;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.chatHelper = chatHelper;
@@ -45,7 +48,7 @@ public class CommandService : ICommandService
 
         if (tryBanUser)
         {
-            await context.Client.BanChatMemberAsync(chatId, warnedUser.Id,
+            await telegramBotClientProvider.Client.BanChatMemberAsync(chatId, warnedUser.Id,
                                                     cancellationToken: context.CancellationToken);
             return true;
         }

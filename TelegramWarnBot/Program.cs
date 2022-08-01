@@ -13,7 +13,7 @@ var logger = host.Services.GetService<ILogger<Program>>();
 
 var cachedDataContext = host.Services.GetService<ICachedDataContext>();
 
-await bot.StartAsync(host.Services, cts.Token);
+await bot.StartAsync(cts.Token);
 
 consoleHandler.Start(cts.Token);
 

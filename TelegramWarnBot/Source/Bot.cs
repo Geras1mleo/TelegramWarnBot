@@ -2,44 +2,44 @@
 
 public interface IBot
 {
-    TelegramBotClient Client { get; set; }
-    User BotUser { get; set; }
+    User BotUser { get; }
 
-    Task StartAsync(IServiceProvider provider, CancellationToken cancellationToken);
+    Task StartAsync(CancellationToken cancellationToken);
 }
 
 public class Bot : IBot
 {
-    public static Bot Shared; // Only for TelegramSink logging
-
+    private readonly IServiceProvider serviceProvider;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
+    private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IUpdateContextBuilder updateContextBuilder;
-    private readonly IConfigurationContext configurationContext;
     private readonly ILogger<Bot> logger;
 
     private Func<UpdateContext, Task> pipe;
 
-    public Bot(IConfigurationContext configurationContext,
+    public User BotUser { get; private set; }
+
+    public Bot(IServiceProvider serviceProvider,
+               ITelegramBotClientProvider telegramBotClientProvider,
+               IConfigurationContext configurationContext,
                ICachedDataContext cachedDataContext,
                IUpdateContextBuilder updateContextBuilder,
                ILogger<Bot> logger)
     {
+        this.serviceProvider = serviceProvider;
+        this.telegramBotClientProvider = telegramBotClientProvider;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.updateContextBuilder = updateContextBuilder;
         this.logger = logger;
-
-        Shared = this;
     }
 
-    public TelegramBotClient Client { get; set; }
-    public User BotUser { get; set; }
-
-    public async Task StartAsync(IServiceProvider provider, CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        StartReceiving(provider, cancellationToken);
+        StartReceiving(cancellationToken);
 
-        BotUser = await Client.GetMeAsync(cancellationToken);
+        BotUser = await telegramBotClientProvider.Client.GetMeAsync(cancellationToken);
 
         // Register bot itself to recognize when someone mentions it with @
         cachedDataContext.CacheUser(BotUser);
@@ -51,13 +51,11 @@ public class Bot : IBot
         Console.Title = BotUser.FirstName;
     }
 
-    private void StartReceiving(IServiceProvider provider, CancellationToken cancellationToken)
+    private void StartReceiving(CancellationToken cancellationToken)
     {
-        pipe = AppConfiguration.GetPipeBuilder(provider).Build();
+        pipe = AppConfiguration.GetPipeBuilder(serviceProvider).Build();
 
-        Client = new(configurationContext.BotConfiguration.Token);
-
-        Client.StartReceiving(UpdateHandler, PollingErrorHandler,
+        telegramBotClientProvider.Client.StartReceiving(UpdateHandler, PollingErrorHandler,
         receiverOptions: new ReceiverOptions()
         {
             AllowedUpdates = new[]
@@ -78,7 +76,7 @@ public class Bot : IBot
             if (!update.Validate())
                 return Task.CompletedTask;
 
-            var context = updateContextBuilder.Build(client, update, BotUser, cancellationToken);
+            var context = updateContextBuilder.Build(update, BotUser, cancellationToken);
 
             return pipe(context);
         }

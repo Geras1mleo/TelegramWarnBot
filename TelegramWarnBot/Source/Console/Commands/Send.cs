@@ -2,18 +2,18 @@
 
 public class SendCommand : CommandLineApplication, ICommand
 {
-    private readonly IBot bot;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly ICachedDataContext cachedDataContext;
     private readonly ILogger<SendCommand> logger;
 
     private readonly CommandOption chatOption;
     private readonly CommandArgument messageArgument;
 
-    public SendCommand(IBot bot,
+    public SendCommand(ITelegramBotClientProvider telegramBotClientProvider,
                        ICachedDataContext cachedDataContext,
                        ILogger<SendCommand> logger)
     {
-        this.bot = bot;
+        this.telegramBotClientProvider = telegramBotClientProvider;
         this.cachedDataContext = cachedDataContext;
         this.logger = logger;
 
@@ -48,8 +48,8 @@ public class SendCommand : CommandLineApplication, ICommand
             {
                 try
                 {
-                    bot.Client.SendTextMessageAsync(chats[i].Id, message,
-                                                    parseMode: ParseMode.Markdown)
+                    telegramBotClientProvider.Client.SendTextMessageAsync(chats[i].Id, message,
+                                                                parseMode: ParseMode.Markdown)
                               .GetAwaiter().GetResult();
                 }
                 catch (Exception e)

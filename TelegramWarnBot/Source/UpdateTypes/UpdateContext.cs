@@ -8,7 +8,6 @@ public interface IContext
 
 public class UpdateContext : IContext
 {
-    public ITelegramBotClient Client { get; set; }
     public Update Update { get; set; }
     public CancellationToken CancellationToken { get; set; }
     public User Bot { get; set; }

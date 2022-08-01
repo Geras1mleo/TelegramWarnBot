@@ -30,8 +30,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
             {
                 context.ChatDTO = cachedDataContext.CacheChat(context.Update.Message.Chat,
-                                            (await chatHelper.GetAdminsAsync(context.Client,
-                                                                             context.Update.Message.Chat.Id,
+                                            (await chatHelper.GetAdminsAsync(context.Update.Message.Chat.Id,
                                                                              context.CancellationToken)).ToList());
 
                 await responseHelper.SendMessageAsync(new()

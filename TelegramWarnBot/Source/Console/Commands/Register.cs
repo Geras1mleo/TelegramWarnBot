@@ -2,7 +2,6 @@
 
 public class RegisterCommand : CommandLineApplication, ICommand
 {
-    private readonly IBot bot;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
@@ -12,13 +11,11 @@ public class RegisterCommand : CommandLineApplication, ICommand
     private readonly CommandOption removeOption;
     private readonly CommandArgument chatArgument;
 
-    public RegisterCommand(IBot bot,
-                           IConfigurationContext configurationContext,
+    public RegisterCommand(IConfigurationContext configurationContext,
                            ICachedDataContext cachedDataContext,
                            IChatHelper chatHelper,
                            ILogger<RegisterCommand> logger)
     {
-        this.bot = bot;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.chatHelper = chatHelper;
@@ -49,9 +46,7 @@ public class RegisterCommand : CommandLineApplication, ICommand
                                       $"{chat?.Name}: {chatId}");
 
                 // Admins list hasn't been updated if chat wasn't registered
-                chat.Admins = chatHelper.GetAdminsAsync(bot.Client,
-                                                        chat.Id,
-                                                        CancellationToken.None)
+                chat.Admins = chatHelper.GetAdminsAsync(chat.Id, CancellationToken.None)
                                         .GetAwaiter().GetResult();
             }
             else

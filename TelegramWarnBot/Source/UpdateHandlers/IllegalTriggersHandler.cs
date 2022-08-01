@@ -5,6 +5,7 @@
 [BotAdmin]
 public class IllegalTriggersHandler : Pipe<UpdateContext>
 {
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IMessageHelper messageHelper;
@@ -13,6 +14,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
     private readonly ILogger<IllegalTriggersHandler> logger;
 
     public IllegalTriggersHandler(Func<UpdateContext, Task> next,
+                                  ITelegramBotClientProvider telegramBotClientProvider,
                                   IConfigurationContext configurationContext,
                                   ICachedDataContext cachedDataContext,
                                   IMessageHelper messageHelper,
@@ -20,6 +22,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                                   ICommandService commandService,
                                   ILogger<IllegalTriggersHandler> logger) : base(next)
     {
+        this.telegramBotClientProvider = telegramBotClientProvider;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.messageHelper = messageHelper;
@@ -50,7 +53,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
 
             foreach (var adminId in trigger.NotifiedAdmins)
             {
-                await context.Client.SendTextMessageAsync(adminId,
+                await telegramBotClientProvider.Client.SendTextMessageAsync(adminId,
                                                           $"*Illegal message detected!*\nChat: *{context.Update.Message.Chat.Title}*" +
                                                           $"\nFrom: *{context.Update.Message.From?.GetName()}*" +
                                                           $"\nSent: {context.Update.Message.Date}" +
@@ -58,7 +61,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                                                           cancellationToken: context.CancellationToken,
                                                           parseMode: ParseMode.Markdown);
 
-                await context.Client.ForwardMessageAsync(adminId, context.Update.Message.Chat.Id,
+                await telegramBotClientProvider.Client.ForwardMessageAsync(adminId, context.Update.Message.Chat.Id,
                                                          context.Update.Message.MessageId,
                                                          cancellationToken: context.CancellationToken);
             }

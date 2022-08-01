@@ -9,6 +9,7 @@ public interface ICommandsController
 
 public class CommandsController : ICommandsController
 {
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
@@ -16,13 +17,15 @@ public class CommandsController : ICommandsController
     private readonly ICommandService commandService;
     private readonly ILogger<CommandsController> logger;
 
-    public CommandsController(IConfigurationContext configurationContext,
-                          ICachedDataContext cachedDataContext,
-                          IChatHelper chatHelper,
-                          IResponseHelper responseHelper,
-                          ICommandService commandService,
-                          ILogger<CommandsController> logger)
+    public CommandsController(ITelegramBotClientProvider telegramBotClientProvider,
+                              IConfigurationContext configurationContext,
+                              ICachedDataContext cachedDataContext,
+                              IChatHelper chatHelper,
+                              IResponseHelper responseHelper,
+                              ICommandService commandService,
+                              ILogger<CommandsController> logger)
     {
+        this.telegramBotClientProvider = telegramBotClientProvider;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.chatHelper = chatHelper;
@@ -99,7 +102,7 @@ public class CommandsController : ICommandsController
 
         unwarnedUser.Warnings--;
 
-        await context.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id,
+        await telegramBotClientProvider.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id,
                                                   unwarnedUser.Id,
                                                   onlyIfBanned: true,
                                                   cancellationToken: context.CancellationToken);

@@ -2,17 +2,17 @@
 
 public class LeaveCommand : CommandLineApplication, ICommand
 {
-    private readonly IBot bot;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly ICachedDataContext cachedDataContext;
     private readonly ILogger<LeaveCommand> logger;
 
     private readonly CommandArgument chatArgument;
 
-    public LeaveCommand(IBot bot,
+    public LeaveCommand(ITelegramBotClientProvider telegramBotClientProvider,
                         ICachedDataContext cachedDataContext,
                         ILogger<LeaveCommand> logger)
     {
-        this.bot = bot;
+        this.telegramBotClientProvider = telegramBotClientProvider;
         this.cachedDataContext = cachedDataContext;
         this.logger = logger;
 
@@ -28,7 +28,7 @@ public class LeaveCommand : CommandLineApplication, ICommand
     {
         long chatId = long.Parse(chatArgument.Value.Trim('\"'));
 
-        bot.Client.LeaveChatAsync(chatId).GetAwaiter().GetResult();
+        telegramBotClientProvider.Client.LeaveChatAsync(chatId).GetAwaiter().GetResult();
 
         logger.LogInformation("Chat {chat} left successfully!",
                               $"{cachedDataContext.Chats.Find(c => c.Id == chatId)?.Name}: {chatId}"); //todo with function getchatbyid

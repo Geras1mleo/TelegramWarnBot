@@ -9,14 +9,17 @@ public interface IResponseHelper
 
 public class ResponseHelper : IResponseHelper
 {
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly ISmartFormatterProvider formatterProvider;
 
-    public ResponseHelper(IConfigurationContext configurationContext,
+    public ResponseHelper(ITelegramBotClientProvider telegramBotClientProvider,
+                          IConfigurationContext configurationContext,
                           ICachedDataContext cachedDataContext,
                           ISmartFormatterProvider formatterProvider)
     {
+        this.telegramBotClientProvider = telegramBotClientProvider;
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.formatterProvider = formatterProvider;
@@ -24,18 +27,18 @@ public class ResponseHelper : IResponseHelper
 
     public Task SendMessageAsync(ResponseContext responseContext, UpdateContext updateContext, int? replyToMessageId = null)
     {
-        return updateContext.Client.SendTextMessageAsync(updateContext.ChatDTO.Id,
-                                                         FormatResponseVariables(responseContext, updateContext),
-                                                         replyToMessageId: replyToMessageId,
-                                                         parseMode: ParseMode.Markdown,
-                                                         cancellationToken: updateContext.CancellationToken);
+        return telegramBotClientProvider.Client.SendTextMessageAsync(updateContext.ChatDTO.Id,
+                                                                     FormatResponseVariables(responseContext, updateContext),
+                                                                     replyToMessageId: replyToMessageId,
+                                                                     parseMode: ParseMode.Markdown,
+                                                                     cancellationToken: updateContext.CancellationToken);
     }
 
     public Task DeleteMessageAsync(UpdateContext context)
     {
-        return context.Client.DeleteMessageAsync(context.ChatDTO.Id,
-                                                 context.Update.Message.MessageId,
-                                                 context.CancellationToken);
+        return telegramBotClientProvider.Client.DeleteMessageAsync(context.ChatDTO.Id,
+                                                                   context.Update.Message.MessageId,
+                                                                   context.CancellationToken);
     }
 
     public string FormatResponseVariables(ResponseContext responseContext, UpdateContext updateContext)
