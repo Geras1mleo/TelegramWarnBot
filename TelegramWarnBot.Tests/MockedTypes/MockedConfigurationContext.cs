@@ -15,28 +15,63 @@ public class MockedConfigurationContext : IConfigurationContext
         Token = "token"
     };
 
-    public Configuration Configuration
+    public Configuration Configuration => configuration;
+
+    private Configuration configuration = new()
     {
-        get
+        AllowAdminWarnings = true,
+        UpdateDelay = 60,
+        MaxWarnings = 3,
+        DeleteJoinedLeftMessage = true,
+        DeleteLinksFromNewMembers = true,
+        DeleteWarnMessage = true,
+        NewMemberStatusFromHours = 24,
+        Captions = new()
         {
-            return new()
-            {
-                AllowAdminWarnings = true,
-                UpdateDelay = 60,
-                MaxWarnings = 3,
-                DeleteJoinedLeftMessage = true,
-                DeleteLinksFromNewMembers = true,
-                DeleteWarnMessage = true,
-                NewMemberStatusFromHours = 24,
-                Captions = new Fixture().Create<Captions>()
-            };
+            OnBotJoinedChatMessage = "",
+            ChatNotRegistered = "",
+            UserNoPermissions = "",
+            BotHasNoPermissions = "",
+            InvalidOperation = "",
+            UserNotFound = "",
+            WarnedSuccessfully = "",
+            UnwarnedSuccessfully = "",
+            BannedSuccessfully = "",
+            UnwarnUserNoWarnings = "",
+            WarnAdminAttempt = "",
+            UnwarnAdminAttempt = "",
+            WarnBotAttempt = "",
+            UnwarnBotAttempt = "",
+            WarnBotSelfAttempt = "",
+            UnwarnBotSelfAttempt = "",
+            IllegalTriggerWarned = "",
+            IllegalTriggerBanned = "",
+            WCountMessage = "",
+            WCountUserHasNoWarnings = "",
+            WCountAdminAttempt = "",
+            WCountBotAttempt = "",
+            WCountBotSelfAttempt = "",
         }
-    }
+    };
 
-    public IllegalTrigger[] IllegalTriggers => new Fixture().CreateMany<IllegalTrigger>().ToArray();
+    public IllegalTrigger[] IllegalTriggers => illegalTriggers;
 
-    public Trigger[] Triggers => new[]
+    private IllegalTrigger[] illegalTriggers = new[]
     {
+        new IllegalTrigger()
+        {
+            DeleteMessage = true,
+            IgnoreAdmins = false,
+            WarnMember = true,
+            IllegalWords = new[] { "word1", "word2" },
+            NotifiedAdmins = new[] { 5149719899 }
+        }
+    };
+
+    public Trigger[] Triggers => triggers;
+
+    private Trigger[] triggers = new[]
+{
         new Trigger()
         {
             Messages = new string[]{ "good russians" },

@@ -9,22 +9,34 @@ public class MockedCachedContext : ICachedDataContext
         Shared = new();
     }
 
-    public List<ChatDTO> Chats => new()
+    public List<ChatDTO> Chats => chats;
+
+    private List<ChatDTO> chats = new()
     {
         new ChatDTO()
         {
             Id = 69,
             Admins = new List<long>()
             {
-                5149719899,
-                713786114,
+                654,
+                99,
                 402659130,
-            }
+            },
+            Name = "Bot Test"
         },
     };
 
-    public List<UserDTO> Users => new()
+    public List<UserDTO> Users => users;
+
+    private List<UserDTO> users = new()
     {
+        new UserDTO()
+        {
+            Id = 654,
+            FirstName = "Admin",
+            LastName = null,
+            Username = "admin_of_the_chat"
+        },
         new UserDTO()
         {
             Id = 420,
@@ -41,56 +53,75 @@ public class MockedCachedContext : ICachedDataContext
         }
     };
 
-    public List<ChatWarnings> Warnings
+    public List<ChatWarnings> Warnings => warnings;
+
+    private List<ChatWarnings> warnings = new()
     {
-        get
+        new ChatWarnings()
         {
-            return new List<ChatWarnings>()
+            ChatId = 69,
+            WarnedUsers =new List<WarnedUser>()
             {
-                new ChatWarnings()
+                new WarnedUser()
                 {
-                    ChatId = 69,
-                    WarnedUsers =new List<WarnedUser>()
-                    {
-                        new WarnedUser()
-                        {
-                            Id = 510,
-                            Warnings = 1,
-                        },
-                        new WarnedUser()
-                        {
-                            Id = 420,
-                            Warnings = 2,
-                        }
-                    }
+                    Id = 510,
+                    Warnings = 1,
+                },
+                new WarnedUser()
+                {
+                    Id = 420,
+                    Warnings = 0,
                 }
-            };
+            }
         }
-    }
+    };
 
     public void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    { }
 
     public ChatDTO CacheChat(Chat chat, List<long> admins)
     {
-        throw new NotImplementedException();
+        // Adding chat to list if not exist
+        var chatDto = FindChatById(chat.Id);
+        if (chatDto is null)
+        {
+            chatDto = new()
+            {
+                Id = chat.Id,
+                Name = chat.Title,
+                Admins = admins
+            };
+            Chats.Add(chatDto);
+        }
+        return chatDto;
     }
 
     public UserDTO CacheUser(User user)
     {
-        throw new NotImplementedException();
+        // Adding client to list if not exist
+        var userDto = FindUserById(user.Id);
+        if (userDto is null)
+        {
+            userDto = user.Map();
+            Users.Add(userDto);
+        }
+        else if (userDto.Username != user.Username
+              || userDto.FirstName != user.FirstName
+              || userDto.LastName != user.LastName)
+        {
+            userDto.Username = user.Username;
+            userDto.FirstName = user.FirstName;
+            userDto.LastName = user.LastName;
+        }
+        return userDto;
     }
 
     public void SaveData()
-    {
-        throw new NotImplementedException();
-    }
+    { }
 
     public Task SaveRegisteredChatsAsync(List<long> registeredChats)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public ChatDTO FindChatById(long id)
