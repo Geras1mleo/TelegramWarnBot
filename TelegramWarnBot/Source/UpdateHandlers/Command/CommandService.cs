@@ -48,8 +48,8 @@ public class CommandService : ICommandService
 
         if (tryBanUser)
         {
-            await telegramBotClientProvider.Client.BanChatMemberAsync(chatId, warnedUser.Id,
-                                                    cancellationToken: context.CancellationToken);
+            await telegramBotClientProvider.BanChatMemberAsync(chatId, warnedUser.Id,
+                                            cancellationToken: context.CancellationToken);
             return true;
         }
 
@@ -158,7 +158,7 @@ public class CommandService : ICommandService
         if (context.Update.Message.Entities?.Length >= 2)
         {
             if (context.Update.Message.Entities[1].Type == MessageEntityType.Mention
-             && context.Update.Message?.EntityValues is not null)
+             && context.Update.Message.EntityValues is not null)
             {
                 var mentionedUsername = context.Update.Message.EntityValues.ElementAt(1)[1..];
                 var mentionedUserDto = cachedDataContext.Users.Find(u => u.Username == mentionedUsername);

@@ -5,6 +5,8 @@ public interface IBot
     User BotUser { get; }
 
     Task StartAsync(CancellationToken cancellationToken);
+    Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken cancellationToken);
+    Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken);
 }
 
 public class Bot : IBot
@@ -39,7 +41,7 @@ public class Bot : IBot
     {
         StartReceiving(cancellationToken);
 
-        BotUser = await telegramBotClientProvider.Client.GetMeAsync(cancellationToken);
+        BotUser = await telegramBotClientProvider.GetMeAsync(cancellationToken);
 
         // Register bot itself to recognize when someone mentions it with @
         cachedDataContext.CacheUser(BotUser);
@@ -57,20 +59,10 @@ public class Bot : IBot
 
         logger.LogInformation("Starting receiving updates");
 
-        telegramBotClientProvider.Client.StartReceiving(UpdateHandler, PollingErrorHandler,
-        receiverOptions: new ReceiverOptions()
-        {
-            AllowedUpdates = new[]
-            {
-                UpdateType.Message,
-                UpdateType.ChatMember,
-                UpdateType.MyChatMember
-            },
-        },
-        cancellationToken: cancellationToken);
+        telegramBotClientProvider.StartReceiving(UpdateHandler, PollingErrorHandler, cancellationToken: cancellationToken);
     }
 
-    private Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         try
         {
@@ -90,7 +82,7 @@ public class Bot : IBot
         }
     }
 
-    private Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
+    public Task PollingErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
     {
         logger.LogCritical(exception, "Fatal error occured. Restart required!");
         return Task.CompletedTask;

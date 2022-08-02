@@ -34,7 +34,7 @@ public class ChatHelper : IChatHelper
 
     public async Task<List<long>> GetAdminsAsync(long chatId, CancellationToken cancellationToken)
     {
-        return (await telegramBotClientProvider.Client.GetChatAdministratorsAsync(chatId, cancellationToken))
+        return (await telegramBotClientProvider.GetChatAdministratorsAsync(chatId, cancellationToken))
                                                         .Select(c => c.User.Id).ToList();
     }
 }

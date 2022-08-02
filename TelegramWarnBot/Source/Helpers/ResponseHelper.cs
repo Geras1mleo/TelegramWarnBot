@@ -27,18 +27,17 @@ public class ResponseHelper : IResponseHelper
 
     public Task SendMessageAsync(ResponseContext responseContext, UpdateContext updateContext, int? replyToMessageId = null)
     {
-        return telegramBotClientProvider.Client.SendTextMessageAsync(updateContext.ChatDTO.Id,
-                                                                     FormatResponseVariables(responseContext, updateContext),
-                                                                     replyToMessageId: replyToMessageId,
-                                                                     parseMode: ParseMode.Markdown,
-                                                                     cancellationToken: updateContext.CancellationToken);
+        return telegramBotClientProvider.SendMessageAsync(updateContext.ChatDTO.Id,
+                                                          FormatResponseVariables(responseContext, updateContext),
+                                                          replyToMessageId: replyToMessageId,
+                                                          cancellationToken: updateContext.CancellationToken);
     }
 
     public Task DeleteMessageAsync(UpdateContext context)
     {
-        return telegramBotClientProvider.Client.DeleteMessageAsync(context.ChatDTO.Id,
-                                                                   context.Update.Message.MessageId,
-                                                                   context.CancellationToken);
+        return telegramBotClientProvider.DeleteMessageAsync(context.ChatDTO.Id,
+                                                            context.Update.Message.MessageId,
+                                                            context.CancellationToken);
     }
 
     public string FormatResponseVariables(ResponseContext responseContext, UpdateContext updateContext)

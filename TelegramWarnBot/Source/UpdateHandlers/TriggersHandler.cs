@@ -5,20 +5,17 @@
 public class TriggersHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
-    private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
     private readonly ILogger<TriggersHandler> logger;
 
     public TriggersHandler(Func<UpdateContext, Task> next,
                            IConfigurationContext configurationContext,
-                           IInMemoryCachedDataContext inMemoryCachedDataContext,
                            IMessageHelper messageHelper,
                            IResponseHelper responseHelper,
                            ILogger<TriggersHandler> logger) : base(next)
     {
         this.configurationContext = configurationContext;
-        this.inMemoryCachedDataContext = inMemoryCachedDataContext;
         this.messageHelper = messageHelper;
         this.responseHelper = responseHelper;
         this.logger = logger;

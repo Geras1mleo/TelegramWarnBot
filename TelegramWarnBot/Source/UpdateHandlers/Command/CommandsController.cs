@@ -102,10 +102,9 @@ public class CommandsController : ICommandsController
 
         unwarnedUser.Warnings--;
 
-        await telegramBotClientProvider.Client.UnbanChatMemberAsync(context.Update.Message.Chat.Id,
-                                                  unwarnedUser.Id,
-                                                  onlyIfBanned: true,
-                                                  cancellationToken: context.CancellationToken);
+        await telegramBotClientProvider.UnbanChatMemberAsync(context.Update.Message.Chat.Id,
+                                                             unwarnedUser.Id,
+                                                             cancellationToken: context.CancellationToken);
 
         logger.LogInformation("[Admin] {admin} unwarned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
                               context.UserDTO.GetName(),

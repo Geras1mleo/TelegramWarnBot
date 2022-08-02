@@ -14,7 +14,6 @@ public static class AppConfiguration
             .ConfigureAppConfiguration(ConfigureAppConfiguration)
             .ConfigureServices(ConfigureServices)
             .UseConsoleLifetime()
-            .UseSmartFormatter()
             .UseSerilog()
             .Build();
 
@@ -76,6 +75,8 @@ public static class AppConfiguration
         services.AddTransient<IChatHelper, ChatHelper>();
         services.AddTransient<ICommandService, CommandService>();
         services.AddTransient<IResponseHelper, ResponseHelper>();
+
+        services.AddSmartFormatterProvider();
     }
 
     public static PipeBuilder<UpdateContext> GetPipeBuilder(IServiceProvider provider)

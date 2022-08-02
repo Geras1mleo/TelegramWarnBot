@@ -48,8 +48,7 @@ public class SendCommand : CommandLineApplication, ICommand
             {
                 try
                 {
-                    telegramBotClientProvider.Client.SendTextMessageAsync(chats[i].Id, message,
-                                                                parseMode: ParseMode.Markdown)
+                    telegramBotClientProvider.SendMessageAsync(chats[i].Id, message)
                               .GetAwaiter().GetResult();
                 }
                 catch (Exception e)

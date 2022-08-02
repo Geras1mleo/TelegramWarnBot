@@ -97,19 +97,7 @@ public static class Extensions
         };
     }
 
-    public static IHostBuilder UseSmartFormatter(this IHostBuilder builder)
-    {
-        builder.ConfigureServices(services =>
-        {
-            ISmartFormatterProvider provider = CreateSmartFormatterProvider();
-
-            services.AddSingleton<ISmartFormatterProvider>(provider);
-        });
-
-        return builder;
-    }
-
-    private static ISmartFormatterProvider CreateSmartFormatterProvider()
+    public static IServiceCollection AddSmartFormatterProvider(this IServiceCollection services)
     {
         var formatter = Smart.CreateDefaultSmartFormat(new SmartSettings
         {
@@ -129,6 +117,6 @@ public static class Extensions
             Log.Error("Variable {placeholder} could not be formatted on index {index}", e.Placeholder, e.ErrorIndex);
         };
 
-        return new SmartFormatterProvider(formatter);
+        return services.AddSingleton<ISmartFormatterProvider>(new SmartFormatterProvider(formatter));
     }
 }
