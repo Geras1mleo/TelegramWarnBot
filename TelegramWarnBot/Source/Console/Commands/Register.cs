@@ -95,6 +95,8 @@ public class RegisterCommand : CommandLineApplication, ICommand
                 Tools.WriteColor("\t[" + chat.Name + "]: " + chat.Id, ConsoleColor.Red, false);
             }
 
+            Console.WriteLine();
+
             return 1;
         }
 

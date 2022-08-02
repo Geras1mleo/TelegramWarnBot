@@ -68,14 +68,15 @@ public class Bot : IBot
             var context = updateContextBuilder.Build(update, BotUser, cancellationToken);
 
             if (!context.IsJoinedLeftUpdate && context.ChatDTO is null)
-                throw new Exception("Message received from uncached chat!");
+                throw new Exception("Message from uncached chat!");
 
             return pipe(context);
         }
         catch (Exception exception)
         {
+            var chat = update.GetChat();
             // Update that raised exception will be saved in Logs.json (and sent to tech support in private messages)
-            logger.LogError(exception, "Handler error on update {@update} in chat {chat}", update, update.GetChat()?.Title);
+            logger.LogError(exception, "Handler error on update {@update} in chat {chat}", update, ($"{chat?.Title}: {chat?.Id}"));
             return Task.CompletedTask;
         }
     }

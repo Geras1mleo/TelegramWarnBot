@@ -14,9 +14,13 @@ public class TelegramSink : ILogEventSink
         if (notifyBotOwners is null)
             return;
 
+        logEvent.Properties.TryGetValue("update", out var property);
+
         logEvent.RemovePropertyIfPresent("update");
 
-        string message = logEvent.RenderMessage() + logEvent.Exception?.Message;
+        string message = logEvent.RenderMessage().Replace(" {@update}", "") + "\n" + logEvent.Exception?.Message;
+
+        logEvent.AddPropertyIfAbsent(new LogEventProperty("update", property));
 
         try
         {
