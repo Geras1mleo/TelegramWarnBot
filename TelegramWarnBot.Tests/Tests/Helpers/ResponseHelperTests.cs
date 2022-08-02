@@ -6,19 +6,24 @@ public class ResponseHelperTests
 
     public ResponseHelperTests()
     {
+        var mockedCachedContext = new MockedCachedContext();
+
         _sut = new ResponseHelper(Substitute.For<ITelegramBotClientProvider>(),
-                                  MockedConfigurationContext.Shared,
-                                  MockedCachedContext.Shared,
+                                  new MockedConfigurationContext(),
+                                  mockedCachedContext,
         new SmartFormatterProvider(Smart.CreateDefaultSmartFormat(new SmartSettings()
         {
             CaseSensitivity = CaseSensitivityType.CaseInsensitive,
         })));
+
+        mockedCachedContext.FindWarningByChatId(69).WarnedUsers.Find(u => u.Id == 510).Warnings = 1;
+        mockedCachedContext.FindWarningByChatId(69).WarnedUsers.Find(u => u.Id == 420).Warnings = 0;
     }
 
     [Theory]
     [InlineData("{SenderUser}", "@robert\\_johnson")]
     [InlineData("{MentionedUser}", "[Hugh Jackman](tg://user?id=510)")]
-    [InlineData("{MentionedUser.Warnings} {SenderUser.Warnings}", "1 2")]
+    [InlineData("{MentionedUser.Warnings} {SenderUser.Warnings}", "1 0")]
     [InlineData("Lorem ipsum dolor sit amet consectetur _italic_", "Lorem ipsum dolor sit amet consectetur _italic_")]
     [InlineData("Lorem ipsum {SenderUser} {MentionedUser} consectetur", "Lorem ipsum @robert\\_johnson [Hugh Jackman](tg://user?id=510) consectetur")]
     public void FormatResponseVariables_ShouldReturnParsedAndFormatedMessage(string template, string expected)

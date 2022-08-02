@@ -9,10 +9,10 @@ public class MockedUpdateContextBuilder : IUpdateContextBuilder
         var chatHelper = Substitute.For<IChatHelper>();
 
         chatHelper.IsChatRegistered(Arg.Any<long>())
-            .Returns(c => MockedConfigurationContext.Shared.BotConfiguration.RegisteredChats.
+            .Returns(c => new MockedConfigurationContext().BotConfiguration.RegisteredChats.
                     Any(chat => chat == c.Arg<long>()));
 
-        Shared = new UpdateContextBuilder(MockedCachedContext.Shared,
+        Shared = new UpdateContextBuilder(new MockedCachedContext(),
                                           chatHelper);
     }
 

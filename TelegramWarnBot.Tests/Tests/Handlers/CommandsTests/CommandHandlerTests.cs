@@ -5,6 +5,7 @@ public class CommandHandlerTests
     private readonly CommandHandler _sut;
 
     private readonly MockedUpdateContextBuilder updateContextBuilder = new MockedUpdateContextBuilder();
+
     private readonly ICommandsController warnController = Substitute.For<ICommandsController>();
     private readonly IResponseHelper responseHelper = Substitute.For<IResponseHelper>();
     private readonly ILogger<CommandHandler> logger = Substitute.For<ILogger<CommandHandler>>();
@@ -14,7 +15,7 @@ public class CommandHandlerTests
     public CommandHandlerTests()
     {
         _sut = new CommandHandler(c => Task.CompletedTask,
-                                  MockedConfigurationContext.Shared,
+                                  new MockedConfigurationContext(),
                                   warnController,
                                   responseHelper,
                                   logger);
@@ -26,7 +27,7 @@ public class CommandHandlerTests
         // Arrange
         var update = fixture.BuildMessageUpdate("test", 15);
 
-        update.Message.Text = "/warn @robin_thicke";
+        update.Message.Text = "/warn @robert_johnson";
 
         var context = updateContextBuilder.BuildMocked(update);
 
@@ -37,12 +38,12 @@ public class CommandHandlerTests
         };
 
         responseHelper.SendMessageAsync(Arg.Any<ResponseContext>(), context)
-            .Returns(Task.CompletedTask);
+                      .Returns(Task.CompletedTask);
 
         // Act
         await _sut.Handle(context);
 
         // Assert
-        await responseHelper.Received(1).SendMessageAsync(Arg.Any<ResponseContext>(), context);
+        await responseHelper.ReceivedWithAnyArgs(1).SendMessageAsync(default, default);
     }
 }

@@ -4,6 +4,8 @@ public class CommandsControllerTests
 {
     private readonly CommandsController _sut;
 
+    private readonly MockedConfigurationContext mockedConfigurationContext = new();
+    private readonly MockedCachedContext mockedCachedContext = new();
     private readonly MockedUpdateContextBuilder updateContextBuilder = new MockedUpdateContextBuilder();
 
     private readonly ITelegramBotClientProvider telegramBotClientProvider = Substitute.For<ITelegramBotClientProvider>();
@@ -17,8 +19,8 @@ public class CommandsControllerTests
     public CommandsControllerTests()
     {
         _sut = new CommandsController(telegramBotClientProvider,
-                                      MockedConfigurationContext.Shared,
-                                      MockedCachedContext.Shared,
+                                      mockedConfigurationContext,
+                                      mockedCachedContext,
                                       chatHelper,
                                       responseHelper,
                                       commandService,

@@ -8,7 +8,7 @@ public class TriggersHandlerTests
 {
     private readonly TriggersHandler _sut;
 
-    private readonly MockedUpdateContextBuilder updateContextBuilder = new MockedUpdateContextBuilder();
+    private readonly MockedUpdateContextBuilder updateContextBuilder = new();
 
     private readonly IResponseHelper responseHelper = Substitute.For<IResponseHelper>();
 
@@ -17,7 +17,7 @@ public class TriggersHandlerTests
     public TriggersHandlerTests()
     {
         _sut = new TriggersHandler(c => Task.CompletedTask,
-                                   MockedConfigurationContext.Shared,
+                                   new MockedConfigurationContext(),
                                    MessageHelperProvider.MessageHelper,
                                    responseHelper,
                                    Substitute.For<ILogger<TriggersHandler>>());

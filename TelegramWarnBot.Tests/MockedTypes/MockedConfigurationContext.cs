@@ -2,13 +2,6 @@
 
 public class MockedConfigurationContext : IConfigurationContext
 {
-    public static MockedConfigurationContext Shared { get; }
-
-    static MockedConfigurationContext()
-    {
-        Shared = new();
-    }
-
     public BotConfiguration BotConfiguration => new()
     {
         RegisteredChats = new List<long>() { 69 },
@@ -17,7 +10,7 @@ public class MockedConfigurationContext : IConfigurationContext
 
     public Configuration Configuration => configuration;
 
-    private Configuration configuration = new()
+    private readonly Configuration configuration = new()
     {
         AllowAdminWarnings = true,
         UpdateDelay = 60,
@@ -28,35 +21,35 @@ public class MockedConfigurationContext : IConfigurationContext
         NewMemberStatusFromHours = 24,
         Captions = new()
         {
-            OnBotJoinedChatMessage = "",
-            ChatNotRegistered = "",
-            UserNoPermissions = "",
-            BotHasNoPermissions = "",
-            InvalidOperation = "",
-            UserNotFound = "",
-            WarnedSuccessfully = "",
-            UnwarnedSuccessfully = "",
-            BannedSuccessfully = "",
-            UnwarnUserNoWarnings = "",
-            WarnAdminAttempt = "",
-            UnwarnAdminAttempt = "",
-            WarnBotAttempt = "",
-            UnwarnBotAttempt = "",
-            WarnBotSelfAttempt = "",
-            UnwarnBotSelfAttempt = "",
-            IllegalTriggerWarned = "",
-            IllegalTriggerBanned = "",
-            WCountMessage = "",
-            WCountUserHasNoWarnings = "",
-            WCountAdminAttempt = "",
-            WCountBotAttempt = "",
-            WCountBotSelfAttempt = "",
+            OnBotJoinedChatMessage = "OnBotJoinedChatMessage",
+            ChatNotRegistered = "ChatNotRegistered",
+            UserNoPermissions = "UserNoPermissions",
+            BotHasNoPermissions = "BotHasNoPermissions",
+            InvalidOperation = "InvalidOperation",
+            UserNotFound = "UserNotFound",
+            WarnedSuccessfully = "WarnedSuccessfully",
+            UnwarnedSuccessfully = "UnwarnedSuccessfully",
+            BannedSuccessfully = "BannedSuccessfully",
+            UnwarnUserNoWarnings = "UnwarnUserNoWarnings",
+            WarnAdminAttempt = "WarnAdminAttempt",
+            UnwarnAdminAttempt = "UnwarnAdminAttempt",
+            WarnBotAttempt = "WarnBotAttempt",
+            UnwarnBotAttempt = "UnwarnBotAttempt",
+            WarnBotSelfAttempt = "WarnBotSelfAttempt",
+            UnwarnBotSelfAttempt = "UnwarnBotSelfAttempt",
+            IllegalTriggerWarned = "IllegalTriggerWarned",
+            IllegalTriggerBanned = "IllegalTriggerBanned",
+            WCountMessage = "WCountMessage",
+            WCountUserHasNoWarnings = "WCountUserHasNoWarnings",
+            WCountAdminAttempt = "WCountAdminAttempt",
+            WCountBotAttempt = "WCountBotAttempt",
+            WCountBotSelfAttempt = "WCountBotSelfAttempt",
         }
     };
 
     public IllegalTrigger[] IllegalTriggers => illegalTriggers;
 
-    private IllegalTrigger[] illegalTriggers = new[]
+    private readonly IllegalTrigger[] illegalTriggers = new[]
     {
         new IllegalTrigger()
         {
@@ -70,7 +63,7 @@ public class MockedConfigurationContext : IConfigurationContext
 
     public Trigger[] Triggers => triggers;
 
-    private Trigger[] triggers = new[]
+    private readonly Trigger[] triggers = new[]
 {
         new Trigger()
         {
@@ -87,7 +80,5 @@ public class MockedConfigurationContext : IConfigurationContext
     };
 
     public void ReloadConfiguration()
-    {
-        throw new NotImplementedException();
-    }
+    { }
 }

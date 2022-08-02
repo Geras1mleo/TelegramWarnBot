@@ -2,16 +2,9 @@
 
 public class MockedCachedContext : ICachedDataContext
 {
-    public static MockedCachedContext Shared { get; }
-
-    static MockedCachedContext()
-    {
-        Shared = new();
-    }
-
     public List<ChatDTO> Chats => chats;
 
-    private List<ChatDTO> chats = new()
+    private readonly List<ChatDTO> chats = new()
     {
         new ChatDTO()
         {
@@ -28,7 +21,7 @@ public class MockedCachedContext : ICachedDataContext
 
     public List<UserDTO> Users => users;
 
-    private List<UserDTO> users = new()
+    private readonly List<UserDTO> users = new()
     {
         new UserDTO()
         {
@@ -55,7 +48,7 @@ public class MockedCachedContext : ICachedDataContext
 
     public List<ChatWarnings> Warnings => warnings;
 
-    private List<ChatWarnings> warnings = new()
+    private readonly List<ChatWarnings> warnings = new()
     {
         new ChatWarnings()
         {

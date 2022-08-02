@@ -2,21 +2,16 @@
 
 public class MessageHelperTests
 {
-    private readonly MessageHelper _sut;
+    private readonly MessageHelper _sut = new();
 
     private readonly IFixture fixture = FixtureProvider.Fixture;
 
-    private string[] messagesToMatch = new string[]
+    private readonly string[] messagesToMatch = new[]
     {
         "Test",
         "Lorem ipsum",
         "ipsum Lorem",
     };
-
-    public MessageHelperTests()
-    {
-        _sut = new MessageHelper();
-    }
 
     [Theory]
     [InlineData("test", true, true, false)]
