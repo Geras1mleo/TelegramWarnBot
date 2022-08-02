@@ -30,6 +30,7 @@ public static class AppConfiguration
 
         // Configuring logger again with provided appsettings
         Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console()
             .ReadFrom.Configuration(builder.Build())
             .CreateLogger();
 

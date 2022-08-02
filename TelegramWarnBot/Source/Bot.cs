@@ -39,7 +39,11 @@ public class Bot : IBot
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        StartReceiving(cancellationToken);
+        pipe = AppConfiguration.GetPipeBuilder(serviceProvider).Build();
+
+        logger.LogInformation("Starting receiving updates");
+
+        telegramBotClientProvider.StartReceiving(UpdateHandler, PollingErrorHandler, cancellationToken);
 
         BotUser = await telegramBotClientProvider.GetMeAsync(cancellationToken);
 
@@ -53,15 +57,6 @@ public class Bot : IBot
         Console.Title = BotUser.FirstName;
     }
 
-    private void StartReceiving(CancellationToken cancellationToken)
-    {
-        pipe = AppConfiguration.GetPipeBuilder(serviceProvider).Build();
-
-        logger.LogInformation("Starting receiving updates");
-
-        telegramBotClientProvider.StartReceiving(UpdateHandler, PollingErrorHandler, cancellationToken: cancellationToken);
-    }
-
     public Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         try
@@ -71,6 +66,9 @@ public class Bot : IBot
                 return Task.CompletedTask;
 
             var context = updateContextBuilder.Build(update, BotUser, cancellationToken);
+
+            if (!context.IsJoinedLeftUpdate && context.ChatDTO is null)
+                throw new Exception("Message received from uncached chat!");
 
             return pipe(context);
         }

@@ -16,7 +16,7 @@ public class TelegramSink : ILogEventSink
 
         logEvent.RemovePropertyIfPresent("update");
 
-        string message = logEvent.RenderMessage();
+        string message = logEvent.RenderMessage() + logEvent.Exception?.Message;
 
         try
         {

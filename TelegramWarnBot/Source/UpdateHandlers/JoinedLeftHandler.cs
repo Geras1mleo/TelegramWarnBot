@@ -56,7 +56,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
                 //cachedDataContext.Warnings.RemoveAll(w => w.ChatId == context.ChatDTO.Id);
                 //cachedDataContext.Chats.RemoveAll(c => c.Id == context.ChatDTO.Id);
 
-                logger.LogWarning("Bot has been kicked from chat {chat}", $"{context.ChatDTO?.Name}: {context.ChatDTO.Id}");
+                logger.LogWarning("Bot has been kicked from chat {chat}", $"{context.Update.Message.Chat.Title}: {context.Update.Message.Chat.Id}");
 
                 return Task.CompletedTask;
             }
