@@ -34,14 +34,15 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             {
                 context.ChatDTO = cachedDataContext.CacheChat(context.Update.Message.Chat,
                                             (await chatHelper.GetAdminsAsync(context.Update.Message.Chat.Id,
-                                                                             context.CancellationToken)).ToList());
+                                                                             context.Bot.Id,
+                                                                             context.CancellationToken)));
 
                 await responseHelper.SendMessageAsync(new()
                 {
                     Message = configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
                 }, context);
 
-                logger.LogWarning("Bot has been added to chat {chat}", $"{context.ChatDTO?.Name}: {context.ChatDTO.Id}");
+                logger.LogWarning("Bot has been added to chat {chat} by user {user}", $"{context.ChatDTO.Name}: {context.ChatDTO.Id}", context.UserDTO);
 
                 return Task.CompletedTask;
             }
@@ -56,7 +57,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
                 //cachedDataContext.Warnings.RemoveAll(w => w.ChatId == context.ChatDTO.Id);
                 //cachedDataContext.Chats.RemoveAll(c => c.Id == context.ChatDTO.Id);
 
-                logger.LogWarning("Bot has been kicked from chat {chat}", $"{context.Update.Message.Chat.Title}: {context.Update.Message.Chat.Id}");
+                logger.LogWarning("Bot has been kicked from chat {chat} by user {user}", $"{context.Update.Message.Chat.Title}: {context.Update.Message.Chat.Id}", context.UserDTO);
 
                 return Task.CompletedTask;
             }

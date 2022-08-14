@@ -51,27 +51,18 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                                   context.UserDTO.GetName(),
                                   context.ChatDTO.Name);
 
-            foreach (var adminId in trigger.NotifiedAdmins)
-            {
-                await telegramBotClientProvider.SendMessageAsync(adminId,
-                                                                 $"*Illegal message detected!*" +
-                                                                 $"\nChat: *{context.ChatDTO.Name}*" +
-                                                                 $"\nFrom: {context.UserDTO}" +
-                                                                 $"\nSent: {context.Update.Message.Date}" +
-                                                                 $"\nContent:",
-                                                                 cancellationToken: context.CancellationToken);
-
-                await telegramBotClientProvider.ForwardMessageAsync(adminId, context.ChatDTO.Id,
-                                                                    context.Update.Message.MessageId,
-                                                                    cancellationToken: context.CancellationToken);
-            }
-
-            if (trigger.NotifiedAdmins.Length > 0)
-                logger.LogInformation("Notified admins about triggered action: {@admins}", trigger.NotifiedAdmins);
+            await NotifyAdminsAsync(context, trigger);
 
             if (trigger.DeleteMessage)
             {
-                await responseHelper.DeleteMessageAsync(context);
+                try
+                {
+                    await responseHelper.DeleteMessageAsync(context);
+                }
+                catch (Exception e)
+                {
+                    logger.LogInformation("Could not delete illegal message..\n{message}", e.Message);
+                }
 
                 logger.LogInformation("Illegal message deleted successfully!");
             }
@@ -105,6 +96,38 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
         }
 
         return next(context);
+    }
+
+    private async Task NotifyAdminsAsync(UpdateContext context, IllegalTrigger trigger)
+    {
+        var notified = new List<long>();
+
+        foreach (var adminId in trigger.NotifiedAdmins)
+        {
+            try
+            {
+                await telegramBotClientProvider.SendMessageAsync(adminId,
+                                                                  $"*Illegal message detected!*" +
+                                                                  $"\nChat: *{context.ChatDTO.Name}*" +
+                                                                  $"\nFrom: {context.UserDTO}" +
+                                                                  $"\nSent: {context.Update.Message.Date}" +
+                                                                  $"\nContent:",
+                                                                  cancellationToken: context.CancellationToken);
+
+                await telegramBotClientProvider.ForwardMessageAsync(adminId, context.ChatDTO.Id,
+                                                                    context.Update.Message.MessageId,
+                                                                    cancellationToken: context.CancellationToken);
+
+                notified.Add(adminId);
+            }
+            catch (Exception e)
+            {
+                logger.LogInformation("Could not notify admin {admin} about an illegal trigger..\n{message}", adminId, e.Message);
+            }
+        }
+
+        if (notified.Count > 0)
+            logger.LogInformation("Notified admins about triggered action: {@admins}", notified);
     }
 
     private void LogWarned(bool banned, ChatDTO chat, WarnedUser warnedUser)

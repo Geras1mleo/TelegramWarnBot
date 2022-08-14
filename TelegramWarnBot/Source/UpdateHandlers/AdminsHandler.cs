@@ -20,14 +20,12 @@ public class AdminsHandler : Pipe<UpdateContext>
         {
             return ChatMemberRightsChanged(context);
         }
-        else if (context.Update.Type == UpdateType.MyChatMember)
+        else if (context.Update.Type == UpdateType.MyChatMember && context.ChatDTO is not null)
         {
             var isAdmin = await BotRightsChanged(context);
 
             logger.LogInformation("Bot rights in chat {chat} have been updated. Bot is admin: {isAdmin}",
                                   context.ChatDTO.Name, isAdmin);
-
-            return Task.CompletedTask;
         }
 
         return next(context);
@@ -49,21 +47,16 @@ public class AdminsHandler : Pipe<UpdateContext>
 
     private async Task<bool> BotRightsChanged(UpdateContext context)
     {
-        if (context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Administrator)
+        if (context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Kicked
+         || context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Left
+         || context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Restricted)
         {
-            if (context.Update.MyChatMember.NewChatMember is ChatMemberAdministrator administrator)
-            {
-                if (administrator.CanDeleteMessages && administrator.CanRestrictMembers)
-                {
-                    context.ChatDTO.Admins = await chatHelper.GetAdminsAsync(context.ChatDTO.Id,
-                                                                             context.CancellationToken);
-                    return true;
-                }
-            }
+            return false;
         }
 
-        context.ChatDTO.Admins.Remove(context.Update.MyChatMember.NewChatMember.User.Id);
+        context.ChatDTO.Admins = await chatHelper.GetAdminsAsync(context.ChatDTO.Id, context.Bot.Id,
+                                                                 context.CancellationToken);
 
-        return false;
+        return context.ChatDTO.Admins.Any(admin => admin == context.Bot.Id);
     }
 }

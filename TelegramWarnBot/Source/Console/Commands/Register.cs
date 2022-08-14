@@ -6,7 +6,7 @@ public class RegisterCommand : CommandLineApplication, ICommand
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
     private readonly ILogger<RegisterCommand> logger;
-
+    private readonly IBot bot;
     private readonly CommandOption listOption;
     private readonly CommandOption removeOption;
     private readonly CommandArgument chatArgument;
@@ -14,13 +14,14 @@ public class RegisterCommand : CommandLineApplication, ICommand
     public RegisterCommand(IConfigurationContext configurationContext,
                            ICachedDataContext cachedDataContext,
                            IChatHelper chatHelper,
-                           ILogger<RegisterCommand> logger)
+                           ILogger<RegisterCommand> logger,
+                           IBot bot)
     {
         this.configurationContext = configurationContext;
         this.cachedDataContext = cachedDataContext;
         this.chatHelper = chatHelper;
         this.logger = logger;
-
+        this.bot = bot;
         Name = "register";
         Description = "Manipulate registered chats";
 
@@ -44,22 +45,33 @@ public class RegisterCommand : CommandLineApplication, ICommand
 
                 logger.LogInformation("Chat {chat} registered successfully!",
                                       $"{chat?.Name}: {chatId}");
-
-                // Admins list hasn't been updated if chat wasn't registered
-                chat.Admins = chatHelper.GetAdminsAsync(chat.Id, CancellationToken.None)
-                                        .GetAwaiter().GetResult();
+                if (chat is not null)
+                {
+                    try
+                    {
+                        // Admins list hasn't been updated if chat wasn't registered
+                        chat.Admins = chatHelper.GetAdminsAsync(chat.Id, bot.BotUser.Id, CancellationToken.None)
+                                                .GetAwaiter().GetResult();
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogInformation("Error while loading admins list..\n{message}", e.Message);
+                    }
+                }
             }
             else
             {
+                var chat = cachedDataContext.FindChatById(chatId);
+
                 if (configurationContext.BotConfiguration.RegisteredChats.Remove(chatId))
                 {
                     logger.LogInformation("Chat {chat} removed from registered list successfully!",
-                                          $"{cachedDataContext.FindChatById(chatId)?.Name}: {chatId}");
+                                          $"{chat?.Name}: {chatId}");
                 }
                 else
                 {
                     logger.LogWarning("Chat {chatId} has been not registered yet",
-                                      $"{cachedDataContext.FindChatById(chatId)?.Name}: {chatId}");
+                                      $"{chat?.Name}: {chatId}");
                 }
             }
 

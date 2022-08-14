@@ -1,10 +1,12 @@
-﻿namespace TelegramWarnBot;
+﻿using System.Linq;
+
+namespace TelegramWarnBot;
 
 public interface IChatHelper
 {
     bool IsChatRegistered(long chatId);
     bool IsAdmin(long chatId, long userId);
-    Task<List<long>> GetAdminsAsync(long chatId, CancellationToken cancellationToken);
+    Task<List<long>> GetAdminsAsync(long chatId, long botId, CancellationToken cancellationToken);
 }
 
 public class ChatHelper : IChatHelper
@@ -32,9 +34,28 @@ public class ChatHelper : IChatHelper
         return cachedDataContext.FindChatById(chatId)?.Admins.Any(a => a == userId) ?? false;
     }
 
-    public async Task<List<long>> GetAdminsAsync(long chatId, CancellationToken cancellationToken)
+    public async Task<List<long>> GetAdminsAsync(long chatId, long botId, CancellationToken cancellationToken)
     {
-        return (await telegramBotClientProvider.GetChatAdministratorsAsync(chatId, cancellationToken))
-                                                        .Select(c => c.User.Id).ToList();
+        var admins = await telegramBotClientProvider.GetChatAdministratorsAsync(chatId, cancellationToken);
+
+        // Adding bot to list of admins only when bot can delete messages and restrict members
+        foreach (var admin in admins)
+        {
+            if (admin.User.Id == botId)
+            {
+                if (admin is ChatMemberAdministrator chatAdministrator)
+                {
+                    if (!chatAdministrator.CanDeleteMessages
+                     || !chatAdministrator.CanRestrictMembers)
+                    {
+                        return admins.Select(member => member.User.Id).Where(id => id != botId).ToList();
+                    }
+                    break;
+                }
+                break;
+            }
+        }
+
+        return admins.Select(member => member.User.Id).ToList();
     }
 }
