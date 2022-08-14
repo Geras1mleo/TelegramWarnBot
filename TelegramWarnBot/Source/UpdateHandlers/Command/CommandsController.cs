@@ -122,6 +122,7 @@ public class CommandsController : ICommandsController
 
     public Task WCount(UpdateContext context)
     {
+        // todo all chats
         var resolveUser = commandService.TryResolveMentionedUser(context, out UserDTO mentionedUser);
 
         if (resolveUser == ResolveMentionedUserResult.UserNotMentioned)

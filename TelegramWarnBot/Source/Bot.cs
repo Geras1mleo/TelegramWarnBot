@@ -67,8 +67,8 @@ public class Bot : IBot
 
             var context = updateContextBuilder.Build(update, BotUser, cancellationToken);
 
-            if (!context.IsJoinedLeftUpdate && context.ChatDTO is null)
-                throw new Exception("Message from uncached chat!");
+            //if (!context.IsJoinedLeftUpdate && context.ChatDTO is null)
+            //    throw new Exception("Message from uncached chat!");
 
             return pipe(context);
         }
