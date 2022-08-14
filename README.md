@@ -15,7 +15,7 @@ I will ban users who receive more than a certain number of warnings specified in
 
 The default value of [MaxWarnings](TelegramWarnBot/Configuration/Configuration.json#L3) is *3*, which means that the user will be banned on his *3<sup>rd</sup>* warning.
 
-If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a member has already been banned, I will **unban** him so he can get back into the group.
+If the bad guy behaves less badly, you can **/unwarn** him in the same way. If a member is already banned from chat, I will **unban** him so he can get back into the group.
 
 All members can check their number of warnings by typing **/wcount**, or **/wcount @bad_guy** to check the number of warnings of someone else.
 
