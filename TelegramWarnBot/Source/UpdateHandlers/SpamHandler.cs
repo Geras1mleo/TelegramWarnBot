@@ -7,6 +7,7 @@ public class SpamHandler : Pipe<UpdateContext>
 {
     private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
     private readonly IConfigurationContext configurationContext;
+    private readonly ICachedDataContext cachedDataContext;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
     private readonly IDateTimeProvider dateTimeProvider;
@@ -18,7 +19,8 @@ public class SpamHandler : Pipe<UpdateContext>
                        IMessageHelper messageHelper,
                        IResponseHelper responseHelper,
                        IDateTimeProvider dateTimeProvider,
-                       ILogger<SpamHandler> logger) : base(next)
+                       ILogger<SpamHandler> logger,
+                       ICachedDataContext cachedDataContext) : base(next)
     {
         this.inMemoryCachedDataContext = inMemoryCachedDataContext;
         this.configurationContext = configurationContext;
@@ -26,6 +28,7 @@ public class SpamHandler : Pipe<UpdateContext>
         this.responseHelper = responseHelper;
         this.dateTimeProvider = dateTimeProvider;
         this.logger = logger;
+        this.cachedDataContext = cachedDataContext;
     }
 
     public override Task Handle(UpdateContext context)
@@ -49,6 +52,8 @@ public class SpamHandler : Pipe<UpdateContext>
                                       context.Update.Message.Text.Truncate(50),
                                       context.UserDTO.GetName(),
                                       context.ChatDTO.Name);
+                
+                cachedDataContext.Spam.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Update.Message.Text});
 
                 return deletingTask;
             }

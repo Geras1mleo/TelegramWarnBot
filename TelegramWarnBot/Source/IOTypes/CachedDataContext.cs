@@ -5,10 +5,13 @@ public interface ICachedDataContext
     List<ChatDTO> Chats { get; }
     List<UserDTO> Users { get; }
     List<ChatWarnings> Warnings { get; }
+    List<DeletedMessageLog> Spam { get; }
+    List<DeletedMessageLog> Illegal { get; }
 
     void BeginUpdate(int delaySeconds, CancellationToken cancellationToken);
     ChatDTO CacheChat(Chat chat, List<long> admins);
     UserDTO CacheUser(User user);
+
     void SaveData();
     Task SaveRegisteredChatsAsync(List<long> registeredChats);
 
@@ -22,6 +25,8 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
     private List<ChatWarnings> warnings;
     private List<UserDTO> users;
     private List<ChatDTO> chats;
+    private List<DeletedMessageLog> spam;
+    private List<DeletedMessageLog> illegal;
 
     public CachedDataContext(IHostEnvironment hostEnvironment) : base(hostEnvironment) { }
 
@@ -58,6 +63,28 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
         }
     }
 
+    public List<DeletedMessageLog> Spam
+    {
+        get
+        {
+            if (spam is null)
+                spam = Deserialize<List<DeletedMessageLog>>(Path.Combine("Data", "Spam.json"));
+
+            return spam;
+        }
+    }
+
+    public List<DeletedMessageLog> Illegal
+    {
+        get
+        {
+            if (illegal is null)
+                illegal = Deserialize<List<DeletedMessageLog>>(Path.Combine("Data", "Illegal.json"));
+
+            return illegal;
+        }
+    }
+
     private Task SaveWarningsAsync()
     {
         // Clear up first
@@ -91,6 +118,16 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
     public Task SaveRegisteredChatsAsync(List<long> registeredChats)
     {
         return SerializeAsync(registeredChats, Path.Combine("Configuration", "RegisteredChats.json"));
+    }
+
+    public Task SaveSpamAsync()
+    {
+        return SerializeAsync(Spam, Path.Combine("Data", "Spam.json"));
+    }
+
+    public Task SaveIllegalAsync()
+    {
+        return SerializeAsync(Illegal, Path.Combine("Data", "Illegal.json"));
     }
 
     public UserDTO CacheUser(User user)
@@ -140,13 +177,15 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
                 await SaveUsersAsync();
                 await SaveWarningsAsync();
                 await SaveChatsAsync();
+                await SaveSpamAsync();
+                await SaveIllegalAsync();
             }
         }, cancellationToken);
     }
 
     public void SaveData()
     {
-        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync());
+        Task.WaitAll(SaveUsersAsync(), SaveWarningsAsync(), SaveChatsAsync(), SaveSpamAsync(), SaveIllegalAsync());
     }
 
     public ChatDTO FindChatById(long id)
@@ -164,3 +203,4 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
         return Warnings.Find(w => w.ChatId == chatId);
     }
 }
+

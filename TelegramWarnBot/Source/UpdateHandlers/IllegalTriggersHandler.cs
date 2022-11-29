@@ -64,10 +64,12 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                     logger.LogInformation("Could not delete illegal message..\n{message}", e.Message);
                 }
 
+                cachedDataContext.Illegal.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Update.Message.Text});
+
                 logger.LogInformation("Illegal message deleted successfully!");
             }
 
-            // Notify but don't warn admins and dont delete message if not allowed in config
+            // Notify but don't warn admins and don't delete message if not allowed in config
             if (trigger.WarnMember)
             {
                 if (!context.IsSenderAdmin || configurationContext.Configuration.AllowAdminWarnings)

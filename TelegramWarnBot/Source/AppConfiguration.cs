@@ -45,7 +45,7 @@ public static class AppConfiguration
         var env = context.HostingEnvironment;
         if (env.IsDevelopment() && env.ContentRootPath.EndsWith(env.ApplicationName))
         {
-            env.ContentRootPath += @"\bin\Debug\net6.0";
+            env.ContentRootPath += Path.DirectorySeparatorChar + Path.Combine("bin","Debug", "net6.0");
         }
     }
 

@@ -57,6 +57,12 @@
 		<EmbeddedResource Include="Data\Users.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</EmbeddedResource>
+		<EmbeddedResource Include="Data\Spam.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Data\Illegal.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</EmbeddedResource>
 	</ItemGroup>
 
 
@@ -88,9 +94,7 @@
 
 
 	<ProjectExtensions>
-		<VisualStudio>
-			<UserProperties />
-		</VisualStudio>
+		<VisualStudio><UserProperties bot_1json__JsonSchema="{" /></VisualStudio>
 	</ProjectExtensions>
 
 </Project>
