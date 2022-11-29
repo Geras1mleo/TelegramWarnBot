@@ -10,7 +10,7 @@
 ### I am a bot-moderator...
 I keep track of the **warnings** and automatically **ban members** when the maximum amount of warnings has been reached.
 
-First of all you have to add me into your chat. To use a default one, search for **@fancy_moderator_bot**
+First of all you have to add me into your chat. To use a default one, search for **[@fancy_moderator_bot](https://t.me/fancy_moderator_bot)**
 
 **Promote me to _admin_** and **/warn** the bad guy by replying to his message or by mentioning **@bad_guy** in your command.
 I will ban users who receive more than a certain number of warnings specified in [Configuration.json](TelegramWarnBot/Configuration/Configuration.json#L3).
