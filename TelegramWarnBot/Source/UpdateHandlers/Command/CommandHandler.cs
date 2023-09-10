@@ -22,7 +22,7 @@ public class CommandHandler : Pipe<UpdateContext>
 
     public override async Task<Task> Handle(UpdateContext context)
     {
-        string command = context.Update.Message.Text.Split(' ', '\n')[0][1..].ToLower();
+        string command = context.Text.Split(' ', '\n')[0][1..].ToLower();
 
         var method = Tools.ResolveMethod(warnController.GetType(), command);
 

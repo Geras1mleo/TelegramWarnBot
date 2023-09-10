@@ -43,11 +43,11 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             if (trigger.Chat is not null && trigger.Chat != context.ChatDTO.Id)
                 continue;
 
-            if (!messageHelper.MatchMessage(trigger.IllegalWords, false, false, context.Update.Message.Text))
+            if (!messageHelper.MatchMessage(trigger.IllegalWords, false, false, context.Text))
                 continue;
 
             logger.LogInformation("Message \"{message}\" from {user} in chat {chat} triggered a IllegalTrigger",
-                                  context.Update.Message.Text.Truncate(50),
+                                  context.Text.Truncate(50),
                                   context.UserDTO.GetName(),
                                   context.ChatDTO.Name);
 
@@ -64,7 +64,7 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
                     logger.LogInformation("Could not delete illegal message..\n{message}", e.Message);
                 }
 
-                cachedDataContext.Illegal.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Update.Message.Text});
+                cachedDataContext.Illegal.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Text});
 
                 logger.LogInformation("Illegal message deleted successfully!");
             }

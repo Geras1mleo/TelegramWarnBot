@@ -179,7 +179,7 @@ public class CommandsController : ICommandsController
 
     public Task Random(UpdateContext context)
     {
-        var lines = context.Update.Message.Text.Split('\n').ToArray();
+        var lines = context.Text.Split('\n').ToArray();
 
         string response;
 

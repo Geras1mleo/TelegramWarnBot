@@ -28,7 +28,7 @@ public class TriggersHandler : Pipe<UpdateContext>
             if (trigger.Chat is not null && trigger.Chat != context.ChatDTO.Id)
                 continue;
 
-            if (messageHelper.MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, context.Update.Message.Text))
+            if (messageHelper.MatchMessage(trigger.Messages, trigger.MatchWholeMessage, trigger.MatchCase, context.Text))
             {
                 // Get random response
                 var response = trigger.Responses[Random.Shared.Next(trigger.Responses.Length)];
@@ -39,7 +39,7 @@ public class TriggersHandler : Pipe<UpdateContext>
                 }, context, context.Update.Message.MessageId);
 
                 logger.LogInformation("Message \"{message}\" from {user} in chat {chat} triggered a Trigger. Bot responded with:\"{response}\"",
-                                      context.Update.Message.Text.Truncate(50),
+                                      context.Text.Truncate(50),
                                       context.UserDTO.GetName(),
                                       context.ChatDTO.Name,
                                       response.Truncate(50));

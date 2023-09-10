@@ -35,6 +35,7 @@ public class UpdateContextBuilder : IUpdateContextBuilder
             ChatDTO = chatDto,
             UserDTO = userDto,
             IsText = update.Message?.Text is not null,
+            Text = update.Message?.Text,
             IsMessageUpdate = update.Type == UpdateType.Message,
             IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
                                     (update.Message.Type == MessageType.ChatMembersAdded

@@ -1,7 +1,6 @@
 ﻿namespace TelegramWarnBot;
 
 [RegisteredChat]
-[TextMessageUpdate]
 [BotAdmin]
 public class SpamHandler : Pipe<UpdateContext>
 {
@@ -36,29 +35,32 @@ public class SpamHandler : Pipe<UpdateContext>
         if (!configurationContext.Configuration.DeleteLinksFromNewMembers)
             return next(context);
 
-        if (messageHelper.MatchLinkMessage(context.Update.Message) || messageHelper.MatchCardNumber(context.Update.Message.Text))
-        {
-            var member = inMemoryCachedDataContext.Members.LastOrDefault(m => m.ChatId == context.ChatDTO.Id
-                                                                   && m.UserId == context.UserDTO.Id);
+        var member = inMemoryCachedDataContext.Members.LastOrDefault(m => m.ChatId == context.ChatDTO.Id
+                                                                       && m.UserId == context.UserDTO.Id);
 
-            // Member joined less than 24 (or other value from config) hours ago
-            var joinedTime = dateTimeProvider.DateTimeNow - (member?.JoinedDate ?? DateTime.MinValue);
+        // Member joined less than 24 (or other value from config) hours ago
+        var joinedTime = dateTimeProvider.DateTimeNow - (member?.JoinedDate ?? DateTime.MinValue);
 
-            if (joinedTime < TimeSpan.FromHours(configurationContext.Configuration.NewMemberStatusFromHours))
-            {
-                var deletingTask = responseHelper.DeleteMessageAsync(context);
+        if (joinedTime >= TimeSpan.FromHours(configurationContext.Configuration.NewMemberStatusFromHours))
+            return next(context);
 
-                logger.LogInformation("[Spam] Message \"{message}\" from {user} in chat {chat} has been deleted",
-                                      context.Update.Message.Text.Truncate(50),
-                                      context.UserDTO.GetName(),
-                                      context.ChatDTO.Name);
-                
-                cachedDataContext.Spam.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Update.Message.Text});
+        var isTextSpam = context.IsText && (messageHelper.MatchLinkMessage(context.Update.Message)
+                                         || messageHelper.MatchCardNumber(context.Text));
 
-                return deletingTask;
-            }
-        }
+        var isMediaSpam = messageHelper.MatchForwardedMedia(context.Update.Message);
 
-        return next(context);
+        if (!isTextSpam && !isMediaSpam)
+            return next(context);
+
+        var deletingTask = responseHelper.DeleteMessageAsync(context);
+
+        logger.LogInformation("[Spam] Message \"{message}\" from {user} in chat {chat} has been deleted",
+                              isTextSpam? context.Text.Truncate(50) : "[media content]",
+                              context.UserDTO.GetName(),
+                              context.ChatDTO.Name);
+
+        cachedDataContext.Spam.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Text });
+
+        return deletingTask;
     }
 }
