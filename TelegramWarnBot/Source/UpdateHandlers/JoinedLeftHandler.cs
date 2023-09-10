@@ -27,15 +27,15 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
 
     public override async Task<Task> Handle(UpdateContext context)
     {
-        if (context.Update.Message.Type == MessageType.ChatMembersAdded)
+        if (context.Update.Message!.Type == MessageType.ChatMembersAdded)
         {
             // If bot self has been added to new chat => greeting message
             if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
             {
                 context.ChatDTO = cachedDataContext.CacheChat(context.Update.Message.Chat,
-                                            (await chatHelper.GetAdminsAsync(context.Update.Message.Chat.Id,
-                                                                             context.Bot.Id,
-                                                                             context.CancellationToken)));
+                                                              (await chatHelper.GetAdminsAsync(context.Update.Message.Chat.Id,
+                                                                                               context.Bot.Id,
+                                                                                               context.CancellationToken)));
 
                 await responseHelper.SendMessageAsync(new()
                 {
@@ -52,12 +52,13 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
         else if (context.Update.Message.Type == MessageType.ChatMemberLeft)
         {
             // If bot left chat / kicked from chat => clear data
-            if (context.Update.Message.LeftChatMember.Id == context.Bot.Id)
+            if (context.Update.Message.LeftChatMember!.Id == context.Bot.Id)
             {
                 //cachedDataContext.Warnings.RemoveAll(w => w.ChatId == context.ChatDTO.Id);
                 //cachedDataContext.Chats.RemoveAll(c => c.Id == context.ChatDTO.Id);
 
-                logger.LogWarning("Bot has been kicked from chat {chat} by user {user}", $"{context.Update.Message.Chat.Title}: {context.Update.Message.Chat.Id}", context.UserDTO);
+                logger.LogWarning("Bot has been kicked from chat {chat} by user {user}",
+                                  $"{context.Update.Message.Chat.Title}: {context.Update.Message.Chat.Id}", context.UserDTO);
 
                 return Task.CompletedTask;
             }

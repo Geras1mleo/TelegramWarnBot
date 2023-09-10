@@ -45,7 +45,7 @@ public static class AppConfiguration
         var env = context.HostingEnvironment;
         if (env.IsDevelopment() && env.ContentRootPath.EndsWith(env.ApplicationName))
         {
-            env.ContentRootPath += Path.DirectorySeparatorChar + Path.Combine("bin","Debug", "net6.0");
+            env.ContentRootPath += Path.DirectorySeparatorChar + Path.Combine("bin", "Debug", "net6.0");
         }
     }
 
@@ -83,12 +83,12 @@ public static class AppConfiguration
     public static PipeBuilder<UpdateContext> GetPipeBuilder(IServiceProvider provider)
     {
         return new PipeBuilder<UpdateContext>(_ => Task.CompletedTask, provider)
-                    .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
-                    .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
-                    .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
-                    .AddPipe<SpamHandler>(c => !c.IsSenderAdmin)
-                    .AddPipe<TriggersHandler>()
-                    .AddPipe<IllegalTriggersHandler>()
-                    .AddPipe<CommandHandler>(c => c.IsCommandUpdate);
+            .AddPipe<CachingHandler>(c => c.IsMessageUpdate)
+            .AddPipe<JoinedLeftHandler>(c => c.IsJoinedLeftUpdate)
+            .AddPipe<AdminsHandler>(c => c.IsAdminsUpdate)
+            .AddPipe<SpamHandler>(c => !c.IsSenderAdmin && c.IsMessageUpdate) // TODO attribute
+            .AddPipe<TriggersHandler>()
+            .AddPipe<IllegalTriggersHandler>()
+            .AddPipe<CommandHandler>(c => c.IsCommandUpdate);
     }
 }

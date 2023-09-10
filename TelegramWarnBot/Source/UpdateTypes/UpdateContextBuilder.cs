@@ -38,12 +38,10 @@ public class UpdateContextBuilder : IUpdateContextBuilder
             Text = update.Message?.Text,
             IsMessageUpdate = update.Type == UpdateType.Message,
             IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
-                                    (update.Message.Type == MessageType.ChatMembersAdded
-                                  || update.Message.Type == MessageType.ChatMemberLeft),
-            IsAdminsUpdate = (update.Type == UpdateType.ChatMember
-                            || update.Type == UpdateType.MyChatMember)
+                                 (update.Message!.Type == MessageType.ChatMembersAdded || update.Message.Type == MessageType.ChatMemberLeft),
+            IsAdminsUpdate = (update.Type == UpdateType.ChatMember || update.Type == UpdateType.MyChatMember)
                           && (update.GetOldMember().Status == ChatMemberStatus.Administrator
-                            || update.GetNewMember().Status == ChatMemberStatus.Administrator),
+                           || update.GetNewMember().Status == ChatMemberStatus.Administrator),
             IsCommandUpdate = update.Message?.Text?.IsValidCommand() ?? false,
             IsChatRegistered = chatHelper.IsChatRegistered(chatId),
             IsBotAdmin = chatDto?.Admins.Any(a => a == botUser.Id) ?? false,
