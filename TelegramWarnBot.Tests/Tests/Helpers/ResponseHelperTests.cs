@@ -2,7 +2,7 @@
 
 public class ResponseHelperTests
 {
-    private readonly ResponseHelper _sut;
+    private readonly IResponseHelper _sut;
 
     public ResponseHelperTests()
     {

@@ -2,6 +2,9 @@
 
 public class MockedCachedContext : ICachedDataContext
 {
+    public List<DeletedMessageLog> Spam { get; } = new();
+    public List<DeletedMessageLog> Illegal { get; } = new();
+
     public List<ChatDTO> Chats => chats;
 
     private readonly List<ChatDTO> chats = new()
@@ -53,7 +56,7 @@ public class MockedCachedContext : ICachedDataContext
         new ChatWarnings()
         {
             ChatId = 69,
-            WarnedUsers =new List<WarnedUser>()
+            WarnedUsers = new List<WarnedUser>()
             {
                 new WarnedUser()
                 {
@@ -69,8 +72,7 @@ public class MockedCachedContext : ICachedDataContext
         }
     };
 
-    public void BeginUpdate(int delaySeconds, CancellationToken cancellationToken)
-    { }
+    public void BeginUpdate(int delaySeconds, CancellationToken cancellationToken) { }
 
     public ChatDTO CacheChat(Chat chat, List<long> admins)
     {
@@ -109,8 +111,7 @@ public class MockedCachedContext : ICachedDataContext
         return userDto;
     }
 
-    public void SaveData()
-    { }
+    public void SaveData() { }
 
     public Task SaveRegisteredChatsAsync(List<long> registeredChats)
     {

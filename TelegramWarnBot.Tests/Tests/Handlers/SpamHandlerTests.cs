@@ -21,7 +21,8 @@ public class SpamHandlerTests
                                MessageHelperProvider.MessageHelper,
                                responseHelper,
                                dateTimeProvider,
-                               Substitute.For<ILogger<SpamHandler>>());
+                               Substitute.For<ILogger<SpamHandler>>(),
+                               new MockedCachedContext());
     }
 
     [Theory]
