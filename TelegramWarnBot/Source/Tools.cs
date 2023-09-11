@@ -53,4 +53,9 @@ public static class Tools
 
         Console.WriteLine();
     }
+
+    public static string BuildMessageHyperlink(ChatDTO chat, Message message)
+    {
+        return $"[{chat.Name}](tg://privatepost?channel={chat.Id.ToString()[4..]}&post={message.MessageId})";
+    }
 }

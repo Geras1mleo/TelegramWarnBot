@@ -11,7 +11,7 @@ public class TelegramSink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
-        if (notifyBotOwners is null)
+        if (notifyBotOwners is null || logEvent.Exception is RequestException)
             return;
 
         string message;
@@ -37,20 +37,12 @@ public class TelegramSink : ILogEventSink
             foreach (var userId in notifyBotOwners)
             {
                 TelegramBotClientProvider.Shared.SendMessageAsync(userId, $"{logEvent.Level}: " + message)
-                                                       .GetAwaiter().GetResult();
+                    .GetAwaiter().GetResult();
             }
         }
-        catch (Exception) { }
-    }
-}
-
-public static class TelegramSinkExtensions
-{
-    public static LoggerConfiguration TelegramSink(
-        this LoggerSinkConfiguration loggerConfiguration,
-        long[] notifyBotOwners = null,
-        LogEventLevel restrictedToMinimumLevel = LogEventLevel.Warning)
-    {
-        return loggerConfiguration.Sink(new TelegramSink(notifyBotOwners), restrictedToMinimumLevel);
+        catch
+        {
+            // ignored
+        }
     }
 }
