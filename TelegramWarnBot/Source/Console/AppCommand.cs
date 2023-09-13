@@ -21,9 +21,7 @@ public class CommandLineApplicationWithDI : CommandLineApplication
         foreach (var command in serviceProvider.GetServices<ICommand>())
         {
             if (command is not CommandLineApplication commandLineApp)
-            {
                 throw new InvalidCastException("Commands must inherit from ICommand and CommandLineApplication");
-            }
 
             commandLineApp.HelpOption("-? | -h | --help");
 

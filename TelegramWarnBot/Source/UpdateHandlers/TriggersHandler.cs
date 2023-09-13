@@ -5,9 +5,9 @@
 public class TriggersHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
+    private readonly ILogger<TriggersHandler> logger;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
-    private readonly ILogger<TriggersHandler> logger;
 
     public TriggersHandler(Func<UpdateContext, Task> next,
                            IConfigurationContext configurationContext,
@@ -33,10 +33,10 @@ public class TriggersHandler : Pipe<UpdateContext>
                 // Get random response
                 var response = trigger.Responses[Random.Shared.Next(trigger.Responses.Length)];
 
-                await responseHelper.SendMessageAsync(new()
+                await responseHelper.SendMessageAsync(new ResponseContext
                 {
                     Message = response
-                }, context, context.Update.Message.MessageId);
+                }, context, context.MessageId);
 
                 logger.LogInformation("Message \"{message}\" from {user} in chat {chat} triggered a Trigger. Bot responded with:\"{response}\"",
                                       context.Text.Truncate(50),

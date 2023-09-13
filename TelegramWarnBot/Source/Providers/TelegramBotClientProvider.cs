@@ -10,6 +10,7 @@ public interface ITelegramBotClientProvider
     Task<Message> ForwardMessageAsync(ChatId chatId, ChatId fromChatId, int messageId, CancellationToken cancellationToken = default);
     Task<User> GetMeAsync(CancellationToken cancellationToken = default);
     Task LeaveChatAsync(ChatId chatId, CancellationToken cancellationToken = default);
+
     void StartReceiving(
         Func<ITelegramBotClient, Update, CancellationToken, Task> updateHandler,
         Func<ITelegramBotClient, Exception, CancellationToken, Task> pollingErrorHandler,
@@ -20,13 +21,13 @@ public class TelegramBotClientProvider : ITelegramBotClientProvider
 {
     private readonly TelegramBotClient client;
 
-    public static TelegramBotClientProvider Shared { get; private set; } // Only for TelegramSink logging
-
     public TelegramBotClientProvider(IConfigurationContext configurationContext)
     {
         client = new TelegramBotClient(configurationContext.BotConfiguration.Token);
         Shared = this;
     }
+
+    public static TelegramBotClientProvider Shared { get; private set; } // Only for TelegramSink logging
 
     public Task<Message> SendMessageAsync(ChatId chatId, string text, int? replyToMessageId = null, CancellationToken cancellationToken = default)
     {
@@ -35,7 +36,7 @@ public class TelegramBotClientProvider : ITelegramBotClientProvider
 
     public Task DeleteMessageAsync(ChatId chatId, int messageId, CancellationToken cancellationToken = default)
     {
-        return client.DeleteMessageAsync(chatId, messageId, cancellationToken: cancellationToken);
+        return client.DeleteMessageAsync(chatId, messageId, cancellationToken);
     }
 
     public Task BanChatMemberAsync(ChatId chatId, long userId, CancellationToken cancellationToken = default)
@@ -45,12 +46,12 @@ public class TelegramBotClientProvider : ITelegramBotClientProvider
 
     public Task UnbanChatMemberAsync(ChatId chatId, long userId, CancellationToken cancellationToken = default)
     {
-        return client.UnbanChatMemberAsync(chatId, userId, onlyIfBanned: true, cancellationToken: cancellationToken);
+        return client.UnbanChatMemberAsync(chatId, userId, true, cancellationToken);
     }
 
     public Task<ChatMember[]> GetChatAdministratorsAsync(ChatId chatId, CancellationToken cancellationToken = default)
     {
-        return client.GetChatAdministratorsAsync(chatId, cancellationToken: cancellationToken);
+        return client.GetChatAdministratorsAsync(chatId, cancellationToken);
     }
 
     public Task<Message> ForwardMessageAsync(ChatId chatId, ChatId fromChatId, int messageId, CancellationToken cancellationToken = default)
@@ -60,7 +61,7 @@ public class TelegramBotClientProvider : ITelegramBotClientProvider
 
     public Task<User> GetMeAsync(CancellationToken cancellationToken = default)
     {
-        return client.GetMeAsync(cancellationToken: cancellationToken);
+        return client.GetMeAsync(cancellationToken);
     }
 
     public void StartReceiving(
@@ -69,19 +70,19 @@ public class TelegramBotClientProvider : ITelegramBotClientProvider
         CancellationToken cancellationToken = default)
     {
         client.StartReceiving(updateHandler, pollingErrorHandler,
-        receiverOptions: new ReceiverOptions()
-        {
-            AllowedUpdates = new[]
-            {
-                UpdateType.Message,
-                UpdateType.ChatMember,
-                UpdateType.MyChatMember
-            },
-        }, cancellationToken: cancellationToken);
+                              new ReceiverOptions
+                              {
+                                  AllowedUpdates = new[]
+                                  {
+                                      UpdateType.Message,
+                                      UpdateType.ChatMember,
+                                      UpdateType.MyChatMember
+                                  }
+                              }, cancellationToken);
     }
 
     public Task LeaveChatAsync(ChatId chatId, CancellationToken cancellationToken = default)
     {
-        return client.LeaveChatAsync(chatId, cancellationToken: cancellationToken);
+        return client.LeaveChatAsync(chatId, cancellationToken);
     }
 }

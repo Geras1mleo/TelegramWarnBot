@@ -1,5 +1,4 @@
-﻿
-Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
+﻿Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 
 var cts = new CancellationTokenSource();
 

@@ -24,8 +24,8 @@ public static class AppConfiguration
 
         var builder = new ConfigurationBuilder()
             .SetBasePath(env.ContentRootPath)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{envPlatform}.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettings.json", false, true)
+            .AddJsonFile($"appsettings.{envPlatform}.json", false, true)
             .AddEnvironmentVariables();
 
         // Configuring logger again with provided appsettings
@@ -44,9 +44,7 @@ public static class AppConfiguration
         // To use dotnet watch/run and not corrupt Data\ files in project
         var env = context.HostingEnvironment;
         if (env.IsDevelopment() && env.ContentRootPath.EndsWith(env.ApplicationName))
-        {
             env.ContentRootPath += Path.DirectorySeparatorChar + Path.Combine("bin", "Debug", "net6.0");
-        }
     }
 
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)

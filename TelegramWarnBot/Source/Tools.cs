@@ -8,6 +8,7 @@ public static class Tools
 
     // Cached methods
     private static readonly Dictionary<Type, MethodInfo[]> methodsDict = new();
+
     public static MethodInfo ResolveMethod(Type type, string name)
     {
         if (!methodsDict.TryGetValue(type, out var cachedMethods))
@@ -20,8 +21,8 @@ public static class Tools
     }
 
     /// <summary>
-    /// Usage: WriteColor("This is my [message] with inline [color] changes.", ConsoleColor.Yellow);
-    /// https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
+    ///     Usage: WriteColor("This is my [message] with inline [color] changes.", ConsoleColor.Yellow);
+    ///     https://stackoverflow.com/questions/2743260/is-it-possible-to-write-to-the-console-in-colour-in-net
     /// </summary>
     /// <param name="message"></param>
     /// <param name="color"></param>
@@ -37,9 +38,9 @@ public static class Tools
 
         var pieces = Regex.Split(message, @"(\[[^\]]*\])");
 
-        for (int i = 0; i < pieces.Length; i++)
+        for (var i = 0; i < pieces.Length; i++)
         {
-            string piece = pieces[i];
+            var piece = pieces[i];
 
             if (piece.StartsWith("[") && piece.EndsWith("]"))
             {
@@ -52,10 +53,5 @@ public static class Tools
         }
 
         Console.WriteLine();
-    }
-
-    public static string BuildMessageHyperlink(ChatDTO chat, Message message)
-    {
-        return $"[{chat.Name}](tg://privatepost?channel={chat.Id.ToString()[4..]}&post={message.MessageId})";
     }
 }

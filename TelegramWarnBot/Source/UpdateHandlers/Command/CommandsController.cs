@@ -9,13 +9,13 @@ public interface ICommandsController
 
 public class CommandsController : ICommandsController
 {
-    private readonly ITelegramBotClientProvider telegramBotClientProvider;
-    private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IChatHelper chatHelper;
-    private readonly IResponseHelper responseHelper;
     private readonly ICommandService commandService;
+    private readonly IConfigurationContext configurationContext;
     private readonly ILogger<CommandsController> logger;
+    private readonly IResponseHelper responseHelper;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
 
     public CommandsController(ITelegramBotClientProvider telegramBotClientProvider,
                               IConfigurationContext configurationContext,
@@ -36,75 +36,54 @@ public class CommandsController : ICommandsController
 
     public async Task<Task> Warn(UpdateContext context)
     {
-        if (!commandService.TryResolveWarnedUser(context, true, out WarnedUser warnedUser, out string errorMessage))
-        {
-            return responseHelper.SendMessageAsync(new()
+        if (!commandService.TryResolveWarnedUser(context, true, out var warnedUser, out var errorMessage))
+            return responseHelper.SendMessageAsync(new ResponseContext
             {
-                Message = errorMessage,
+                Message = errorMessage
             }, context);
-        }
 
         var isBanned = await commandService.Warn(warnedUser, context.ChatDTO.Id,
-                                               !chatHelper.IsAdmin(context.Update.Message.Chat.Id, warnedUser.Id),
-                                               context);
+                                                 !chatHelper.IsAdmin(context.Update.Message.Chat.Id, warnedUser.Id),
+                                                 context);
 
         if (configurationContext.Configuration.DeleteWarnMessage)
-        {
             await responseHelper.DeleteMessageAsync(context);
-        }
 
         LogWarned(isBanned, context.ChatDTO, context.UserDTO, warnedUser);
 
         // Notify in chat that user has been warned or banned
-        return responseHelper.SendMessageAsync(new()
+        return responseHelper.SendMessageAsync(new ResponseContext
         {
-            Message = isBanned ? configurationContext.Configuration.Captions.BannedSuccessfully
-                               : configurationContext.Configuration.Captions.WarnedSuccessfully,
+            Message = isBanned
+                ? configurationContext.Configuration.Captions.BannedSuccessfully
+                : configurationContext.Configuration.Captions.WarnedSuccessfully,
             MentionedUserId = warnedUser.Id
         }, context);
     }
 
-    private void LogWarned(bool banned, ChatDTO chat, UserDTO admin, WarnedUser warnedUser)
-    {
-        var userName = cachedDataContext.FindUserById(warnedUser.Id).GetName();
-
-        if (banned)
-            logger.LogInformation("[Admin] {admin} banned user by giving a warning {user} from chat {chat}.",
-                                  admin.GetName(), userName, chat.Name);
-        else
-            logger.LogInformation("[Admin] {admin} warned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
-                                  admin.GetName(), userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
-    }
-
     public async Task<Task> Unwarn(UpdateContext context)
     {
-        if (!commandService.TryResolveWarnedUser(context, false, out WarnedUser unwarnedUser, out string errorMessage))
-        {
-            return responseHelper.SendMessageAsync(new()
+        if (!commandService.TryResolveWarnedUser(context, false, out var unwarnedUser, out var errorMessage))
+            return responseHelper.SendMessageAsync(new ResponseContext
             {
-                Message = errorMessage,
+                Message = errorMessage
             }, context);
-        }
 
         if (configurationContext.Configuration.DeleteWarnMessage)
-        {
             await responseHelper.DeleteMessageAsync(context);
-        }
 
         if (unwarnedUser.Warnings == 0)
-        {
-            return responseHelper.SendMessageAsync(new()
+            return responseHelper.SendMessageAsync(new ResponseContext
             {
                 Message = configurationContext.Configuration.Captions.UnwarnUserNoWarnings,
                 MentionedUserId = unwarnedUser.Id
             }, context);
-        }
 
         unwarnedUser.Warnings--;
 
         await telegramBotClientProvider.UnbanChatMemberAsync(context.Update.Message.Chat.Id,
                                                              unwarnedUser.Id,
-                                                             cancellationToken: context.CancellationToken);
+                                                             context.CancellationToken);
 
         logger.LogInformation("[Admin] {admin} unwarned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
                               context.UserDTO.GetName(),
@@ -113,7 +92,7 @@ public class CommandsController : ICommandsController
                               unwarnedUser.Warnings,
                               configurationContext.Configuration.MaxWarnings);
 
-        return responseHelper.SendMessageAsync(new()
+        return responseHelper.SendMessageAsync(new ResponseContext
         {
             Message = configurationContext.Configuration.Captions.UnwarnedSuccessfully,
             MentionedUserId = unwarnedUser.Id
@@ -123,7 +102,7 @@ public class CommandsController : ICommandsController
     public Task WCount(UpdateContext context)
     {
         // todo all chats
-        var resolveUser = commandService.TryResolveMentionedUser(context, out UserDTO mentionedUser);
+        var resolveUser = commandService.TryResolveMentionedUser(context, out var mentionedUser);
 
         if (resolveUser == ResolveMentionedUserResult.UserNotMentioned)
         {
@@ -148,33 +127,39 @@ public class CommandsController : ICommandsController
         {
             var mentionedUserIsAdmin = chatHelper.IsAdmin(context.ChatDTO.Id, mentionedUser.Id);
             if (mentionedUserIsAdmin)
-            {
-                return responseHelper.SendMessageAsync(new ResponseContext()
+                return responseHelper.SendMessageAsync(new ResponseContext
                 {
                     Message = configurationContext.Configuration.Captions.WCountAdminAttempt
                 }, context);
-            }
         }
 
         var warningsCount = cachedDataContext.FindWarningByChatId(context.ChatDTO.Id)?
-                                             .WarnedUsers.Find(u => u.Id == mentionedUser.Id)?.Warnings ?? 0;
+            .WarnedUsers.Find(u => u.Id == mentionedUser.Id)?.Warnings ?? 0;
 
         string response;
 
         if (warningsCount == 0)
-        {
             response = configurationContext.Configuration.Captions.WCountUserHasNoWarnings;
-        }
         else
-        {
             response = configurationContext.Configuration.Captions.WCountMessage;
-        }
 
-        return responseHelper.SendMessageAsync(new ResponseContext()
+        return responseHelper.SendMessageAsync(new ResponseContext
         {
             Message = response,
             MentionedUserId = mentionedUser.Id
         }, context);
+    }
+
+    private void LogWarned(bool banned, ChatDTO chat, UserDTO admin, WarnedUser warnedUser)
+    {
+        var userName = cachedDataContext.FindUserById(warnedUser.Id).GetName();
+
+        if (banned)
+            logger.LogInformation("[Admin] {admin} banned user by giving a warning {user} from chat {chat}.",
+                                  admin.GetName(), userName, chat.Name);
+        else
+            logger.LogInformation("[Admin] {admin} warned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
+                                  admin.GetName(), userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
     }
 
     public Task Random(UpdateContext context)
@@ -184,17 +169,13 @@ public class CommandsController : ICommandsController
         string response;
 
         if (lines.Length < 2)
-        {
             response = configurationContext.Configuration.Captions.InvalidOperation;
-        }
         else
-        {
             response = lines[System.Random.Shared.Next(1, lines.Length)];
-        }
 
-        return responseHelper.SendMessageAsync(new ResponseContext()
+        return responseHelper.SendMessageAsync(new ResponseContext
         {
-            Message = response,
-        }, context, replyToMessageId: context.Update.Message.MessageId);
+            Message = response
+        }, context, context.MessageId);
     }
 }

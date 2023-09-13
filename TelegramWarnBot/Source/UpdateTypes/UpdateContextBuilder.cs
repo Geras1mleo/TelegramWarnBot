@@ -36,6 +36,7 @@ public class UpdateContextBuilder : IUpdateContextBuilder
             UserDTO = userDto,
             IsText = update.Message?.Text is not null,
             Text = update.Message?.Text,
+            MessageId = update.Message?.MessageId,
             IsMessageUpdate = update.Type == UpdateType.Message,
             IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
                                  (update.Message!.Type == MessageType.ChatMembersAdded || update.Message.Type == MessageType.ChatMemberLeft),
@@ -45,7 +46,7 @@ public class UpdateContextBuilder : IUpdateContextBuilder
             IsCommandUpdate = update.Message?.Text?.IsValidCommand() ?? false,
             IsChatRegistered = chatHelper.IsChatRegistered(chatId),
             IsBotAdmin = chatDto?.Admins.Any(a => a == botUser.Id) ?? false,
-            IsSenderAdmin = chatDto?.Admins.Any(a => a == fromUser.Id) ?? false,
+            IsSenderAdmin = chatDto?.Admins.Any(a => a == fromUser.Id) ?? false
         };
     }
 }

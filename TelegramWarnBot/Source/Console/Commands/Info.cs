@@ -50,7 +50,8 @@ public class InfoCommand : CommandLineApplication, ICommand
 
         if (cachedDataContext.Warnings.Count > 0)
         {
-            Tools.WriteColor($"\nWarnings: [{cachedDataContext.Warnings.SelectMany(w => w.WarnedUsers).Select(u => u.Warnings).Sum()}]", ConsoleColor.DarkYellow, false);
+            Tools.WriteColor($"\nWarnings: [{cachedDataContext.Warnings.SelectMany(w => w.WarnedUsers).Select(u => u.Warnings).Sum()}]",
+                             ConsoleColor.DarkYellow, false);
 
             string chatName, userName;
 

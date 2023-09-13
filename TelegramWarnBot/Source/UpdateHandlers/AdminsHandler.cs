@@ -17,10 +17,8 @@ public class AdminsHandler : Pipe<UpdateContext>
     public override async Task<Task> Handle(UpdateContext context)
     {
         if (context.Update.Type == UpdateType.ChatMember)
-        {
             return ChatMemberRightsChanged(context);
-        }
-        else if (context.Update.Type == UpdateType.MyChatMember && context.ChatDTO is not null)
+        if (context.Update.Type == UpdateType.MyChatMember && context.ChatDTO is not null)
         {
             var isAdmin = await BotRightsChanged(context);
 
@@ -34,13 +32,9 @@ public class AdminsHandler : Pipe<UpdateContext>
     private Task ChatMemberRightsChanged(UpdateContext context)
     {
         if (context.Update.ChatMember.NewChatMember.Status == ChatMemberStatus.Administrator)
-        {
             context.ChatDTO.Admins.Add(context.Update.ChatMember.NewChatMember.User.Id);
-        }
         else
-        {
             context.ChatDTO.Admins.Remove(context.Update.ChatMember.NewChatMember.User.Id);
-        }
 
         return Task.CompletedTask;
     }
@@ -50,9 +44,7 @@ public class AdminsHandler : Pipe<UpdateContext>
         if (context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Kicked
          || context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Left
          || context.Update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Restricted)
-        {
             return false;
-        }
 
         context.ChatDTO.Admins = await chatHelper.GetAdminsAsync(context.ChatDTO.Id, context.Bot.Id,
                                                                  context.CancellationToken);

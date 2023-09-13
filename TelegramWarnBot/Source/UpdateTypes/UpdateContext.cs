@@ -1,9 +1,8 @@
 ﻿namespace TelegramWarnBot;
 
-// Interface is needed to filter handlers by attributes on update
 public interface IContext
 {
-    bool ResolveAttributes(Type type) => true;
+    bool ResolveAttributes(Type type);
 }
 
 public class UpdateContext : IContext
@@ -13,7 +12,8 @@ public class UpdateContext : IContext
     public User Bot { get; init; }
     public ChatDTO ChatDTO { get; set; }
     public UserDTO UserDTO { get; set; }
-    public string Text { get; init; } // TODO messageID
+    public string Text { get; init; }
+    public int? MessageId { get; init; }
     public bool IsText { get; init; }
     public bool IsMessageUpdate { get; init; }
     public bool IsJoinedLeftUpdate { get; init; }

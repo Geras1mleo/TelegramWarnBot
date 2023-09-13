@@ -14,8 +14,10 @@ public class ConfigurationContext : IOContextBase, IConfigurationContext
 {
     private BotConfiguration botConfiguration;
     private Configuration configuration;
-    private Trigger[] triggers;
     private IllegalTrigger[] illegalTriggers;
+    private Trigger[] triggers;
+
+    public ConfigurationContext(IHostEnvironment hostEnvironment) : base(hostEnvironment) { }
 
     public BotConfiguration BotConfiguration
     {
@@ -63,8 +65,6 @@ public class ConfigurationContext : IOContextBase, IConfigurationContext
             return illegalTriggers;
         }
     }
-
-    public ConfigurationContext(IHostEnvironment hostEnvironment) : base(hostEnvironment) { }
 
     public void ReloadConfiguration()
     {

@@ -1,18 +1,26 @@
 [
   {
     "Chat": null,
-    "WarnMember": true,
+    "WarnMember": false,
     "DeleteMessage": false,
     "IgnoreAdmins": false,
-    "IllegalWords": [ "good russians" ],
-    "NotifiedAdmins": [ 2005661324 ]
+    "IllegalWords": [
+      "good russians"
+    ],
+    "NotifiedAdmins": [
+      2005661324
+    ]
   },
   {
     "Chat": null,
-    "WarnMember": true,
-    "DeleteMessage": true,
+    "WarnMember": false,
+    "DeleteMessage": false,
     "IgnoreAdmins": false,
-    "IllegalWords": [ "fuck admin" ],
-    "NotifiedAdmins": [ 713766114 ]
+    "IllegalWords": [
+      "fuck admin"
+    ],
+    "NotifiedAdmins": [
+      713766114
+    ]
   }
 ]

@@ -35,10 +35,8 @@ public class TelegramSink : ILogEventSink
         try
         {
             foreach (var userId in notifyBotOwners)
-            {
                 TelegramBotClientProvider.Shared.SendMessageAsync(userId, $"{logEvent.Level}: " + message)
                     .GetAwaiter().GetResult();
-            }
         }
         catch
         {

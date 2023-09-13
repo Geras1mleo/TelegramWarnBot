@@ -9,10 +9,10 @@ public interface IResponseHelper
 
 public class ResponseHelper : IResponseHelper
 {
-    private readonly ITelegramBotClientProvider telegramBotClientProvider;
-    private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly IConfigurationContext configurationContext;
     private readonly ISmartFormatterProvider formatterProvider;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
 
     public ResponseHelper(ITelegramBotClientProvider telegramBotClientProvider,
                           IConfigurationContext configurationContext,
@@ -29,14 +29,14 @@ public class ResponseHelper : IResponseHelper
     {
         return telegramBotClientProvider.SendMessageAsync(updateContext.ChatDTO.Id,
                                                           FormatResponseVariables(responseContext, updateContext),
-                                                          replyToMessageId: replyToMessageId,
-                                                          cancellationToken: updateContext.CancellationToken);
+                                                          replyToMessageId,
+                                                          updateContext.CancellationToken);
     }
 
     public Task DeleteMessageAsync(UpdateContext context)
     {
         return telegramBotClientProvider.DeleteMessageAsync(context.ChatDTO.Id,
-                                                            context.Update.Message.MessageId,
+                                                            context.MessageId!.Value,
                                                             context.CancellationToken);
     }
 
@@ -57,15 +57,15 @@ public class ResponseHelper : IResponseHelper
         if (userId is null)
             return null;
 
-        UserDTO user = cachedDataContext.FindUserById(userId.Value);
+        var user = cachedDataContext.FindUserById(userId.Value);
 
         if (user is null)
             return null;
 
-        WarnedUser warnedUser = cachedDataContext.FindWarningByChatId(chatId)?
-                                                 .WarnedUsers.Find(u => u.Id == userId);
+        var warnedUser = cachedDataContext.FindWarningByChatId(chatId)?
+            .WarnedUsers.Find(u => u.Id == userId);
 
-        return new()
+        return new MentionedUserDTO
         {
             Id = user.Id,
             FirstName = user.FirstName,

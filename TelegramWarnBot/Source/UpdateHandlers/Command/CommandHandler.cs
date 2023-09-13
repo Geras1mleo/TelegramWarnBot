@@ -4,9 +4,9 @@
 public class CommandHandler : Pipe<UpdateContext>
 {
     private readonly IConfigurationContext configurationContext;
-    private readonly ICommandsController warnController;
-    private readonly IResponseHelper responseHelper;
     private readonly ILogger<CommandHandler> logger;
+    private readonly IResponseHelper responseHelper;
+    private readonly ICommandsController warnController;
 
     public CommandHandler(Func<UpdateContext, Task> next,
                           IConfigurationContext configurationContext,
@@ -22,7 +22,7 @@ public class CommandHandler : Pipe<UpdateContext>
 
     public override async Task<Task> Handle(UpdateContext context)
     {
-        string command = context.Text.Split(' ', '\n')[0][1..].ToLower();
+        var command = context.Text.Split(' ', '\n')[0][1..].ToLower();
 
         var method = Tools.ResolveMethod(warnController.GetType(), command);
 
@@ -31,9 +31,9 @@ public class CommandHandler : Pipe<UpdateContext>
             if (!context.IsChatRegistered)
             {
                 logger.LogWarning("Attempt to use command {command} in unregistered chat {chat}",
-                                    command, $"{context.ChatDTO.Name}: {context.ChatDTO.Id}");
+                                  command, $"{context.ChatDTO.Name}: {context.ChatDTO.Id}");
 
-                return responseHelper.SendMessageAsync(new()
+                return responseHelper.SendMessageAsync(new ResponseContext
                 {
                     Message = configurationContext.Configuration.Captions.ChatNotRegistered
                 }, context);

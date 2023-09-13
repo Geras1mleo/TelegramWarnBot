@@ -7,10 +7,10 @@ public interface ISmartFormatterProvider
 
 public class SmartFormatterProvider : ISmartFormatterProvider
 {
-    public SmartFormatter Formatter { get; private set; }
-
     public SmartFormatterProvider(SmartFormatter formatter)
     {
         Formatter = formatter;
     }
+
+    public SmartFormatter Formatter { get; }
 }

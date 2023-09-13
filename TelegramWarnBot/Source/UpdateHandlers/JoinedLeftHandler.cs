@@ -2,12 +2,12 @@
 
 public class JoinedLeftHandler : Pipe<UpdateContext>
 {
-    private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
-    private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
     private readonly IChatHelper chatHelper;
-    private readonly IResponseHelper responseHelper;
+    private readonly IConfigurationContext configurationContext;
+    private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
     private readonly ILogger<JoinedLeftHandler> logger;
+    private readonly IResponseHelper responseHelper;
 
     public JoinedLeftHandler(Func<UpdateContext, Task> next,
                              IConfigurationContext configurationContext,
@@ -33,13 +33,13 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
             {
                 context.ChatDTO = cachedDataContext.CacheChat(context.Update.Message.Chat,
-                                                              (await chatHelper.GetAdminsAsync(context.Update.Message.Chat.Id,
-                                                                                               context.Bot.Id,
-                                                                                               context.CancellationToken)));
+                                                              await chatHelper.GetAdminsAsync(context.Update.Message.Chat.Id,
+                                                                                              context.Bot.Id,
+                                                                                              context.CancellationToken));
 
-                await responseHelper.SendMessageAsync(new()
+                await responseHelper.SendMessageAsync(new ResponseContext
                 {
-                    Message = configurationContext.Configuration.Captions.OnBotJoinedChatMessage,
+                    Message = configurationContext.Configuration.Captions.OnBotJoinedChatMessage
                 }, context);
 
                 logger.LogWarning("Bot has been added to chat {chat} by user {user}", $"{context.ChatDTO.Name}: {context.ChatDTO.Id}", context.UserDTO);
@@ -49,7 +49,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
 
             return HandleJoinedAsync(context);
         }
-        else if (context.Update.Message.Type == MessageType.ChatMemberLeft)
+        if (context.Update.Message.Type == MessageType.ChatMemberLeft)
         {
             // If bot left chat / kicked from chat => clear data
             if (context.Update.Message.LeftChatMember!.Id == context.Bot.Id)
@@ -75,28 +75,24 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             return;
 
         if (configurationContext.Configuration.DeleteJoinedLeftMessage)
-        {
             if (context.IsBotAdmin)
             {
                 await responseHelper.DeleteMessageAsync(context);
 
                 logger.LogInformation("Deleted joined message in chat {chat} successfully!", context.ChatDTO.Name);
             }
-        }
 
         foreach (var member in context.Update.Message.NewChatMembers)
-        {
             if (!member.IsBot)
             {
                 context.UserDTO = cachedDataContext.CacheUser(member);
-                inMemoryCachedDataContext.Members.Add(new()
+                inMemoryCachedDataContext.Members.Add(new MemberDTO
                 {
                     ChatId = context.Update.Message.Chat.Id,
                     UserId = member.Id,
                     JoinedDate = DateTime.Now
                 });
             }
-        }
     }
 
     private async Task HandleLeftAsync(UpdateContext context)
@@ -105,13 +101,11 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             return;
 
         if (configurationContext.Configuration.DeleteJoinedLeftMessage)
-        {
             if (context.IsBotAdmin)
             {
                 await responseHelper.DeleteMessageAsync(context);
 
                 logger.LogInformation("Deleted left message in chat {chat} successfully!", context.ChatDTO.Name);
             }
-        }
     }
 }

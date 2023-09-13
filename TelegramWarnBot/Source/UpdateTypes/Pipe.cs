@@ -3,7 +3,8 @@
 public abstract class Pipe<TContext>
     where TContext : IContext
 {
-    protected Func<TContext, Task> next;
+    protected readonly Func<TContext, Task> next;
+
     protected Pipe(Func<TContext, Task> next)
     {
         this.next = next;
@@ -15,9 +16,9 @@ public abstract class Pipe<TContext>
 public class PipeBuilder<TContext>
     where TContext : IContext
 {
-    private readonly IServiceProvider provider;
     private readonly Func<TContext, Task> mainAction;
     private readonly List<PipeContainer> pipes;
+    private readonly IServiceProvider provider;
 
     public PipeBuilder(Func<TContext, Task> mainAction, IServiceProvider provider)
     {
@@ -26,26 +27,21 @@ public class PipeBuilder<TContext>
         pipes = new List<PipeContainer>();
     }
 
-    public PipeBuilder<TContext> AddPipe<Type>()
-        where Type : Pipe<TContext>
+    public PipeBuilder<TContext> AddPipe<T>()
+        where T : Pipe<TContext>
     {
-        return AddPipe<Type>(_ => true);
+        return AddPipe<T>(_ => true);
     }
 
-    public PipeBuilder<TContext> AddPipe<Type>(Func<TContext, bool> executionFilter)
-        where Type : Pipe<TContext>
+    public PipeBuilder<TContext> AddPipe<T>(Func<TContext, bool> executionFilter)
+        where T : Pipe<TContext>
     {
-        pipes.Add(new()
+        pipes.Add(new PipeContainer
         {
-            Type = typeof(Type),
+            Type = typeof(T),
             ExecutionFilter = executionFilter
         });
         return this;
-    }
-
-    public IReadOnlyCollection<PipeContainer> GetPipes()
-    {
-        return new List<PipeContainer>(pipes);
     }
 
     public Func<TContext, Task> Build()
@@ -58,32 +54,29 @@ public class PipeBuilder<TContext>
         if (index < pipes.Count - 1)
         {
             var child = CreatePipe(index + 1);
-            var pipe = (Pipe<TContext>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(child, pipes[index].Type));
-
+            var pipe = (Pipe<TContext>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(child, pipes[index].Type))!;
             return context =>
             {
                 if (context.ResolveAttributes(pipes[index].Type) && pipes[index].ExecutionFilter(context))
                     return pipe.Handle(context);
-                else
-                    return child(context);
+
+                return child(context);
             };
         }
-        else
+
+        var finalPipe = (Pipe<TContext>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(mainAction, pipes[index].Type))!;
+        return context =>
         {
-            var finalPipe = (Pipe<TContext>)Activator.CreateInstance(pipes[index].Type, ResolveDependencies(mainAction, pipes[index].Type));
-            return context =>
-            {
-                if (context.ResolveAttributes(pipes[index].Type) && pipes[index].ExecutionFilter(context))
-                    return finalPipe.Handle(context);
-                else
-                    return mainAction(context);
-            };
-        }
+            if (context.ResolveAttributes(pipes[index].Type) && pipes[index].ExecutionFilter(context))
+                return finalPipe.Handle(context);
+
+            return mainAction(context);
+        };
     }
 
     private object[] ResolveDependencies(object firstParam, Type type)
     {
-        var parameters = new List<object>()
+        var parameters = new List<object>
         {
             firstParam
         };
@@ -91,14 +84,12 @@ public class PipeBuilder<TContext>
         var ctor = type.GetConstructors()[0];
 
         foreach (var param in ctor.GetParameters().Skip(1))
-        {
             parameters.Add(provider.GetService(param.ParameterType));
-        }
 
         return parameters.ToArray();
     }
 
-    public class PipeContainer
+    private class PipeContainer
     {
         public Type Type { get; init; }
         public Func<TContext, bool> ExecutionFilter { get; init; }

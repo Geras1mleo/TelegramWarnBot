@@ -6,28 +6,20 @@ global using System.Text.RegularExpressions;
 global using System.Runtime.InteropServices;
 global using System.Threading.Tasks;
 global using System.Reflection;
-
 global using TelegramWarnBot;
-
 global using Telegram.Bot;
 global using Telegram.Bot.Polling;
 global using Telegram.Bot.Types;
 global using Telegram.Bot.Types.Enums;
 global using Telegram.Bot.Exceptions;
-
 global using Newtonsoft.Json;
 global using SmartFormat;
 global using SmartFormat.Core.Settings;
-
 global using Serilog;
 global using Serilog.Core;
 global using Serilog.Events;
-global using Serilog.Configuration;
-global using Serilog.Formatting.Json;
-
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Hosting;
-
 global using McMaster.Extensions.CommandLineUtils;

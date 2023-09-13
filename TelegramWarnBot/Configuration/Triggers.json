@@ -1,43 +1,72 @@
 [
   {
     "Chat": null,
-    "Messages": [ "Russia" ],
-    "Responses": [ "russia is written in lower case 😉" ],
+    "Messages": [
+      "Russia"
+    ],
+    "Responses": [
+      "russia is written in lower case 😉"
+    ],
     "MatchCase": true,
     "MatchWholeMessage": false
   },
   {
     "Chat": null,
-    "Messages": [ "росіянин", "росиянин", "росіянка", "росиянка" ],
-    "Responses": [ "У нас прийнято говорити москаль 😉" ],
+    "Messages": [
+      "росіянин",
+      "росиянин",
+      "росіянка",
+      "росиянка"
+    ],
+    "Responses": [
+      "У нас прийнято говорити москаль 😉"
+    ],
     "MatchCase": false,
     "MatchWholeMessage": false
   },
   {
     "Chat": null,
-    "Messages": [ "москалі" ],
-    "Responses": [ "Можна навіть шміраки!" ],
+    "Messages": [
+      "москалі"
+    ],
+    "Responses": [
+      "Можна навіть шміраки!"
+    ],
     "MatchCase": false,
     "MatchWholeMessage": false
   },
   {
     "Chat": null,
-    "Messages": [ "our russophobia", "western russophobia" ],
-    "Responses": [ "Is not enough!" ],
+    "Messages": [
+      "our russophobia",
+      "western russophobia"
+    ],
+    "Responses": [
+      "Is not enough!"
+    ],
     "MatchCase": false,
     "MatchWholeMessage": true
   },
   {
     "Chat": -1001505758084,
-    "Messages": [ "good russians", "nice russians" ],
-    "Responses": [ "Do not exist!" ],
+    "Messages": [
+      "good russians",
+      "nice russians"
+    ],
+    "Responses": [
+      "Do not exist!"
+    ],
     "MatchCase": false,
     "MatchWholeMessage": true
   },
   {
     "Chat": null,
-    "Messages": [ "pidor" ],
-    "Responses": [ "{SenderUser} is gay" ],
+    "Messages": [
+      "pidor"
+    ],
+    "Responses": [
+      "{SenderUser} is gay"
+    ],
     "MatchCase": false,
     "MatchWholeMessage": true
   }

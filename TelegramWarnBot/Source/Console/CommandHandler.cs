@@ -7,8 +7,8 @@ public interface IConsoleCommandHandler
 
 public class ConsoleCommandHandler : IConsoleCommandHandler
 {
-    private readonly IServiceProvider serviceProvider;
     private readonly ILogger<ConsoleCommandHandler> logger;
+    private readonly IServiceProvider serviceProvider;
 
     public ConsoleCommandHandler(IServiceProvider serviceProvider,
                                  ILogger<ConsoleCommandHandler> logger)
@@ -29,19 +29,18 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
                 // Creating every time new object bc of some bugs...
                 var console = new CommandLineApplicationWithDI(serviceProvider)
                 {
-                    UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue,
+                    UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue
                 };
                 commandInput = Console.ReadLine();
 
-                if (commandInput is null) continue;
+                if (commandInput is null)
+                    continue;
 
                 commandArgs = Tools.ConsoleCommandRegex.Matches(commandInput)
-                                                       .Cast<Match>()
-                                                       .Select(m => m.Value)
-                                                       .ToArray();
+                    .Select(m => m.Value)
+                    .ToArray();
 
                 if (commandArgs.Length > 0)
-                {
                     commandArgs[0] = commandArgs[0] switch
                     {
                         "l" => "leave",
@@ -51,7 +50,6 @@ public class ConsoleCommandHandler : IConsoleCommandHandler
                         "v" => "version",
                         _ => commandArgs[0]
                     };
-                }
 
                 try
                 {

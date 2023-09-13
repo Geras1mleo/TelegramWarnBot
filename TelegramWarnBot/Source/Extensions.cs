@@ -4,15 +4,13 @@ public static class Extensions
 {
     public static bool Validate(this Update update)
     {
-        Chat chat = update.GetChat();
+        var chat = update.GetChat();
 
         if (update.GetFromUser() is null)
             return false;
 
         if (chat is not null)
-        {
             return chat.Type == ChatType.Group || chat.Type == ChatType.Supergroup;
-        }
 
         return false;
     }
@@ -67,33 +65,33 @@ public static class Extensions
 
     public static string Truncate(this string str, int maxLength)
     {
-        return str?[0..Math.Min(str.Length, maxLength)] + (str.Length > maxLength ? "..." : "");
+        return str[..Math.Min(str.Length, maxLength)] + (str.Length > maxLength ? "..." : "");
     }
 
-    public static string GetName(this User user)
+    public static string BuildMessageHyperlink(this UpdateContext context)
     {
-        return $"{user.FirstName}{user.LastName?.Insert(0, " ")}";
+        return $"[{context.ChatDTO.Name}](tg://privatepost?channel={context.ChatDTO.Id.ToString()[4..]}&post={context.MessageId})";
     }
 
     public static UserDTO Map(this User user)
     {
-        return new()
+        return new UserDTO
         {
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Username = user.Username,
+            Username = user.Username
         };
     }
 
     public static User Map(this UserDTO user)
     {
-        return new()
+        return new User
         {
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Username = user.Username,
+            Username = user.Username
         };
     }
 
@@ -104,12 +102,12 @@ public static class Extensions
             CaseSensitivity = CaseSensitivityType.CaseInsensitive,
             Formatter = new FormatterSettings
             {
-                ErrorAction = FormatErrorAction.Ignore,
+                ErrorAction = FormatErrorAction.Ignore
             },
-            Parser = new SmartFormat.Core.Settings.ParserSettings
+            Parser = new ParserSettings
             {
-                ErrorAction = ParseErrorAction.Ignore,
-            },
+                ErrorAction = ParseErrorAction.Ignore
+            }
         });
 
         formatter.OnFormattingFailure += (sender, e) =>

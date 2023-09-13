@@ -2,12 +2,12 @@
 
 public class SendCommand : CommandLineApplication, ICommand
 {
-    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly ICachedDataContext cachedDataContext;
-    private readonly ILogger<SendCommand> logger;
 
     private readonly CommandOption chatOption;
+    private readonly ILogger<SendCommand> logger;
     private readonly CommandArgument messageArgument;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
 
     public SendCommand(ITelegramBotClientProvider telegramBotClientProvider,
                        ICachedDataContext cachedDataContext,
@@ -20,8 +20,10 @@ public class SendCommand : CommandLineApplication, ICommand
         Name = "send";
         Description = "Sending message into one specific chat or all cached chats";
 
-        chatOption = Option("-c | --chat", "Chat with according Chat Id. If not specified, message is sent to all chats", CommandOptionType.SingleValue, c => c.DefaultValue = "all");
-        messageArgument = Argument("Message", "Message to send. Please use \"\" to indicate message. Markdown formating allowed", c => c.Accepts().MinLength(3)).IsRequired(allowEmptyStrings: false);
+        chatOption = Option("-c | --chat", "Chat with according Chat Id. If not specified, message is sent to all chats", CommandOptionType.SingleValue,
+                            c => c.DefaultValue = "all");
+        messageArgument = Argument("Message", "Message to send. Please use \"\" to indicate message. Markdown formating allowed", c => c.Accepts().MinLength(3))
+            .IsRequired();
     }
 
     public int OnExecute()
@@ -42,21 +44,17 @@ public class SendCommand : CommandLineApplication, ICommand
                 chats.Add(chat);
         }
 
-        for (int i = 0; i < chats.Count; i++)
-        {
+        for (var i = 0; i < chats.Count; i++)
             if (chats[i].Id != 0)
-            {
                 try
                 {
                     telegramBotClientProvider.SendMessageAsync(chats[i].Id, message)
-                              .GetAwaiter().GetResult();
+                        .GetAwaiter().GetResult();
                 }
                 catch (Exception e)
                 {
                     logger.LogError("Error occured while sending message into chat: {chat}. \nError message: {error}", chats[i].Name, e.Message);
                 }
-            }
-        }
 
         logger.LogInformation("Message \"{message}\" sent into chats: {@chats}",
                               message.Truncate(50),

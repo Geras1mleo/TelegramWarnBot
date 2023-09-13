@@ -11,16 +11,14 @@ public interface IBot
 
 public class Bot : IBot
 {
+    private readonly ICachedDataContext cachedDataContext;
+    private readonly IConfigurationContext configurationContext;
+    private readonly ILogger<Bot> logger;
     private readonly IServiceProvider serviceProvider;
     private readonly ITelegramBotClientProvider telegramBotClientProvider;
-    private readonly IConfigurationContext configurationContext;
-    private readonly ICachedDataContext cachedDataContext;
     private readonly IUpdateContextBuilder updateContextBuilder;
-    private readonly ILogger<Bot> logger;
 
     private Func<UpdateContext, Task> pipe;
-
-    public User BotUser { get; private set; }
 
     public Bot(IServiceProvider serviceProvider,
                ITelegramBotClientProvider telegramBotClientProvider,
@@ -36,6 +34,8 @@ public class Bot : IBot
         this.updateContextBuilder = updateContextBuilder;
         this.logger = logger;
     }
+
+    public User BotUser { get; private set; }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -76,7 +76,7 @@ public class Bot : IBot
         {
             var chat = update.GetChat();
             // Update that raised exception will be saved in Logs.json (and sent to tech support in private messages)
-            logger.LogError(exception, "Handler error on update {@update} in chat {chat}", update, ($"{chat?.Title}: {chat?.Id}"));
+            logger.LogError(exception, "Handler error on update {@update} in chat {chat}", update, $"{chat?.Title}: {chat?.Id}");
             return Task.CompletedTask;
         }
     }

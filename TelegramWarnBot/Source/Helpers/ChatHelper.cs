@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace TelegramWarnBot;
+﻿namespace TelegramWarnBot;
 
 public interface IChatHelper
 {
@@ -11,9 +9,9 @@ public interface IChatHelper
 
 public class ChatHelper : IChatHelper
 {
-    private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly ICachedDataContext cachedDataContext;
     private readonly IConfigurationContext configurationContext;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
 
     public ChatHelper(ITelegramBotClientProvider telegramBotClientProvider,
                       ICachedDataContext cachedDataContext,
@@ -40,21 +38,14 @@ public class ChatHelper : IChatHelper
 
         // Adding bot to list of admins only when bot can delete messages and restrict members
         foreach (var admin in admins)
-        {
             if (admin.User.Id == botId)
             {
                 if (admin is ChatMemberAdministrator chatAdministrator)
-                {
                     if (!chatAdministrator.CanDeleteMessages
                      || !chatAdministrator.CanRestrictMembers)
-                    {
                         return admins.Select(member => member.User.Id).Where(id => id != botId).ToList();
-                    }
-                    break;
-                }
                 break;
             }
-        }
 
         return admins.Select(member => member.User.Id).ToList();
     }

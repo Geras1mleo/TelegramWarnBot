@@ -6,7 +6,7 @@ public enum ResolveMentionedUserResult
     UserNotMentioned,
     UserNotFound,
     BotMention,
-    BotSelfMention,
+    BotSelfMention
 }
 
 public class ResponseContext

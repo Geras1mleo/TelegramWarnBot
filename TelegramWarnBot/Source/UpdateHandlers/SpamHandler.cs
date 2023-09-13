@@ -4,13 +4,13 @@
 [BotAdmin]
 public class SpamHandler : Pipe<UpdateContext>
 {
-    private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
-    private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly IConfigurationContext configurationContext;
+    private readonly IDateTimeProvider dateTimeProvider;
+    private readonly IInMemoryCachedDataContext inMemoryCachedDataContext;
+    private readonly ILogger<SpamHandler> logger;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
-    private readonly IDateTimeProvider dateTimeProvider;
-    private readonly ILogger<SpamHandler> logger;
 
     public SpamHandler(Func<UpdateContext, Task> next,
                        IInMemoryCachedDataContext inMemoryCachedDataContext,
@@ -55,7 +55,7 @@ public class SpamHandler : Pipe<UpdateContext>
         var deletingTask = responseHelper.DeleteMessageAsync(context);
 
         logger.LogInformation("[Spam] Message \"{message}\" from {user} in chat {chat} has been deleted",
-                              isTextSpam? context.Text.Truncate(50) : "[media content]",
+                              isTextSpam ? context.Text.Truncate(50) : "[media content]",
                               context.UserDTO.GetName(),
                               context.ChatDTO.Name);
 

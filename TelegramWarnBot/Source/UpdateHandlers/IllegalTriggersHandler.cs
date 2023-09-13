@@ -5,13 +5,13 @@
 [BotAdmin]
 public class IllegalTriggersHandler : Pipe<UpdateContext>
 {
-    private readonly ITelegramBotClientProvider telegramBotClientProvider;
-    private readonly IConfigurationContext configurationContext;
     private readonly ICachedDataContext cachedDataContext;
+    private readonly ICommandService commandService;
+    private readonly IConfigurationContext configurationContext;
+    private readonly ILogger<IllegalTriggersHandler> logger;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
-    private readonly ICommandService commandService;
-    private readonly ILogger<IllegalTriggersHandler> logger;
+    private readonly ITelegramBotClientProvider telegramBotClientProvider;
 
     public IllegalTriggersHandler(Func<UpdateContext, Task> next,
                                   ITelegramBotClientProvider telegramBotClientProvider,
@@ -53,32 +53,31 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
 
             await NotifyAdminsAsync(context, trigger);
 
-            if (trigger.DeleteMessage) 
+            if (trigger.DeleteMessage)
                 await DeleteMessageAsync(context);
 
             // Notify but don't warn admins and don't delete message if not allowed in config
             if (trigger.WarnMember)
-            {
                 if (!context.IsSenderAdmin || configurationContext.Configuration.AllowAdminWarnings)
                 {
                     var chatWarning = commandService.ResolveChatWarning(context.ChatDTO.Id);
                     var warnedUser = commandService.ResolveWarnedUser(context.UserDTO.Id, chatWarning);
 
                     var isBanned = await commandService.Warn(warnedUser,
-                                                           chatWarning.ChatId,
-                                                           !context.IsSenderAdmin,
-                                                           context);
+                                                             chatWarning.ChatId,
+                                                             !context.IsSenderAdmin,
+                                                             context);
 
                     LogWarned(isBanned, context.ChatDTO, warnedUser);
 
-                    return responseHelper.SendMessageAsync(new()
+                    return responseHelper.SendMessageAsync(new ResponseContext
                     {
-                        Message = isBanned ? configurationContext.Configuration.Captions.IllegalTriggerBanned
-                                           : configurationContext.Configuration.Captions.IllegalTriggerWarned,
+                        Message = isBanned
+                            ? configurationContext.Configuration.Captions.IllegalTriggerBanned
+                            : configurationContext.Configuration.Captions.IllegalTriggerWarned,
                         MentionedUserId = warnedUser.Id
                     }, context);
                 }
-            }
 
             // Match only 1 trigger
             return next(context);
@@ -108,16 +107,15 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
         var notified = new List<long>();
 
         foreach (var adminId in trigger.NotifiedAdmins)
-        {
             try
             {
                 await telegramBotClientProvider.SendMessageAsync(adminId,
-                                                                  $"*Illegal message detected!*" +
-                                                                  $"\nChat: {Tools.BuildMessageHyperlink(context.ChatDTO, context.Update.Message)}" +
-                                                                  $"\nFrom: {context.UserDTO}" +
-                                                                  $"\nSent: {context.Update.Message!.Date}" +
-                                                                  $"\nContent: \"{context.Text.Truncate(30)}\"",
-                                                                  cancellationToken: context.CancellationToken);
+                                                                 $"*Illegal message detected!*" +
+                                                                 $"\nChat: {context.BuildMessageHyperlink()}" +
+                                                                 $"\nFrom: {context.UserDTO}" +
+                                                                 $"\nSent: {context.Update.Message!.Date}" +
+                                                                 $"\nContent: \"{context.Text.Truncate(30)}\"",
+                                                                 cancellationToken: context.CancellationToken);
 
                 notified.Add(adminId);
             }
@@ -125,7 +123,6 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
             {
                 logger.LogInformation("Could not notify admin {admin} about an illegal trigger..\n{message}", adminId, e.Message);
             }
-        }
 
         if (notified.Count > 0)
             logger.LogInformation("Notified admins about triggered action: {@admins}", notified);
@@ -137,9 +134,9 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
 
         if (banned)
             logger.LogInformation("[Auto] Banned user {user} from chat {chat}.",
-                                   userName, chat.Name);
+                                  userName, chat.Name);
         else
             logger.LogInformation("[Auto] Warned user {user} in chat {chat}. Warnings: {currentWarns} / {maxWarns}",
-                                   userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
+                                  userName, chat.Name, warnedUser.Warnings, configurationContext.Configuration.MaxWarnings);
     }
 }

@@ -7,8 +7,6 @@ public interface IInMemoryCachedDataContext
 
 public class InMemoryCachedDataContext : IOContextBase, IInMemoryCachedDataContext
 {
-    private readonly List<MemberDTO> members = new();
-    public List<MemberDTO> Members => members;
-
     public InMemoryCachedDataContext(IHostEnvironment hostEnvironment) : base(hostEnvironment) { }
+    public List<MemberDTO> Members { get; } = new();
 }

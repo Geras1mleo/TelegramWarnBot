@@ -1,5 +1,4 @@
 ﻿namespace TelegramWarnBot;
 
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-sealed class TextMessageUpdateAttribute : Attribute
-{ }
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+internal sealed class TextMessageUpdateAttribute : Attribute { }

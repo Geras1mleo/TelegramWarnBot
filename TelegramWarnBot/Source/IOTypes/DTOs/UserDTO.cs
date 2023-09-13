@@ -2,9 +2,11 @@
 
 public class UserDTO
 {
-    public string Username { get; set; }
+    private string _fullName;
 
     private string firstName;
+    public string Username { get; set; }
+
     public string FirstName
     {
         get => firstName;
@@ -19,10 +21,9 @@ public class UserDTO
             firstName = value;
         }
     }
+
     public string LastName { get; set; }
     public long Id { get; set; }
-
-    private string _fullName = null;
 
     public string GetName()
     {
