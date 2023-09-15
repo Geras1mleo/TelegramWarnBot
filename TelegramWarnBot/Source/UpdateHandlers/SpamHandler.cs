@@ -59,7 +59,7 @@ public class SpamHandler : Pipe<UpdateContext>
                               context.UserDTO.GetName(),
                               context.ChatDTO.Name);
 
-        cachedDataContext.Spam.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Text });
+        cachedDataContext.Spam.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Text, Time = DateTime.Now });
 
         return deletingTask;
     }
