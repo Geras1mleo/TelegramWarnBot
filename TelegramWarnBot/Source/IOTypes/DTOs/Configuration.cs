@@ -3,6 +3,7 @@
 public class Configuration
 {
     public int UpdateDelay { get; set; }
+    public int StatsDelay { get; set; }
     public int MaxWarnings { get; set; }
     public bool DeleteWarnMessage { get; set; }
     public bool DeleteJoinedLeftMessage { get; set; }

@@ -20,6 +20,8 @@
         <None Remove="Data\Logs.json"/>
         <None Remove="Data\Spam.json"/>
         <None Remove="Data\Users.json"/>
+        <None Remove="appsettings.Windows.json" />
+        <None Remove="appsettings.Linux.json" />
     </ItemGroup>
 
     <ItemGroup>
@@ -60,28 +62,20 @@
 
 
     <ItemGroup>
-        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0-preview.6.22324.4"/>
-        <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.0"/>
-        <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.1-dev-00337"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.2-dev-00890"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00947"/>
-        <PackageReference Include="SmartFormat.NET" Version="3.1.0"/>
-        <PackageReference Include="Telegram.Bot" Version="18.0.0"/>
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0-preview.6.22324.4" />
+        <PackageReference Include="Serilog.Extensions.Hosting" Version="7.0.0" />
+        <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.1" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.2-dev-00890" />
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00947" />
+        <PackageReference Include="SmartFormat.NET" Version="3.1.0" />
+        <PackageReference Include="Telegram.Bot" Version="18.0.0" />
     </ItemGroup>
 
 
     <ItemGroup>
         <None Update="appsettings.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="appsettings.Linux.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <DependentUpon>appsettings.json</DependentUpon>
-        </None>
-        <None Update="appsettings.Windows.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <DependentUpon>appsettings.json</DependentUpon>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 

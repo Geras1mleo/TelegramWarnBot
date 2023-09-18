@@ -2,16 +2,16 @@
 
 public class TelegramSink : ILogEventSink
 {
-    private readonly long[] notifyBotOwners;
+    private readonly long[] admins;
 
-    public TelegramSink(long[] notifyBotOwners)
+    public TelegramSink(long[] admins)
     {
-        this.notifyBotOwners = notifyBotOwners;
+        this.admins = admins;
     }
 
     public void Emit(LogEvent logEvent)
     {
-        if (notifyBotOwners is null || logEvent.Exception is RequestException)
+        if (admins is null || logEvent.Exception is RequestException)
             return;
 
         string message;
@@ -34,7 +34,7 @@ public class TelegramSink : ILogEventSink
 
         try
         {
-            foreach (var userId in notifyBotOwners)
+            foreach (var userId in admins)
                 TelegramBotClientProvider.Shared.SendMessageAsync(userId, $"{logEvent.Level}: " + message)
                     .GetAwaiter().GetResult();
         }

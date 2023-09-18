@@ -18,6 +18,7 @@ global using SmartFormat.Core.Settings;
 global using Serilog;
 global using Serilog.Core;
 global using Serilog.Events;
+global using Serilog.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;

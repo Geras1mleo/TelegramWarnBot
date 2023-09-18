@@ -17,6 +17,7 @@ public class Bot : IBot
     private readonly IServiceProvider serviceProvider;
     private readonly ITelegramBotClientProvider telegramBotClientProvider;
     private readonly IUpdateContextBuilder updateContextBuilder;
+    private readonly IStatsController statsController;
 
     private Func<UpdateContext, Task> pipe;
 
@@ -25,7 +26,8 @@ public class Bot : IBot
                IConfigurationContext configurationContext,
                ICachedDataContext cachedDataContext,
                IUpdateContextBuilder updateContextBuilder,
-               ILogger<Bot> logger)
+               ILogger<Bot> logger,
+               IStatsController statsController)
     {
         this.serviceProvider = serviceProvider;
         this.telegramBotClientProvider = telegramBotClientProvider;
@@ -33,6 +35,7 @@ public class Bot : IBot
         this.cachedDataContext = cachedDataContext;
         this.updateContextBuilder = updateContextBuilder;
         this.logger = logger;
+        this.statsController = statsController;
     }
 
     public User BotUser { get; private set; }
@@ -51,8 +54,10 @@ public class Bot : IBot
         cachedDataContext.CacheUser(BotUser);
         cachedDataContext.BeginUpdate(configurationContext.Configuration.UpdateDelay, cancellationToken);
 
-        logger.LogInformation("Bot {botName} running.", BotUser.FirstName);
-        logger.LogInformation("Version: {version}", Assembly.GetEntryAssembly().GetName().Version);
+        statsController.StartTrace(cancellationToken);
+
+        logger.LogInformation("Bot {botName} running", BotUser.FirstName);
+        logger.LogInformation("Version: {version}", Assembly.GetEntryAssembly()!.GetName().Version);
 
         Console.Title = BotUser.FirstName;
     }
@@ -68,7 +73,7 @@ public class Bot : IBot
             var context = updateContextBuilder.Build(update, BotUser, cancellationToken);
 
             //if (!context.IsJoinedLeftUpdate && context.ChatDTO is null)
-            //    throw new Exception("Message from uncached chat!");
+            // throw new Exception("Message from uncached chat!");
 
             return pipe(context);
         }

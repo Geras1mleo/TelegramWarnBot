@@ -131,6 +131,7 @@ public class CachedDataContext : IOContextBase, ICachedDataContext
     {
         Task.Run(async () =>
         {
+            Log.Information("Caching data each {seconds} seconds", delaySeconds);
             while (true)
             {
                 await Task.Delay(delaySeconds * 1000, cancellationToken);

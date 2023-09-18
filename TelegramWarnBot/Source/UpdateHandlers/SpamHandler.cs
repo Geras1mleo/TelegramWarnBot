@@ -11,6 +11,7 @@ public class SpamHandler : Pipe<UpdateContext>
     private readonly ILogger<SpamHandler> logger;
     private readonly IMessageHelper messageHelper;
     private readonly IResponseHelper responseHelper;
+    private readonly IStatsController statsController;
 
     public SpamHandler(Func<UpdateContext, Task> next,
                        IInMemoryCachedDataContext inMemoryCachedDataContext,
@@ -19,7 +20,8 @@ public class SpamHandler : Pipe<UpdateContext>
                        IResponseHelper responseHelper,
                        IDateTimeProvider dateTimeProvider,
                        ILogger<SpamHandler> logger,
-                       ICachedDataContext cachedDataContext) : base(next)
+                       ICachedDataContext cachedDataContext,
+                       IStatsController statsController) : base(next)
     {
         this.inMemoryCachedDataContext = inMemoryCachedDataContext;
         this.configurationContext = configurationContext;
@@ -28,6 +30,7 @@ public class SpamHandler : Pipe<UpdateContext>
         this.dateTimeProvider = dateTimeProvider;
         this.logger = logger;
         this.cachedDataContext = cachedDataContext;
+        this.statsController = statsController;
     }
 
     public override Task Handle(UpdateContext context)
@@ -59,7 +62,15 @@ public class SpamHandler : Pipe<UpdateContext>
                               context.UserDTO.GetName(),
                               context.ChatDTO.Name);
 
-        cachedDataContext.Spam.Add(new DeletedMessageLog { User = context.UserDTO.GetName(), Message = context.Text, Time = DateTime.Now });
+        var deletedMessageLog = new DeletedMessageLog
+        {
+            User = context.UserDTO.GetName(),
+            Message = context.Text,
+            Time = DateTime.Now
+        };
+
+        cachedDataContext.Spam.Add(deletedMessageLog);
+        statsController.AddDeletedSpamMessage(deletedMessageLog);
 
         return deletingTask;
     }

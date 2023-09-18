@@ -25,13 +25,16 @@ public static class AppConfiguration
         var builder = new ConfigurationBuilder()
             .SetBasePath(env.ContentRootPath)
             .AddJsonFile("appsettings.json", false, true)
-            .AddJsonFile($"appsettings.{envPlatform}.json", false, true)
             .AddEnvironmentVariables();
 
         // Configuring logger again with provided appsettings
+        var configurationRoot = builder.Build();
+
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
-            .ReadFrom.Configuration(builder.Build())
+            .WriteTo.SerilogTelegramSink(configurationRoot, LogEventLevel.Warning)
+            .WriteTo.SerilogTelegramInfoSink(configurationRoot, LogEventLevel.Verbose)
+            .ReadFrom.Configuration(configurationRoot)
             .CreateLogger();
 
         Log.Logger.Information("Configured successfully!");
@@ -55,6 +58,8 @@ public static class AppConfiguration
         services.AddSingleton<IConfigurationContext, ConfigurationContext>();
         services.AddSingleton<ICachedDataContext, CachedDataContext>();
         services.AddSingleton<IInMemoryCachedDataContext, InMemoryCachedDataContext>();
+
+        services.AddSingleton<IStatsController, StatsController>();
 
         services.AddTransient<IConsoleCommandHandler, ConsoleCommandHandler>();
         services.AddTransient<ICommand, RegisterCommand>();

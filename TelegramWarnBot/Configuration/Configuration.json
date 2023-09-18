@@ -1,5 +1,6 @@
 ﻿{
   "UpdateDelay": 60,
+  "StatsDelay": 24,
   "MaxWarnings": 3,
   "DeleteWarnMessage": false,
   "DeleteJoinedLeftMessage": true,

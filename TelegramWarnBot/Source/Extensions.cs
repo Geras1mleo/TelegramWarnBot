@@ -117,4 +117,26 @@ public static class Extensions
 
         return services.AddSingleton<ISmartFormatterProvider>(new SmartFormatterProvider(formatter));
     }
+
+    public static LoggerConfiguration SerilogTelegramSink(this LoggerSinkConfiguration sinkConfiguration,
+                                                          IConfigurationRoot configurationRoot,
+                                                          LogEventLevel restrictedToMinimumLevel)
+    {
+        return sinkConfiguration.Sink(new TelegramSink(configurationRoot
+                                                           .GetSection("SinkInfo:Admins")
+                                                           .Get<IList<long>>()?
+                                                           .ToArray()),
+                                      restrictedToMinimumLevel);
+    }
+
+    public static LoggerConfiguration SerilogTelegramInfoSink(this LoggerSinkConfiguration sinkConfiguration,
+                                                              IConfigurationRoot configurationRoot,
+                                                              LogEventLevel restrictedToMinimumLevel)
+    {
+        return sinkConfiguration.Sink(new TelegramInfoSink(configurationRoot
+                                                               .GetSection("SinkInfo:SuperAdmins")
+                                                               .Get<IList<long>>()?
+                                                               .ToArray()),
+                                      restrictedToMinimumLevel);
+    }
 }
