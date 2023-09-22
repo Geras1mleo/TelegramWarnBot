@@ -3,6 +3,7 @@
 public interface ITelegramBotClientProvider
 {
     Task<Message> SendMessageAsync(ChatId chatId, string text, int? replyToMessageId = null, CancellationToken cancellationToken = default);
+    Task<Message> SendHtmlMessageAsync(ChatId chatId, string text, int? replyToMessageId = null, CancellationToken cancellationToken = default);
     Task DeleteMessageAsync(ChatId chatId, int messageId, CancellationToken cancellationToken = default);
     Task BanChatMemberAsync(ChatId chatId, long userId, CancellationToken cancellationToken = default);
     Task UnbanChatMemberAsync(ChatId chatId, long userId, CancellationToken cancellationToken = default);
@@ -32,6 +33,11 @@ public class TelegramBotClientProvider : ITelegramBotClientProvider
     public Task<Message> SendMessageAsync(ChatId chatId, string text, int? replyToMessageId = null, CancellationToken cancellationToken = default)
     {
         return client.SendTextMessageAsync(chatId, text, ParseMode.Markdown, replyToMessageId: replyToMessageId, cancellationToken: cancellationToken);
+    }
+
+    public Task<Message> SendHtmlMessageAsync(ChatId chatId, string text, int? replyToMessageId = null, CancellationToken cancellationToken = default)
+    {
+        return client.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Html, replyToMessageId: replyToMessageId, cancellationToken: cancellationToken);
     }
 
     public Task DeleteMessageAsync(ChatId chatId, int messageId, CancellationToken cancellationToken = default)

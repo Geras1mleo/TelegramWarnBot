@@ -68,9 +68,9 @@ public static class Extensions
         return str[..Math.Min(str.Length, maxLength)] + (str.Length > maxLength ? "..." : "");
     }
 
-    public static string BuildMessageHyperlink(this UpdateContext context)
+    public static string BuildMessageHtmlHyperlink(this UpdateContext context)
     {
-        return $"[{context.ChatDTO.Name}](tg://privatepost?channel={context.ChatDTO.Id.ToString()[4..]}&post={context.MessageId})";
+        return $"<a href=\"tg://privatepost?channel={context.ChatDTO.Id.ToString()[4..]}&post={context.MessageId}\">{context.ChatDTO.Name}</a>";
     }
 
     public static UserDTO Map(this User user)

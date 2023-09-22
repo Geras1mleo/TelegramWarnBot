@@ -17,7 +17,7 @@
     "DeleteMessage": false,
     "IgnoreAdmins": false,
     "IllegalWords": [
-      "fuck admin"
+      "trigger", "@robin_thicke"
     ],
     "NotifiedAdmins": [
       713766114

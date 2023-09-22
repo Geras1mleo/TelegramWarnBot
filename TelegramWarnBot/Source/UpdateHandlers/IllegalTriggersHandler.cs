@@ -109,13 +109,12 @@ public class IllegalTriggersHandler : Pipe<UpdateContext>
         foreach (var adminId in trigger.NotifiedAdmins)
             try
             {
-                await telegramBotClientProvider.SendMessageAsync(adminId,
-                                                                 $"*Illegal message detected!*" +
-                                                                 $"\nChat: {context.BuildMessageHyperlink()}" +
-                                                                 $"\nFrom: {context.UserDTO}" +
-                                                                 $"\nSent: {context.Update.Message!.Date}" +
-                                                                 $"\nContent: \"{context.Text.Truncate(30)}\"",
-                                                                 cancellationToken: context.CancellationToken);
+                string text = $"<b>Illegal message detected!</b>" +
+                              $"\nChat: {context.BuildMessageHtmlHyperlink()}" +
+                              $"\nFrom: {context.UserDTO}" +
+                              $"\nSent: {context.Update.Message!.Date}" +
+                              $"\nContent: \"{context.Text.Truncate(30)}\"";
+                await telegramBotClientProvider.SendHtmlMessageAsync(adminId, text, cancellationToken: context.CancellationToken);
 
                 notified.Add(adminId);
             }
