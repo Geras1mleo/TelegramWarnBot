@@ -23,3 +23,11 @@ logger.LogInformation("Saving data...");
 cachedDataContext.SaveData();
 
 logger.LogInformation("Data saved successfully!");
+
+// TODO: Ukrainian Roulette
+// spin for extra warning or forgiveness
+// /spin command
+
+// TODO: Skip <count> updates on start of bot, use IOptions and CommandLine pkg
+
+// TODO: Warnings list: Save admin id that gave warning, date/time, optional reason
