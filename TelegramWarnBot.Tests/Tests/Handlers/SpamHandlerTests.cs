@@ -1,4 +1,6 @@
-﻿namespace TelegramWarnBot.Tests;
+﻿using Serilog.Core;
+
+namespace TelegramWarnBot.Tests;
 
 public class SpamHandlerTests
 {
@@ -22,7 +24,8 @@ public class SpamHandlerTests
                                responseHelper,
                                dateTimeProvider,
                                Substitute.For<ILogger<SpamHandler>>(),
-                               new MockedCachedContext());
+                               new MockedCachedContext(), 
+                               new StatsController(Substitute.For<ILogger<StatsController>>(), new MockedConfigurationContext()));
     }
 
     [Theory]
