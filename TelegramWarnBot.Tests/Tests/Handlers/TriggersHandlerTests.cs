@@ -42,7 +42,7 @@ public class TriggersHandlerTests
 
         responseHelper.SendMessageAsync(Arg.Any<ResponseContext>(),
                                         Arg.Any<UpdateContext>(),
-                                        Arg.Is(context.Update.Message.MessageId))
+                                        Arg.Is(context.MessageId))
                       .Returns(Task.CompletedTask);
 
         // Act
@@ -52,6 +52,6 @@ public class TriggersHandlerTests
         await responseHelper.Received(triggered ? 1 : 0)
                             .SendMessageAsync(Arg.Any<ResponseContext>(),
                                               Arg.Any<UpdateContext>(),
-                                              Arg.Is(context.Update.Message.MessageId));
+                                              Arg.Is(context.MessageId));
     }
 }

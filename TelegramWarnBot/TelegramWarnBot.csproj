@@ -5,7 +5,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
-        <AssemblyVersion>1.0.1.11</AssemblyVersion>
+        <AssemblyVersion>1.0.1.13</AssemblyVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -57,6 +57,10 @@
         </EmbeddedResource>
         <EmbeddedResource Include="Data\Illegal.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Data\SpamLog.json" />
+        <EmbeddedResource Include="Data\SpamLog.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
     </ItemGroup>
 

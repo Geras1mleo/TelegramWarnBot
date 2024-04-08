@@ -22,6 +22,7 @@ public class CommandHandler : Pipe<UpdateContext>
 
     public override async Task<Task> Handle(UpdateContext context)
     {
+        logger.LogWarning("handle command");
         var command = context.Text.Split(' ', '\n')[0][1..].ToLower();
 
         var method = Tools.ResolveMethod(warnController.GetType(), command);
@@ -31,7 +32,7 @@ public class CommandHandler : Pipe<UpdateContext>
             if (!context.IsChatRegistered)
             {
                 logger.LogWarning("Attempt to use command {command} in unregistered chat {chat}",
-                                  command, $"{context.ChatDTO.Name}: {context.ChatDTO.Id}");
+                                  command, $"{context.ChatDTO?.Name}: {context.ChatDTO?.Id}");
 
                 return responseHelper.SendMessageAsync(new ResponseContext
                 {
@@ -40,6 +41,7 @@ public class CommandHandler : Pipe<UpdateContext>
             }
 
             await (Task<Task>)method.Invoke(warnController, new object[] { context });
+            // Exception from Wcount?
         }
 
         return next(context);

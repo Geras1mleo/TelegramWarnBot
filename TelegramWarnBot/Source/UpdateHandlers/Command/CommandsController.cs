@@ -101,6 +101,7 @@ public class CommandsController : ICommandsController
 
     public Task WCount(UpdateContext context)
     {
+        logger.LogWarning("handle wcount");
         // todo all chats
         var resolveUser = commandService.TryResolveMentionedUser(context, out var mentionedUser);
 

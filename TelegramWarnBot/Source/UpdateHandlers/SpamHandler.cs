@@ -40,12 +40,15 @@ public class SpamHandler : Pipe<UpdateContext>
 
         var member = inMemoryCachedDataContext.Members.LastOrDefault(m => m.ChatId == context.ChatDTO.Id
                                                                        && m.UserId == context.UserDTO.Id);
+        // Log all suspicious messages
+        // SpamLogSink.Log(context.Update, member);
 
         // Member joined less than 24 (or other value from config) hours ago
         var joinedTime = dateTimeProvider.DateTimeNow - (member?.JoinedDate ?? DateTime.MinValue);
 
         if (joinedTime >= TimeSpan.FromHours(configurationContext.Configuration.NewMemberStatusFromHours))
             return next(context);
+
 
         var isTextSpam = context.IsText && (messageHelper.MatchLinkMessage(context.Update.Message)
                                          || messageHelper.MatchCardNumber(context.Text));

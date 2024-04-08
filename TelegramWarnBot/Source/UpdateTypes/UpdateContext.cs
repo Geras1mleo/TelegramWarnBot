@@ -12,7 +12,7 @@ public class UpdateContext : IContext
     public User Bot { get; init; }
     public ChatDTO ChatDTO { get; set; }
     public UserDTO UserDTO { get; set; }
-    public string Text { get; init; }
+    public string Text { get; init; } // TODO refactor with references (only getters)
     public int? MessageId { get; init; }
     public bool IsText { get; init; }
     public bool IsMessageUpdate { get; init; }

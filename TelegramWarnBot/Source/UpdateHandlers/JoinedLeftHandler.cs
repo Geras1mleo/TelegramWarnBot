@@ -27,10 +27,10 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
 
     public override async Task<Task> Handle(UpdateContext context)
     {
-        if (context.Update.Message!.Type == MessageType.ChatMembersAdded)
+        if (context.Update.Message?.Type == MessageType.ChatMembersAdded)
         {
             // If bot self has been added to new chat => greeting message
-            if (context.Update.Message.NewChatMembers.Any(m => m.Id == context.Bot.Id))
+            if (context.Update.Message.NewChatMembers!.Any(m => m.Id == context.Bot.Id))
             {
                 context.ChatDTO = cachedDataContext.CacheChat(context.Update.Message.Chat,
                                                               await chatHelper.GetAdminsAsync(context.Update.Message.Chat.Id,
@@ -47,9 +47,9 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
                 return Task.CompletedTask;
             }
 
-            return HandleJoinedAsync(context);
+            return HandleJoinedMessageAsync(context);
         }
-        if (context.Update.Message.Type == MessageType.ChatMemberLeft)
+        if (context.Update.Message?.Type == MessageType.ChatMemberLeft)
         {
             // If bot left chat / kicked from chat => clear data
             if (context.Update.Message.LeftChatMember!.Id == context.Bot.Id)
@@ -63,24 +63,40 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
                 return Task.CompletedTask;
             }
 
-            return HandleLeftAsync(context);
+            return HandleLeftMessageAsync(context);
+        }
+
+        if (context.Update.ChatMember?.NewChatMember.Status == ChatMemberStatus.Member)
+        {
+            if (!context.IsChatRegistered)
+                return Task.CompletedTask;
+
+            var member = context.Update.ChatMember.NewChatMember.User;
+            context.UserDTO = cachedDataContext.CacheUser(member);
+            inMemoryCachedDataContext.Members.Add(new MemberDTO
+            {
+                ChatId = context.Update.ChatMember.Chat.Id,
+                UserId = member.Id,
+                JoinedDate = DateTime.Now
+            });
+            return Task.CompletedTask;
         }
 
         return next(context);
     }
 
-    private async Task HandleJoinedAsync(UpdateContext context)
+    private async Task HandleJoinedMessageAsync(UpdateContext context)
     {
         if (!context.IsChatRegistered)
             return;
 
-        if (configurationContext.Configuration.DeleteJoinedLeftMessage)
-            if (context.IsBotAdmin)
-            {
-                await responseHelper.DeleteMessageAsync(context);
+        if (configurationContext.Configuration.DeleteJoinedLeftMessage
+         && context.IsBotAdmin)
+        {
+            await responseHelper.DeleteMessageAsync(context);
 
-                logger.LogInformation("Deleted joined message in chat {chat} successfully!", context.ChatDTO.Name);
-            }
+            logger.LogInformation("Deleted joined message in chat {chat} successfully!", context.ChatDTO.Name);
+        }
 
         foreach (var member in context.Update.Message.NewChatMembers)
             if (!member.IsBot)
@@ -95,7 +111,7 @@ public class JoinedLeftHandler : Pipe<UpdateContext>
             }
     }
 
-    private async Task HandleLeftAsync(UpdateContext context)
+    private async Task HandleLeftMessageAsync(UpdateContext context)
     {
         if (!context.IsChatRegistered)
             return;

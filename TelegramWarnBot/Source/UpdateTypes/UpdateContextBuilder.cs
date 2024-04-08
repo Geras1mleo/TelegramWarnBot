@@ -38,8 +38,9 @@ public class UpdateContextBuilder : IUpdateContextBuilder
             Text = update.Message?.Text,
             MessageId = update.Message?.MessageId,
             IsMessageUpdate = update.Type == UpdateType.Message,
-            IsJoinedLeftUpdate = update.Type == UpdateType.Message &&
-                                 (update.Message!.Type == MessageType.ChatMembersAdded || update.Message.Type == MessageType.ChatMemberLeft),
+            IsJoinedLeftUpdate = (update.Type == UpdateType.Message &&
+                                  (update.Message!.Type == MessageType.ChatMembersAdded || update.Message.Type == MessageType.ChatMemberLeft))
+                              || (update.Type == UpdateType.ChatMember && update.ChatMember!.NewChatMember.Status == ChatMemberStatus.Member),
             IsAdminsUpdate = (update.Type == UpdateType.ChatMember || update.Type == UpdateType.MyChatMember)
                           && (update.GetOldMember().Status == ChatMemberStatus.Administrator
                            || update.GetNewMember().Status == ChatMemberStatus.Administrator),
