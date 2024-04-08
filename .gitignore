@@ -368,3 +368,5 @@ FodyWeavers.xsd
 
 # Data folder
 Data/
+
+.idea/
